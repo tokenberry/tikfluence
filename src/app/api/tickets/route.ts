@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { z } from "zod"
 
+export const dynamic = "force-dynamic"
+
 const querySchema = z.object({
   status: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),

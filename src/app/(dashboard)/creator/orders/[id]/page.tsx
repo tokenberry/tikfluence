@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryForm from "./DeliveryForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function CreatorOrderDetailPage({
   params,
 }: {

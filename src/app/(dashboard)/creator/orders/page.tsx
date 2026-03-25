@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import AcceptOrderButton from "./AcceptOrderButton";
 
+export const dynamic = "force-dynamic";
+
 export default async function CreatorOrdersPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");

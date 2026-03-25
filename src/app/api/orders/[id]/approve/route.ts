@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth"
 import { createTransfer } from "@/lib/stripe"
 import { z } from "zod"
 
+export const dynamic = "force-dynamic"
+
 const approveSchema = z.object({
   approved: z.boolean(),
   rejectionReason: z.string().max(2000).optional(),

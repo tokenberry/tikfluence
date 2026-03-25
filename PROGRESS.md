@@ -135,9 +135,9 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `NEXTAUTH_URL` | Configured |
 | `STRIPE_SECRET_KEY` | Not set |
 | `STRIPE_WEBHOOK_SECRET` | Not set |
-| `GOOGLE_CLIENT_ID` | Not set (needed for Google OAuth) |
-| `GOOGLE_CLIENT_SECRET` | Not set (needed for Google OAuth) |
-| `RESEND_API_KEY` | Not set (needed for email notifications) |
+| `GOOGLE_CLIENT_ID` | Configured (Google Cloud Console) |
+| `GOOGLE_CLIENT_SECRET` | Configured (Google Cloud Console) |
+| `RESEND_API_KEY` | Configured (Resend — domain verified) |
 | `TIKTOK_CLIENT_KEY` | Not set |
 | `TIKTOK_CLIENT_SECRET` | Not set |
 
@@ -149,6 +149,48 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.1.0 | 2026-03-25 | Initial full-stack app: auth, 19 API routes, 20+ dashboard pages, Prisma schema, Vercel deployment |
 | 0.1.1 | 2026-03-25 | Enhanced database seed with full demo data (brands, creators, network, orders, deliveries, transactions, support ticket) |
 | 0.2.0 | 2026-03-25 | Google OAuth with onboarding flow + Resend email notifications (6 triggers across order lifecycle) |
+
+---
+
+## Session Logs
+
+### March 25, 2026
+
+**v0.1.0 → v0.1.1 — Database Seeding Enhancement**
+- Enhanced `prisma/seed.ts` from bare minimum (admin + categories) to full demo environment
+- Added: 3 brands, 5 creators (all tiers), 1 network, 7 orders (all lifecycle statuses), deliveries, transactions, 1 dispute support ticket
+- All operations use upsert for idempotency
+
+**v0.1.1 → v0.2.0 — Google OAuth + Email Notifications**
+- Added Google provider to NextAuth with `@auth/prisma-adapter`
+- New Prisma models: `Account`, `VerificationToken`
+- Made `User.password` and `User.role` optional for OAuth users
+- Built `/onboarding` page + `/api/onboarding` route for first-time OAuth users to pick role
+- Middleware redirects users without role to onboarding, blocks onboarded users from re-accessing it
+- Google sign-in buttons on both login and register pages
+- JWT callback refreshes role from DB when null (handles post-onboarding session update)
+- Installed `resend` package, created `src/lib/email.ts`
+- 6 email functions with Foxolog-branded HTML templates:
+  - `sendWelcomeEmail` — on register + onboarding
+  - `sendOrderAcceptedEmail` — brand notified when creator accepts
+  - `sendDeliverySubmittedEmail` — brand notified when delivery submitted
+  - `sendOrderApprovedEmail` — creator notified on approval with payout amount
+  - `sendOrderRejectedEmail` — creator notified with rejection reason
+  - `sendDisputeOpenedEmail` — all parties notified
+- Fire-and-forget pattern (never blocks API responses)
+- Graceful fallback when `RESEND_API_KEY` is not set
+
+**Infrastructure (done manually)**
+- Pushed schema to Neon database (`prisma db push`)
+- Ran seed script to populate demo data
+- Configured Google OAuth credentials in Vercel
+- Added Resend API key in Vercel
+- Verified foxolog.com domain in Resend (DNS records on Namecheap)
+- Merged PR #2
+
+**Files created:** `src/app/(auth)/onboarding/page.tsx`, `src/app/api/onboarding/route.ts`, `src/lib/email.ts`
+
+**Files modified:** `prisma/schema.prisma`, `prisma/seed.ts`, `src/lib/auth.ts`, `src/middleware.ts`, `src/app/(auth)/login/page.tsx`, `src/app/(auth)/register/page.tsx`, `src/app/api/register/route.ts`, `src/app/api/orders/[id]/accept/route.ts`, `src/app/api/orders/[id]/deliver/route.ts`, `src/app/api/orders/[id]/approve/route.ts`, `src/app/api/orders/[id]/dispute/route.ts`, `src/app/(dashboard)/admin/analytics/page.tsx`, `src/app/(dashboard)/admin/users/page.tsx`, `src/app/api/admin/analytics/route.ts`, `package.json`, `PROGRESS.md`
 
 ---
 

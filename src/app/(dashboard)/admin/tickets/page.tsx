@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminTicketsPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/login");

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { z } from "zod"
 
+export const dynamic = "force-dynamic"
+
 const disputeSchema = z.object({
   reason: z.string().min(1).max(5000),
 })

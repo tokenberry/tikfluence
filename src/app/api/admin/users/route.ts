@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { z } from "zod"
 
+export const dynamic = "force-dynamic"
+
 const querySchema = z.object({
   role: z.enum(["CREATOR", "NETWORK", "BRAND", "ADMIN"]).optional(),
   search: z.string().optional(),

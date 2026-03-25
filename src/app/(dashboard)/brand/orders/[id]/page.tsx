@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryActions from "./DeliveryActions";
 
+export const dynamic = "force-dynamic"
+
 export default async function BrandOrderDetailPage({
   params,
 }: {

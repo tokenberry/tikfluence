@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 
+export const dynamic = "force-dynamic"
+
 export default async function NetworkEarningsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");

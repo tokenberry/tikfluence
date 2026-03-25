@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
+export const dynamic = "force-dynamic"
+
 export default async function NetworkOrdersPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");

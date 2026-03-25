@@ -50,16 +50,16 @@ async function main() {
   // Create admin user
   const adminPassword = await bcrypt.hash("admin123", 12)
   await prisma.user.upsert({
-    where: { email: "admin@tikfluence.com" },
+    where: { email: "admin@foxolog.com" },
     update: {},
     create: {
-      email: "admin@tikfluence.com",
+      email: "admin@foxolog.com",
       password: adminPassword,
       name: "Admin",
       role: "ADMIN",
     },
   })
-  console.log("Created admin user (admin@tikfluence.com / admin123)")
+  console.log("Created admin user (admin@foxolog.com / admin123)")
 
   console.log("Seeding complete!")
 }

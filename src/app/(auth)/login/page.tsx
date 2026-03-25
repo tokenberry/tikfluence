@@ -42,7 +42,7 @@ export default function LoginPage() {
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Sign in to your Tikfluence account
+          Sign in to your Foxolog account
         </p>
       </div>
 

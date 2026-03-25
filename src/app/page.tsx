@@ -9,9 +9,9 @@ export default function HomePage() {
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">T</span>
+                <span className="text-primary-foreground font-bold text-sm">F</span>
               </div>
-              <span className="text-xl font-bold">Tikfluence</span>
+              <span className="text-xl font-bold">Foxolog</span>
             </div>
             <div className="flex items-center gap-4">
               <Link
@@ -104,7 +104,7 @@ export default function HomePage() {
       {/* Features */}
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-3xl font-bold">Why Tikfluence?</h2>
+          <h2 className="text-center text-3xl font-bold">Why Foxolog?</h2>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
@@ -163,12 +163,12 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">T</span>
+                <span className="text-primary-foreground font-bold text-xs">F</span>
               </div>
-              <span className="text-sm font-semibold">Tikfluence</span>
+              <span className="text-sm font-semibold">Foxolog</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Tikfluence. All rights reserved.
+              &copy; {new Date().getFullYear()} Foxolog. All rights reserved.
             </p>
           </div>
         </div>

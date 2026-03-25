@@ -135,9 +135,9 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `NEXTAUTH_URL` | Configured |
 | `STRIPE_SECRET_KEY` | Not set |
 | `STRIPE_WEBHOOK_SECRET` | Not set |
-| `GOOGLE_CLIENT_ID` | Not set (needed for Google OAuth) |
-| `GOOGLE_CLIENT_SECRET` | Not set (needed for Google OAuth) |
-| `RESEND_API_KEY` | Not set (needed for email notifications) |
+| `GOOGLE_CLIENT_ID` | Configured (Google Cloud Console) |
+| `GOOGLE_CLIENT_SECRET` | Configured (Google Cloud Console) |
+| `RESEND_API_KEY` | Configured (Resend — domain verified) |
 | `TIKTOK_CLIENT_KEY` | Not set |
 | `TIKTOK_CLIENT_SECRET` | Not set |
 

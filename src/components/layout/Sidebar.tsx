@@ -54,8 +54,8 @@ export default function Sidebar() {
                 href={link.href}
                 className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                    ? "bg-[#fdf6e3] text-[#d4772c]"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-[#d4772c]"
                 }`}
               >
                 {link.label}

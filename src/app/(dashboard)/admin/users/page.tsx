@@ -119,8 +119,8 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
                     <td className="px-6 py-4 text-gray-600">{user.email}</td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${roleColors[user.role] ?? "bg-gray-100 text-gray-700"}`}>
-                        {user.role}
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${(user.role && roleColors[user.role]) ?? "bg-gray-100 text-gray-700"}`}>
+                        {user.role ?? "NONE"}
                       </span>
                     </td>
                     <td className="px-6 py-4">

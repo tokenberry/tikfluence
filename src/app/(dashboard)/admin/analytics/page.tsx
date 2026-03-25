@@ -36,7 +36,7 @@ export default async function AdminAnalyticsPage() {
 
   const roleBreakdown = roleCounts.reduce(
     (acc, { role, _count }) => {
-      acc[role] = _count.role;
+      if (role) acc[role] = _count.role;
       return acc;
     },
     {} as Record<string, number>

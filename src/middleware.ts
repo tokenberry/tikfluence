@@ -30,8 +30,27 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Check role-based access for dashboard routes
+  // OAuth users without a role must complete onboarding
   const role = user.role
+  if (!role) {
+    if (pathname === "/onboarding") {
+      return NextResponse.next()
+    }
+    return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin))
+  }
+
+  // Users with a role cannot access onboarding
+  if (pathname === "/onboarding") {
+    const dashboardMap: Record<string, string> = {
+      CREATOR: "/creator/orders",
+      NETWORK: "/network/creators",
+      BRAND: "/brand/orders",
+      ADMIN: "/admin/users",
+    }
+    return NextResponse.redirect(
+      new URL(dashboardMap[role] || "/", req.nextUrl.origin)
+    )
+  }
   for (const [allowedRole, routes] of Object.entries(roleRoutes)) {
     for (const route of routes) {
       if (pathname.startsWith(route) && role !== allowedRole) {

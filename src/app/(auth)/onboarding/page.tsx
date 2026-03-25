@@ -1,18 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 type Role = "CREATOR" | "NETWORK" | "BRAND"
 
-export default function RegisterPage() {
+export default function OnboardingPage() {
   const router = useRouter()
+  const { update } = useSession()
   const [role, setRole] = useState<Role>("CREATOR")
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [tiktokUsername, setTiktokUsername] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [industry, setIndustry] = useState("")
@@ -23,48 +20,30 @@ export default function RegisterPage() {
     e.preventDefault()
     setError("")
 
-    // Client-side validation
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters")
-      return
-    }
-    if (name.length < 2) {
-      setError("Name must be at least 2 characters")
-      return
-    }
     if (role === "CREATOR" && !tiktokUsername.trim()) {
       setError("TikTok username is required for creators")
       return
     }
-    if (role === "NETWORK" && !companyName.trim()) {
-      setError("Company name is required for networks")
-      return
-    }
-    if (role === "BRAND" && !companyName.trim()) {
-      setError("Company name is required for brands")
+    if ((role === "NETWORK" || role === "BRAND") && !companyName.trim()) {
+      setError("Company name is required")
       return
     }
 
     setLoading(true)
 
     try {
-      const body: Record<string, string> = {
-        name,
-        email,
-        password,
-        role,
-      }
+      const body: Record<string, string> = { role }
 
       if (role === "CREATOR") {
         body.tiktokUsername = tiktokUsername
       } else if (role === "NETWORK") {
         body.companyName = companyName
       } else if (role === "BRAND") {
-        body.brandCompanyName = companyName
+        body.companyName = companyName
         if (industry) body.industry = industry
       }
 
-      const res = await fetch("/api/register", {
+      const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -73,11 +52,21 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Registration failed")
+        setError(data.error || "Failed to complete setup")
         return
       }
 
-      router.push("/login?registered=true")
+      // Trigger session update to refresh the role in JWT
+      await update()
+
+      // Redirect to role-specific dashboard
+      const dashboardMap: Record<Role, string> = {
+        CREATOR: "/creator/orders",
+        NETWORK: "/network/creators",
+        BRAND: "/brand/orders",
+      }
+      router.push(dashboardMap[role])
+      router.refresh()
     } catch {
       setError("Something went wrong. Please try again.")
     } finally {
@@ -106,9 +95,11 @@ export default function RegisterPage() {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Create an account</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Complete your profile
+        </h1>
         <p className="text-sm text-gray-500 mt-1">
-          Join Foxolog and start collaborating
+          Tell us about yourself to get started on Foxolog
         </p>
       </div>
 
@@ -143,61 +134,6 @@ export default function RegisterPage() {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Common fields */}
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Full Name
-          </label>
-          <input
-            id="name"
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="Your full name"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="reg-email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Email
-          </label>
-          <input
-            id="reg-email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="you@example.com"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="reg-password"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Password
-          </label>
-          <input
-            id="reg-password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="At least 8 characters"
-          />
         </div>
 
         {/* Role-specific fields */}
@@ -289,54 +225,9 @@ export default function RegisterPage() {
           disabled={loading}
           className="w-full py-2 px-4 bg-[#d4772c] text-white text-sm font-medium rounded-md hover:bg-[#b85c1a] focus:outline-none focus:ring-2 focus:ring-[#c86b1e] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? "Creating account..." : "Create account"}
+          {loading ? "Setting up..." : "Get started"}
         </button>
       </form>
-
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-400">or</span>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={() => signIn("google", { callbackUrl: "/" })}
-        className="w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
-      >
-        <svg className="h-5 w-5" viewBox="0 0 24 24">
-          <path
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-            fill="#4285F4"
-          />
-          <path
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            fill="#34A853"
-          />
-          <path
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-            fill="#FBBC05"
-          />
-          <path
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-            fill="#EA4335"
-          />
-        </svg>
-        Sign up with Google
-      </button>
-
-      <p className="mt-6 text-center text-sm text-gray-500">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="text-[#d4772c] hover:text-[#c86b1e] font-medium"
-        >
-          Sign in
-        </Link>
-      </p>
     </div>
   )
 }

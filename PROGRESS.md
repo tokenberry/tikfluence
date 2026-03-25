@@ -83,8 +83,8 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [ ] **Fox logo**: Replace placeholder SVG with actual Foxolog fox logo PNG
 - [ ] **Stripe integration**: Configure Stripe keys in Vercel env vars, test payment flow
 - [ ] **TikTok API**: Configure TikTok developer keys, test creator verification
-- [ ] **Google OAuth**: Add Google sign-in option (currently credentials only)
-- [ ] **Email notifications**: Set up Resend for transactional emails (order updates, etc.)
+- [x] **Google OAuth**: Google sign-in with PrismaAdapter, onboarding flow for new OAuth users (role selection + profile setup)
+- [x] **Email notifications**: Resend integration with 6 email triggers (welcome, order accepted, delivery submitted, approved, rejected, dispute). From `notifications@foxolog.com`
 - [x] **Database seeding**: Enhanced seed script with full demo data (3 brands, 5 creators across all tiers, 1 network, 7 orders at various statuses, deliveries, transactions, support ticket). Run with `npm run db:seed`
 
 ### Medium Priority
@@ -123,7 +123,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 4. **Admin routes** - Split into separate route files instead of catch-all `admin/[...path]`
 5. **No brands API route** - Brand profile managed through settings page
 6. **Hosting** - Using Vercel instead of DigitalOcean Droplet
-7. **No Resend email integration** yet
+7. **Resend email integration** added (v0.2.0)
 
 ---
 
@@ -135,6 +135,9 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `NEXTAUTH_URL` | Configured |
 | `STRIPE_SECRET_KEY` | Not set |
 | `STRIPE_WEBHOOK_SECRET` | Not set |
+| `GOOGLE_CLIENT_ID` | Not set (needed for Google OAuth) |
+| `GOOGLE_CLIENT_SECRET` | Not set (needed for Google OAuth) |
+| `RESEND_API_KEY` | Not set (needed for email notifications) |
 | `TIKTOK_CLIENT_KEY` | Not set |
 | `TIKTOK_CLIENT_SECRET` | Not set |
 
@@ -145,6 +148,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 |---------|------|---------|
 | 0.1.0 | 2026-03-25 | Initial full-stack app: auth, 19 API routes, 20+ dashboard pages, Prisma schema, Vercel deployment |
 | 0.1.1 | 2026-03-25 | Enhanced database seed with full demo data (brands, creators, network, orders, deliveries, transactions, support ticket) |
+| 0.2.0 | 2026-03-25 | Google OAuth with onboarding flow + Resend email notifications (6 triggers across order lifecycle) |
 
 ---
 

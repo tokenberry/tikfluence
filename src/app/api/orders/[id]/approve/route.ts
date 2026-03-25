@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { createTransfer } from "@/lib/stripe"
+import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -37,8 +38,20 @@ export async function POST(
         },
         assignments: {
           include: {
-            creator: { select: { id: true, stripeAccountId: true } },
-            network: { select: { id: true, stripeAccountId: true } },
+            creator: {
+              select: {
+                id: true,
+                stripeAccountId: true,
+                user: { select: { email: true, name: true } },
+              },
+            },
+            network: {
+              select: {
+                id: true,
+                stripeAccountId: true,
+                user: { select: { email: true, name: true } },
+              },
+            },
           },
         },
       },
@@ -140,6 +153,17 @@ export async function POST(
         })
       })
 
+      // Notify creator/network of approval
+      const assignee = assignment?.creator ?? assignment?.network
+      if (assignee?.user) {
+        sendOrderApprovedEmail(
+          assignee.user.email,
+          assignee.user.name,
+          order.title,
+          creatorPayout
+        )
+      }
+
       return NextResponse.json({ message: "Order approved and payment released" })
     } else {
       // Rejection
@@ -158,6 +182,18 @@ export async function POST(
           data: { status: "REVISION" },
         })
       })
+
+      // Notify creator/network of rejection
+      const assignment = order.assignments[0]
+      const rejectedAssignee = assignment?.creator ?? assignment?.network
+      if (rejectedAssignee?.user) {
+        sendOrderRejectedEmail(
+          rejectedAssignee.user.email,
+          rejectedAssignee.user.name,
+          order.title,
+          rejectionReason
+        )
+      }
 
       return NextResponse.json({ message: "Delivery rejected, revision requested" })
     }

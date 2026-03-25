@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { sendDeliverySubmittedEmail } from "@/lib/email"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -31,6 +32,7 @@ export async function POST(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
+        brand: { include: { user: { select: { email: true, name: true } } } },
         assignments: {
           include: {
             creator: { select: { userId: true } },
@@ -90,6 +92,13 @@ export async function POST(
 
       return delivery
     })
+
+    // Notify brand that delivery was submitted
+    sendDeliverySubmittedEmail(
+      order.brand.user.email,
+      order.brand.user.name,
+      order.title
+    )
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {

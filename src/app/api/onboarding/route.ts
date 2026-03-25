@@ -1,52 +1,45 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 import { sendWelcomeEmail } from "@/lib/email"
-import bcrypt from "bcryptjs"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
 
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(2),
+const onboardingSchema = z.object({
   role: z.enum(["CREATOR", "NETWORK", "BRAND"]),
-  // Creator-specific
   tiktokUsername: z.string().optional(),
-  // Network-specific
   companyName: z.string().optional(),
-  // Brand-specific
-  brandCompanyName: z.string().optional(),
   industry: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const data = registerSchema.parse(body)
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-    // Check if email already exists
-    const existing = await prisma.user.findUnique({
-      where: { email: data.email },
+    // Only allow onboarding for users without a role
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
     })
-    if (existing) {
+
+    if (user?.role) {
       return NextResponse.json(
-        { error: "Email already registered" },
+        { error: "Profile already completed" },
         { status: 400 }
       )
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 12)
+    const body = await req.json()
+    const data = onboardingSchema.parse(body)
 
-    // Create user with role-specific profile in a transaction
-    const user = await prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          email: data.email,
-          password: hashedPassword,
-          name: data.name,
-          role: data.role,
-        },
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: session.user.id },
+        data: { role: data.role },
       })
 
       if (data.role === "CREATOR") {
@@ -54,7 +47,6 @@ export async function POST(req: NextRequest) {
           throw new Error("TikTok username is required for creators")
         }
 
-        // Check if TikTok username already taken
         const existingCreator = await tx.creator.findUnique({
           where: { tiktokUsername: data.tiktokUsername },
         })
@@ -64,7 +56,7 @@ export async function POST(req: NextRequest) {
 
         await tx.creator.create({
           data: {
-            userId: newUser.id,
+            userId: session.user.id,
             tiktokUsername: data.tiktokUsername,
           },
         })
@@ -74,31 +66,33 @@ export async function POST(req: NextRequest) {
         }
         await tx.creatorNetwork.create({
           data: {
-            userId: newUser.id,
+            userId: session.user.id,
             companyName: data.companyName,
           },
         })
       } else if (data.role === "BRAND") {
-        if (!data.brandCompanyName) {
+        if (!data.companyName) {
           throw new Error("Company name is required for brands")
         }
         await tx.brand.create({
           data: {
-            userId: newUser.id,
-            companyName: data.brandCompanyName,
+            userId: session.user.id,
+            companyName: data.companyName,
             industry: data.industry,
           },
         })
       }
-
-      return newUser
     })
 
-    sendWelcomeEmail(data.email, data.name, data.role)
+    sendWelcomeEmail(
+      session.user.email,
+      session.user.name,
+      data.role
+    )
 
     return NextResponse.json(
-      { message: "Registration successful", userId: user.id },
-      { status: 201 }
+      { message: "Profile completed", role: data.role },
+      { status: 200 }
     )
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -107,7 +101,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    const message = error instanceof Error ? error.message : "Registration failed"
+    const message =
+      error instanceof Error ? error.message : "Onboarding failed"
     return NextResponse.json({ error: message }, { status: 400 })
   }
 }

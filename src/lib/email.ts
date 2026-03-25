@@ -1,0 +1,179 @@
+import { Resend } from "resend"
+
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null
+
+const FROM = "Foxolog <notifications@foxolog.com>"
+const BRAND_COLOR = "#d4772c"
+
+function emailWrapper(title: string, body: string): string {
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="color: ${BRAND_COLOR}; margin: 0; font-size: 24px;">Foxolog</h2>
+      </div>
+      <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
+        <h3 style="margin: 0 0 16px; color: #111827; font-size: 18px;">${title}</h3>
+        ${body}
+      </div>
+      <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 24px;">
+        &copy; ${new Date().getFullYear()} Foxolog. All rights reserved.
+      </p>
+    </div>
+  `
+}
+
+async function send(to: string, subject: string, html: string) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not set — skipping email:", subject)
+    return
+  }
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html })
+  } catch (err) {
+    console.error("[email] Failed to send:", subject, err)
+  }
+}
+
+export function sendWelcomeEmail(email: string, name: string, role: string) {
+  const roleLabels: Record<string, string> = {
+    CREATOR: "Creator",
+    NETWORK: "Creator Network",
+    BRAND: "Brand",
+  }
+  const html = emailWrapper(
+    "Welcome to Foxolog!",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${name},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      Your <strong>${roleLabels[role] || role}</strong> account has been created.
+      You're all set to start using the platform.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://www.foxolog.com/login" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        Sign in to Foxolog
+      </a>
+    </div>
+    `
+  )
+  void send(email, "Welcome to Foxolog!", html)
+}
+
+export function sendOrderAcceptedEmail(
+  brandEmail: string,
+  brandName: string,
+  orderTitle: string,
+  creatorName: string
+) {
+  const html = emailWrapper(
+    "Creator accepted your order",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${brandName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      <strong>${creatorName}</strong> has accepted your order
+      "<strong>${orderTitle}</strong>". They'll start working on it shortly.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://www.foxolog.com/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        View Order
+      </a>
+    </div>
+    `
+  )
+  void send(brandEmail, `Order accepted: ${orderTitle}`, html)
+}
+
+export function sendDeliverySubmittedEmail(
+  brandEmail: string,
+  brandName: string,
+  orderTitle: string
+) {
+  const html = emailWrapper(
+    "Delivery submitted — review needed",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${brandName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      A delivery has been submitted for "<strong>${orderTitle}</strong>".
+      Please review it and approve or request a revision.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://www.foxolog.com/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        Review Delivery
+      </a>
+    </div>
+    `
+  )
+  void send(brandEmail, `Delivery ready for review: ${orderTitle}`, html)
+}
+
+export function sendOrderApprovedEmail(
+  creatorEmail: string,
+  creatorName: string,
+  orderTitle: string,
+  payout: number
+) {
+  const html = emailWrapper(
+    "Your delivery was approved!",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${creatorName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      Great news! Your delivery for "<strong>${orderTitle}</strong>" has been approved.
+      A payout of <strong>$${payout.toFixed(2)}</strong> is being processed.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://www.foxolog.com/creator/earnings" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        View Earnings
+      </a>
+    </div>
+    `
+  )
+  void send(creatorEmail, `Approved: ${orderTitle}`, html)
+}
+
+export function sendOrderRejectedEmail(
+  creatorEmail: string,
+  creatorName: string,
+  orderTitle: string,
+  reason: string | undefined
+) {
+  const html = emailWrapper(
+    "Revision requested",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${creatorName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      The brand has requested a revision for "<strong>${orderTitle}</strong>".
+    </p>
+    ${reason ? `<p style="color: #374151; line-height: 1.6; background: #fef3c7; padding: 12px; border-radius: 6px;"><strong>Feedback:</strong> ${reason}</p>` : ""}
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://www.foxolog.com/creator/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        View Order
+      </a>
+    </div>
+    `
+  )
+  void send(creatorEmail, `Revision requested: ${orderTitle}`, html)
+}
+
+export function sendDisputeOpenedEmail(
+  emails: string[],
+  orderTitle: string
+) {
+  const html = emailWrapper(
+    "Dispute opened",
+    `
+    <p style="color: #374151; line-height: 1.6;">
+      A dispute has been opened for order "<strong>${orderTitle}</strong>".
+      Our support team will review the case and reach out with a resolution.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://www.foxolog.com" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        Go to Foxolog
+      </a>
+    </div>
+    `
+  )
+  for (const email of emails) {
+    void send(email, `Dispute opened: ${orderTitle}`, html)
+  }
+}

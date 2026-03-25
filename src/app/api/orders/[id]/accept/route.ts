@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { sendOrderAcceptedEmail } from "@/lib/email"
 
 export const dynamic = "force-dynamic"
 
@@ -26,6 +27,7 @@ export async function POST(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
+        brand: { include: { user: { select: { email: true, name: true } } } },
         _count: { select: { assignments: true } },
       },
     })
@@ -117,6 +119,18 @@ export async function POST(
 
       return assignment
     })
+
+    // Notify brand that a creator/network accepted
+    const creatorName =
+      result.creator?.user?.name ??
+      result.network?.companyName ??
+      "A creator"
+    sendOrderAcceptedEmail(
+      order.brand.user.email,
+      order.brand.user.name,
+      order.title,
+      creatorName
+    )
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {

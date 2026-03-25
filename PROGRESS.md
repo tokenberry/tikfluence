@@ -85,7 +85,7 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [ ] **TikTok API**: Configure TikTok developer keys, test creator verification
 - [ ] **Google OAuth**: Add Google sign-in option (currently credentials only)
 - [ ] **Email notifications**: Set up Resend for transactional emails (order updates, etc.)
-- [ ] **Database seeding**: Run seed script to create admin user + categories
+- [x] **Database seeding**: Enhanced seed script with full demo data (3 brands, 5 creators across all tiers, 1 network, 7 orders at various statuses, deliveries, transactions, support ticket). Run with `npm run db:seed`
 
 ### Medium Priority
 - [ ] **shadcn/ui components**: Architecture planned for reusable UI components (CreatorCard, OrderCard, etc.) - currently using inline Tailwind
@@ -137,6 +137,14 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `STRIPE_WEBHOOK_SECRET` | Not set |
 | `TIKTOK_CLIENT_KEY` | Not set |
 | `TIKTOK_CLIENT_SECRET` | Not set |
+
+---
+
+## Version History
+| Version | Date | Changes |
+|---------|------|---------|
+| 0.1.0 | 2026-03-25 | Initial full-stack app: auth, 19 API routes, 20+ dashboard pages, Prisma schema, Vercel deployment |
+| 0.1.1 | 2026-03-25 | Enhanced database seed with full demo data (brands, creators, network, orders, deliveries, transactions, support ticket) |
 
 ---
 

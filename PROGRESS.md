@@ -132,7 +132,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 |---|---|
 | `DATABASE_URL` | Configured (Neon) |
 | `NEXTAUTH_SECRET` | Configured |
-| `NEXTAUTH_URL` | Configured |
+| `NEXTAUTH_URL` | Configured (`https://www.foxolog.com`) |
 | `STRIPE_SECRET_KEY` | Not set |
 | `STRIPE_WEBHOOK_SECRET` | Not set |
 | `GOOGLE_CLIENT_ID` | Configured (Google Cloud Console) |
@@ -149,6 +149,10 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.1.0 | 2026-03-25 | Initial full-stack app: auth, 19 API routes, 20+ dashboard pages, Prisma schema, Vercel deployment |
 | 0.1.1 | 2026-03-25 | Enhanced database seed with full demo data (brands, creators, network, orders, deliveries, transactions, support ticket) |
 | 0.2.0 | 2026-03-25 | Google OAuth with onboarding flow + Resend email notifications (6 triggers across order lifecycle) |
+| 0.2.1 | 2026-03-26 | Fix: added `image` field to User model for Google OAuth PrismaAdapter compatibility |
+| 0.2.2 | 2026-03-26 | Fix: redirect OAuth users to onboarding from public routes + TypeScript null fix |
+| 0.2.3 | 2026-03-26 | Fix: allow API routes through middleware for role-less OAuth users |
+| 0.2.4 | 2026-03-26 | Fix: Navbar and Sidebar links missing role prefix (404 on all dashboard pages) |
 
 ---
 
@@ -192,6 +196,25 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 
 **Files modified:** `prisma/schema.prisma`, `prisma/seed.ts`, `src/lib/auth.ts`, `src/middleware.ts`, `src/app/(auth)/login/page.tsx`, `src/app/(auth)/register/page.tsx`, `src/app/api/register/route.ts`, `src/app/api/orders/[id]/accept/route.ts`, `src/app/api/orders/[id]/deliver/route.ts`, `src/app/api/orders/[id]/approve/route.ts`, `src/app/api/orders/[id]/dispute/route.ts`, `src/app/(dashboard)/admin/analytics/page.tsx`, `src/app/(dashboard)/admin/users/page.tsx`, `src/app/api/admin/analytics/route.ts`, `package.json`, `PROGRESS.md`
 
+### March 26, 2026
+
+**v0.2.0 → v0.2.4 — Google OAuth & Navigation Bug Fixes**
+
+Session focused on fixing Google OAuth login flow end-to-end and broken dashboard navigation.
+
+- **v0.2.1** (PR #5): Added `image String?` field to Prisma `User` model — `@auth/prisma-adapter` passes Google profile picture as `image`, but schema only had `avatar`, causing Prisma "Unknown argument" server error on OAuth callback. Ran `prisma db push` to sync Neon DB.
+- **v0.2.2** (PR #6): Moved onboarding redirect check before public routes in middleware — OAuth users landing on `/` weren't being redirected to `/onboarding` because `/` was a public route that bypassed the role check. Also fixed TypeScript null type error on `user.role` (non-null assertion safe after early return).
+- **v0.2.3** (PR #6): Changed middleware to allow all `/api/` routes through for role-less users — the onboarding form POST to `/api/onboarding` was being intercepted by the middleware and redirected, preventing form submission.
+- **v0.2.4** (PR #7 + #8): Fixed Navbar and Sidebar `roleNavLinks` missing role prefix — links pointed to `/creators` instead of `/network/creators`, `/orders` instead of `/brand/orders`, etc., causing 404 on all dashboard pages for Creator, Network, and Brand roles.
+
+**Infrastructure (done manually by user)**
+- Updated `NEXTAUTH_URL` from `https://foxolog.com` to `https://www.foxolog.com` in Vercel env vars (fixed Google OAuth `redirect_uri_mismatch` error)
+- Confirmed Google OAuth redirect URI `https://www.foxolog.com/api/auth/callback/google` in Google Cloud Console
+- Created local `.env` file with Neon `DATABASE_URL` and ran `npx prisma db push` to add `image` column to production database
+- Merged PRs #5, #6, #7, #8; Closed stale PR #3
+
+**Files modified:** `prisma/schema.prisma`, `src/middleware.ts`, `src/components/layout/Navbar.tsx`, `src/components/layout/Sidebar.tsx`, `package.json`
+
 ---
 
-*Last updated: March 25, 2026*
+*Last updated: March 26, 2026*

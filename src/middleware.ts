@@ -41,7 +41,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl)
   }
 
-  const role = user.role
+  const role = user.role!
 
   // Users with a role cannot access onboarding
   if (pathname === "/onboarding") {
@@ -58,7 +58,6 @@ export default auth((req) => {
   for (const [allowedRole, routes] of Object.entries(roleRoutes)) {
     for (const route of routes) {
       if (pathname.startsWith(route) && role !== allowedRole) {
-        // Redirect to their own dashboard
         const dashboardMap: Record<string, string> = {
           CREATOR: "/creator/orders",
           NETWORK: "/network/creators",

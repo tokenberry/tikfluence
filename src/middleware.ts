@@ -17,7 +17,7 @@ export default auth((req) => {
     if (pathname === "/onboarding") {
       return NextResponse.next()
     }
-    if (pathname.startsWith("/api/auth")) {
+    if (pathname.startsWith("/api/")) {
       return NextResponse.next()
     }
     return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin))

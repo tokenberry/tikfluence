@@ -6,19 +6,19 @@ import { useSession } from "next-auth/react"
 
 const roleNavLinks: Record<string, { label: string; href: string }[]> = {
   CREATOR: [
-    { label: "Orders", href: "/orders" },
-    { label: "Earnings", href: "/earnings" },
-    { label: "Profile", href: "/profile" },
+    { label: "Orders", href: "/creator/orders" },
+    { label: "Earnings", href: "/creator/earnings" },
+    { label: "Profile", href: "/creator/profile" },
   ],
   NETWORK: [
-    { label: "Creators", href: "/creators" },
-    { label: "Orders", href: "/orders" },
-    { label: "Earnings", href: "/earnings" },
+    { label: "Creators", href: "/network/creators" },
+    { label: "Orders", href: "/network/orders" },
+    { label: "Earnings", href: "/network/earnings" },
   ],
   BRAND: [
-    { label: "Browse", href: "/browse" },
-    { label: "Orders", href: "/orders" },
-    { label: "Settings", href: "/settings" },
+    { label: "Browse", href: "/brand/browse" },
+    { label: "Orders", href: "/brand/orders" },
+    { label: "Settings", href: "/brand/settings" },
   ],
   ADMIN: [
     { label: "Users", href: "/admin/users" },

@@ -12,6 +12,17 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const user = req.auth?.user
 
+  // Authenticated users without a role must complete onboarding first
+  if (user && !user.role) {
+    if (pathname === "/onboarding") {
+      return NextResponse.next()
+    }
+    if (pathname.startsWith("/api/auth")) {
+      return NextResponse.next()
+    }
+    return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin))
+  }
+
   // Public routes - no auth required
   const publicRoutes = ["/", "/login", "/register", "/api/auth"]
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
@@ -30,14 +41,7 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl)
   }
 
-  // OAuth users without a role must complete onboarding
   const role = user.role
-  if (!role) {
-    if (pathname === "/onboarding") {
-      return NextResponse.next()
-    }
-    return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin))
-  }
 
   // Users with a role cannot access onboarding
   if (pathname === "/onboarding") {

@@ -96,9 +96,6 @@ export default async function CreatorOrderDetailPage({
                 {i + 1}
               </div>
               <span className="mt-1 text-xs text-gray-500">{step.replace("_", " ")}</span>
-              {i < statusSteps.length - 1 && (
-                <div className="absolute h-0.5 w-full bg-gray-200" />
-              )}
             </div>
           ))}
         </div>
@@ -123,14 +120,27 @@ export default async function CreatorOrderDetailPage({
                 className="rounded-lg border border-gray-100 bg-gray-50 p-4"
               >
                 <div className="flex items-start justify-between">
-                  <a
-                    href={delivery.tiktokLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-600 hover:underline"
-                  >
-                    {delivery.tiktokLink}
-                  </a>
+                  <div className="space-y-1">
+                    <a
+                      href={delivery.tiktokLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:underline block"
+                    >
+                      {delivery.tiktokLink}
+                    </a>
+                    {delivery.tiktokLinks.map((link: string, i: number) => (
+                      <a
+                        key={i}
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:underline block"
+                      >
+                        {link}
+                      </a>
+                    ))}
+                  </div>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                       delivery.approved === true
@@ -154,6 +164,19 @@ export default async function CreatorOrderDetailPage({
                 </div>
                 {delivery.notes && (
                   <p className="mt-2 text-sm text-gray-500">{delivery.notes}</p>
+                )}
+                {delivery.screenshots.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {delivery.screenshots.map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={url}
+                          alt={`Screenshot ${i + 1}`}
+                          className="h-20 w-20 rounded-lg border border-gray-200 object-cover hover:opacity-80 transition-opacity"
+                        />
+                      </a>
+                    ))}
+                  </div>
                 )}
                 {delivery.rejectionReason && (
                   <p className="mt-2 text-sm text-red-600">

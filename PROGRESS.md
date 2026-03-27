@@ -31,26 +31,32 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] Sidebar (role-based links, active state highlighting)
 - [x] Dashboard layout (sidebar + main content)
 
-### API Routes (19 routes)
+### API Routes (25 routes)
 - [x] `POST /api/register` - User registration with role-specific profile creation
 - [x] `GET /api/creators` - List creators with filters (category, tier, search, pagination)
 - [x] `GET/PUT /api/creators/[id]` - Get/update creator profile
 - [x] `POST /api/creators/[id]/score` - Recalculate creator score via TikTok API
+- [x] `GET /api/categories` - List all categories (for dropdowns)
 - [x] `GET /api/networks` - List networks (admin only)
 - [x] `GET/POST /api/networks/[id]/creators` - List/add creators in network
 - [x] `GET/POST /api/orders` - List orders (role-filtered), create order (brand only)
 - [x] `GET/PUT/DELETE /api/orders/[id]` - Order CRUD
 - [x] `POST /api/orders/[id]/accept` - Creator/network accepts order
-- [x] `POST /api/orders/[id]/deliver` - Submit delivery with TikTok metrics
+- [x] `POST /api/orders/[id]/deliver` - Submit delivery with TikTok metrics, multiple links & screenshots
 - [x] `POST /api/orders/[id]/approve` - Brand approves/rejects delivery
+- [x] `POST /api/orders/[id]/deliveries/[deliveryId]/review` - Brand approve/reject individual delivery
 - [x] `POST /api/orders/[id]/dispute` - Open dispute, creates support ticket
 - [x] `POST /api/payments/connect` - Create Stripe Connect account + onboarding
 - [x] `POST /api/payments/webhook` - Stripe webhook handler
 - [x] `GET/POST /api/tickets` - List/create support tickets
 - [x] `GET/PUT/POST /api/tickets/[id]` - Ticket detail, update, add message
 - [x] `GET/PUT /api/admin/users` - User management (pagination, search, suspend)
+- [x] `GET /api/admin/orders` - Admin order listing with filters
 - [x] `GET /api/admin/analytics` - Platform analytics
 - [x] `GET/PUT /api/admin/settings` - Platform settings (fee rate, budget limits)
+- [x] `GET/PUT /api/brand/profile` - Brand settings profile management
+- [x] `GET /api/network/creators/search` - Search unaffiliated creators by email/tiktok
+- [x] `POST /api/network/creators` - Add creator to network
 - [x] `POST /api/upload` - File upload (images, 10MB max)
 
 ### Dashboard Pages (20+ pages)
@@ -108,7 +114,6 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [ ] **Testing**: Unit tests, integration tests
 
 ### API Routes Planned but Not Built
-- [ ] `GET/PUT /api/brands` - Brand profile management (partially handled by settings page)
 - [ ] `POST /api/tiktok/verify` - TikTok profile verification endpoint
 - [ ] `POST /api/tiktok/refresh` - TikTok metrics refresh endpoint
 
@@ -153,6 +158,9 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.2.2 | 2026-03-26 | Fix: redirect OAuth users to onboarding from public routes + TypeScript null fix |
 | 0.2.3 | 2026-03-26 | Fix: allow API routes through middleware for role-less OAuth users |
 | 0.2.4 | 2026-03-26 | Fix: Navbar and Sidebar links missing role prefix (404 on all dashboard pages) |
+| 0.2.5 | 2026-03-27 | Fix: admin tickets server component onClick error, brand browse creator detail page, categories API, order publish/cancel actions, admin orders API |
+| 0.2.6 | 2026-03-27 | Feat: 4 missing API endpoints — brand profile, network creator search/add, delivery review |
+| 0.2.7 | 2026-03-27 | Feat: delivery form — drag-drop screenshot upload (max 10), multiple TikTok links, timeline grey line fix, auto prisma db push on Vercel build |
 
 ---
 
@@ -215,6 +223,30 @@ Session focused on fixing Google OAuth login flow end-to-end and broken dashboar
 
 **Files modified:** `prisma/schema.prisma`, `src/middleware.ts`, `src/components/layout/Navbar.tsx`, `src/components/layout/Sidebar.tsx`, `package.json`
 
+### March 27, 2026
+
+**v0.2.4 → v0.2.5 — Admin & Brand Bug Fixes**
+
+Session focused on systematically testing each role and fixing server errors, missing pages, and missing API endpoints.
+
+- **v0.2.5** (PR #11): Fixed admin tickets page server component using `onClick` (replaced with `Link`). Created brand browse creator detail page (`/brand/browse/[id]`). Created `/api/categories` endpoint for category dropdowns. Created `OrderActions` component for brand to publish/cancel orders. Created `/api/admin/orders` endpoint for admin orders page.
+
+**v0.2.5 → v0.2.6 — Missing API Endpoints Audit**
+
+Ran comprehensive codebase audit to find all frontend pages referencing API endpoints that were never created. Found and built 4 missing endpoints:
+
+- **v0.2.6** (PR #15): Created `/api/brand/profile` (GET/PUT) for brand settings page. Created `/api/network/creators/search` (GET) for network creator search. Created `/api/network/creators` (POST) for adding creators to network. Created `/api/orders/[id]/deliveries/[deliveryId]/review` (POST) for brand delivery approval/rejection.
+
+**v0.2.6 → v0.2.7 — Delivery Form Improvements**
+
+- **v0.2.7** (PR #16 + #17): Replaced "Screenshot URL" text input with drag-drop/paste image uploader (max 10 images, JPEG/PNG/WebP/GIF). Added multiple TikTok links support per delivery. Fixed grey vertical line on creator order page (buggy absolute-positioned div in timeline). Added `tiktokLinks String[]` and `screenshots String[]` fields to Delivery model. Added `prisma db push --skip-generate` to Vercel build script so schema changes apply automatically on deploy.
+
+**Files created:** `src/app/(dashboard)/brand/browse/[id]/page.tsx`, `src/app/(dashboard)/brand/orders/[id]/OrderActions.tsx`, `src/app/api/categories/route.ts`, `src/app/api/admin/orders/route.ts`, `src/app/api/brand/profile/route.ts`, `src/app/api/network/creators/search/route.ts`, `src/app/api/network/creators/route.ts`, `src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`
+
+**Files modified:** `prisma/schema.prisma`, `package.json`, `src/app/(dashboard)/admin/tickets/page.tsx`, `src/components/layout/Navbar.tsx`, `src/components/layout/Sidebar.tsx`, `src/app/(dashboard)/creator/orders/[id]/page.tsx`, `src/app/(dashboard)/creator/orders/[id]/DeliveryForm.tsx`, `src/app/api/orders/[id]/deliver/route.ts`
+
+**PRs merged:** #11, #14, #15, #16, #17
+
 ---
 
-*Last updated: March 26, 2026*
+*Last updated: March 27, 2026*

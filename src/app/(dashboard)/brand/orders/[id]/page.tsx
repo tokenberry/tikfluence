@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryActions from "./DeliveryActions";
+import OrderActions from "./OrderActions";
 
 export const dynamic = "force-dynamic"
 
@@ -79,6 +80,11 @@ export default async function BrandOrderDetailPage({
           {order.status.replace("_", " ")}
         </span>
       </div>
+
+      {/* Actions */}
+      {(order.status === "DRAFT" || order.status === "OPEN") && (
+        <OrderActions orderId={order.id} status={order.status} />
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

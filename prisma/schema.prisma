@@ -244,7 +244,9 @@ model Delivery {
   order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   tiktokLink      String
+  tiktokLinks     String[]  @default([])
   screenshotUrl   String?
+  screenshots     String[]  @default([])
   impressions     Int?
   views           Int?
   likes           Int?

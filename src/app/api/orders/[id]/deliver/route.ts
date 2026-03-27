@@ -8,7 +8,9 @@ export const dynamic = "force-dynamic"
 
 const deliverySchema = z.object({
   tiktokLink: z.string().url(),
+  tiktokLinks: z.array(z.string().url()).default([]),
   screenshotUrl: z.string().url().optional(),
+  screenshots: z.array(z.string()).default([]),
   impressions: z.number().int().min(0).optional(),
   views: z.number().int().min(0).optional(),
   likes: z.number().int().min(0).optional(),

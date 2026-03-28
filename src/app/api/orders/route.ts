@@ -103,6 +103,7 @@ const createOrderSchema = z.object({
   impressionTarget: z.number().int().min(1),
   budget: z.number().min(0),
   maxCreators: z.number().int().min(1).default(1),
+  deadline: z.string().min(1),
 })
 
 export async function POST(request: NextRequest) {
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, brief, categoryId, impressionTarget, budget, maxCreators } = parsed.data
+    const { title, description, brief, categoryId, impressionTarget, budget, maxCreators, deadline } = parsed.data
 
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
@@ -159,6 +160,7 @@ export async function POST(request: NextRequest) {
         budget,
         cpmRate,
         maxCreators,
+        expiresAt: new Date(deadline),
         status: "DRAFT",
       },
       include: {

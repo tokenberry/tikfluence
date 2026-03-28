@@ -58,12 +58,14 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] `GET /api/network/creators/search` - Search unaffiliated creators by email/tiktok
 - [x] `POST /api/network/creators` - Add creator to network
 - [x] `POST /api/upload` - File upload (images, 10MB max)
+- [x] `GET/PUT /api/notifications` - List user notifications, mark all read
+- [x] `PUT /api/notifications/[id]` - Mark single notification read
 
 ### Dashboard Pages (20+ pages)
 - [x] **Creator**: Profile, Orders, Order Detail (with delivery form), Earnings
 - [x] **Network**: Creators list, Add creator, Orders, Order detail, Earnings
-- [x] **Brand**: Browse creators, Orders list, New order form, Order detail (with approve/reject), Settings
-- [x] **Admin**: Users management, Orders, Transactions, Tickets, Settings, Analytics
+- [x] **Brand**: Browse creators, Orders list, New order form (with deadline), Order detail (with approve/reject, screenshots), Settings
+- [x] **Admin**: Users management, Orders, Order detail (with admin actions), Transactions, Tickets, Settings, Analytics
 
 ### Core Libraries
 - [x] `src/lib/prisma.ts` - Prisma client singleton
@@ -72,6 +74,8 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] `src/lib/tiktok.ts` - TikTok API client
 - [x] `src/lib/scoring.ts` - Creator scoring algorithm (engagement, followers, views, consistency)
 - [x] `src/lib/utils.ts` - Shared utilities
+- [x] `src/lib/notifications.ts` - In-app notification helper
+- [x] `src/lib/email.ts` - Resend email notifications (6 templates)
 
 ### Branding & Theme
 - [x] Rebranded from Tikfluence to Foxolog
@@ -106,7 +110,7 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [ ] **Creator settings page**: Missing from creator dashboard (in architecture but not built)
 - [ ] **Network settings page**: Missing from network dashboard
 - [ ] **TikTok auto-refresh**: Cron job to refresh creator metrics every 7 days
-- [ ] **Order expiration**: Auto-expire orders past deadline
+- [ ] **Order expiration**: Auto-expire orders past deadline (deadlines now stored and displayed, but no auto-expiry cron yet)
 - [ ] **Analytics charts**: Visual charts on admin analytics page
 - [ ] **Dark mode**: Theme toggle
 - [ ] **Mobile optimization**: Responsive improvements on dashboard pages
@@ -161,6 +165,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.2.5 | 2026-03-27 | Fix: admin tickets server component onClick error, brand browse creator detail page, categories API, order publish/cancel actions, admin orders API |
 | 0.2.6 | 2026-03-27 | Feat: 4 missing API endpoints — brand profile, network creator search/add, delivery review |
 | 0.2.7 | 2026-03-27 | Feat: delivery form — drag-drop screenshot upload (max 10), multiple TikTok links, timeline grey line fix, auto prisma db push on Vercel build |
+| 0.3.0 | 2026-03-28 | Feat: 6 order system fixes — screenshot display, order deadlines, REVISION timeline, in-app notifications, admin order detail page, APPROVED→COMPLETED flow |
 
 ---
 
@@ -247,6 +252,41 @@ Ran comprehensive codebase audit to find all frontend pages referencing API endp
 
 **PRs merged:** #11, #14, #15, #16, #17
 
+### March 28, 2026
+
+**v0.2.7 → v0.3.0 — Order System Overhaul (6 Issues)**
+
+Session focused on fixing 6 user-reported issues with the order lifecycle, delivery display, and admin functionality.
+
+- **Issue 1 — Screenshots not visible on deliveries**: Brand and network order detail pages were not rendering `delivery.screenshots[]` or `delivery.tiktokLinks[]` (only the creator page had this from v0.2.7). Added screenshot thumbnail gallery and multiple TikTok links display to both brand and network order detail pages.
+
+- **Issue 2 — Orders need a deadline/time limit**: The `Order.expiresAt` field existed in the schema but was never populated. Added a required "Deadline" date picker to the brand new order form (minimum: tomorrow). Updated `createOrderSchema` API to accept and store `deadline` → `expiresAt`. Added deadline display card on all 4 order detail pages (brand, creator, network, admin) with red "Overdue" indicator when past due.
+
+- **Issue 3 — REVISION not shown on timeline**: When order status was REVISION, `statusSteps.indexOf("REVISION")` returned -1, leaving all timeline steps grey/unhighlighted. Fixed by mapping REVISION to the DELIVERED step index and showing an orange ring + "REVISION" label. Same treatment for DISPUTED status.
+
+- **Issue 4 — In-app notifications for order updates**: Built a complete notification system:
+  - New `Notification` model in Prisma (id, userId, type, title, message, link, read, createdAt)
+  - `src/lib/notifications.ts` — `createNotification()` helper
+  - `GET/PUT /api/notifications` — list user's notifications + mark all read
+  - `PUT /api/notifications/[id]` — mark single notification read
+  - `NotificationBell` component in navbar — bell icon with unread count badge, dropdown with recent notifications, 30-second polling
+  - Notification triggers added to 4 API routes:
+    - `POST /api/orders/[id]/accept` → notifies brand "Creator accepted your order"
+    - `POST /api/orders/[id]/deliver` → notifies brand "Delivery submitted"
+    - `POST /api/orders/[id]/approve` → notifies creator on approval (with payout) or revision request
+    - `POST /api/orders/[id]/deliveries/[deliveryId]/review` → same approval/rejection notifications
+
+- **Issue 5 — Admin can't open order detail page (404)**: `src/app/(dashboard)/admin/orders/[id]/page.tsx` didn't exist. Created full admin order detail page with: order stats, brand info, deadline, timeline (with REVISION fix), assigned creators, deliveries (with screenshots), transactions history, and admin action buttons (Force Complete, Cancel Order). Created `AdminOrderActions` client component.
+
+- **Issue 6 — APPROVED → COMPLETED transition missing**: Both `/api/orders/[id]/approve` and `/api/orders/[id]/deliveries/[deliveryId]/review` were setting status to APPROVED, but nothing ever transitioned to COMPLETED. Changed both endpoints to set status directly to COMPLETED. The review endpoint was also missing transaction creation and payment logic — added full payout calculation, Stripe transfer attempt, Transaction record creation, and OrderAssignment completedAt. Removed APPROVED from timeline steps on all pages (now: DRAFT → OPEN → ASSIGNED → IN_PROGRESS → DELIVERED → COMPLETED).
+
+**Files created:** `src/app/(dashboard)/admin/orders/[id]/page.tsx`, `src/app/(dashboard)/admin/orders/[id]/AdminOrderActions.tsx`, `src/lib/notifications.ts`, `src/app/api/notifications/route.ts`, `src/app/api/notifications/[id]/route.ts`, `src/components/layout/NotificationBell.tsx`
+
+**Files modified:** `prisma/schema.prisma`, `package.json`, `src/app/(dashboard)/brand/orders/[id]/page.tsx`, `src/app/(dashboard)/brand/orders/new/page.tsx`, `src/app/(dashboard)/creator/orders/[id]/page.tsx`, `src/app/(dashboard)/network/orders/[id]/page.tsx`, `src/app/api/orders/route.ts`, `src/app/api/orders/[id]/accept/route.ts`, `src/app/api/orders/[id]/approve/route.ts`, `src/app/api/orders/[id]/deliver/route.ts`, `src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`, `src/components/layout/Navbar.tsx`
+
+**Infrastructure needed after merge:**
+- Run `prisma db push` to add `Notification` table to Neon database (auto-runs on Vercel build)
+
 ---
 
-*Last updated: March 27, 2026*
+*Last updated: March 28, 2026*

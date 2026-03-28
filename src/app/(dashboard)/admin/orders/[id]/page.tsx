@@ -2,32 +2,35 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import DeliveryActions from "./DeliveryActions";
-import OrderActions from "./OrderActions";
+import AdminOrderActions from "./AdminOrderActions";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
-export default async function BrandOrderDetailPage({
+export default async function AdminOrderDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user || session.user.role !== "ADMIN") redirect("/login");
 
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
-      brand: true,
+      brand: { include: { user: { select: { email: true, name: true } } } },
       category: true,
       assignments: {
         include: {
-          creator: { include: { user: true } },
+          creator: { include: { user: { select: { name: true, email: true } } } },
+          network: { include: { user: { select: { name: true, email: true } } } },
         },
       },
       deliveries: {
         orderBy: { submittedAt: "desc" },
+      },
+      transactions: {
+        orderBy: { createdAt: "desc" },
       },
     },
   });
@@ -54,7 +57,6 @@ export default async function BrandOrderDetailPage({
     IN_PROGRESS: "bg-blue-100 text-blue-700",
     DELIVERED: "bg-yellow-100 text-yellow-700",
     REVISION: "bg-orange-100 text-orange-700",
-    APPROVED: "bg-green-100 text-green-700",
     COMPLETED: "bg-green-100 text-green-700",
     DISPUTED: "bg-red-100 text-red-700",
     CANCELLED: "bg-gray-100 text-gray-700",
@@ -66,7 +68,7 @@ export default async function BrandOrderDetailPage({
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
       <div className="flex items-center gap-4">
-        <a href="/brand/orders" className="text-gray-500 hover:text-gray-700">
+        <a href="/admin/orders" className="text-gray-500 hover:text-gray-700">
           &larr; Back to Orders
         </a>
       </div>
@@ -88,13 +90,11 @@ export default async function BrandOrderDetailPage({
         </span>
       </div>
 
-      {/* Actions */}
-      {(order.status === "DRAFT" || order.status === "OPEN") && (
-        <OrderActions orderId={order.id} status={order.status} />
-      )}
+      {/* Admin Actions */}
+      <AdminOrderActions orderId={order.id} status={order.status} />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-500">Impressions</p>
           <p className="mt-1 text-lg font-semibold text-gray-900">{formatNumber(order.impressionTarget)}</p>
@@ -111,13 +111,24 @@ export default async function BrandOrderDetailPage({
           <p className="text-sm text-gray-500">Max Creators</p>
           <p className="mt-1 text-lg font-semibold text-gray-900">{order.maxCreators}</p>
         </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <p className="text-sm text-gray-500">Payment</p>
+          <p className="mt-1 text-lg font-semibold text-gray-900">{order.paymentStatus}</p>
+        </div>
         <div className={`rounded-lg border p-4 shadow-sm ${isOverdue ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"}`}>
           <p className="text-sm text-gray-500">Deadline</p>
           <p className={`mt-1 text-lg font-semibold ${isOverdue ? "text-red-600" : "text-gray-900"}`}>
-            {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "No deadline"}
+            {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "None"}
           </p>
           {isOverdue && <p className="text-xs font-medium text-red-500">Overdue</p>}
         </div>
+      </div>
+
+      {/* Brand Info */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900">Brand</h2>
+        <p className="mt-2 text-gray-600">{order.brand.companyName}</p>
+        <p className="text-sm text-gray-500">{order.brand.user.email}</p>
       </div>
 
       {/* Description */}
@@ -175,10 +186,10 @@ export default async function BrandOrderDetailPage({
               >
                 <div>
                   <p className="font-medium text-gray-900">
-                    {assignment.creator?.user.name ?? "Unknown"}
+                    {assignment.creator?.user.name ?? assignment.network?.user.name ?? "Unknown"}
                   </p>
                   <p className="text-sm text-gray-500">
-                    @{assignment.creator?.tiktokUsername}
+                    {assignment.creator?.user.email ?? assignment.network?.user.email}
                   </p>
                 </div>
                 <div className="text-right">
@@ -192,6 +203,11 @@ export default async function BrandOrderDetailPage({
                   <p className="mt-1 text-xs text-gray-400">
                     Accepted: {new Date(assignment.acceptedAt).toLocaleDateString()}
                   </p>
+                  {assignment.completedAt && (
+                    <p className="text-xs text-gray-400">
+                      Completed: {new Date(assignment.completedAt).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -233,38 +249,28 @@ export default async function BrandOrderDetailPage({
                       </a>
                     ))}
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    {delivery.approved === true && (
-                      <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                        Approved
-                      </span>
-                    )}
-                    {delivery.approved === false && (
-                      <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
-                        Rejected
-                      </span>
-                    )}
-                    {delivery.approved === null && (
-                      <DeliveryActions deliveryId={delivery.id} orderId={order.id} />
-                    )}
-                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      delivery.approved === true
+                        ? "bg-green-100 text-green-700"
+                        : delivery.approved === false
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {delivery.approved === true
+                      ? "Approved"
+                      : delivery.approved === false
+                      ? "Rejected"
+                      : "Pending Review"}
+                  </span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
-                  {delivery.impressions != null && (
-                    <span>Impressions: {formatNumber(delivery.impressions)}</span>
-                  )}
-                  {delivery.views != null && (
-                    <span>Views: {formatNumber(delivery.views)}</span>
-                  )}
-                  {delivery.likes != null && (
-                    <span>Likes: {formatNumber(delivery.likes)}</span>
-                  )}
-                  {delivery.comments != null && (
-                    <span>Comments: {formatNumber(delivery.comments)}</span>
-                  )}
-                  {delivery.shares != null && (
-                    <span>Shares: {formatNumber(delivery.shares)}</span>
-                  )}
+                  {delivery.impressions != null && <span>Impressions: {formatNumber(delivery.impressions)}</span>}
+                  {delivery.views != null && <span>Views: {formatNumber(delivery.views)}</span>}
+                  {delivery.likes != null && <span>Likes: {formatNumber(delivery.likes)}</span>}
+                  {delivery.comments != null && <span>Comments: {formatNumber(delivery.comments)}</span>}
+                  {delivery.shares != null && <span>Shares: {formatNumber(delivery.shares)}</span>}
                 </div>
                 {delivery.notes && (
                   <p className="mt-2 text-sm text-gray-500">{delivery.notes}</p>
@@ -283,18 +289,52 @@ export default async function BrandOrderDetailPage({
                   </div>
                 )}
                 {delivery.rejectionReason && (
-                  <p className="mt-2 text-sm text-red-600">
-                    Reason: {delivery.rejectionReason}
-                  </p>
+                  <p className="mt-2 text-sm text-red-600">Reason: {delivery.rejectionReason}</p>
                 )}
                 <p className="mt-2 text-xs text-gray-400">
                   Submitted: {new Date(delivery.submittedAt).toLocaleString()}
+                  {delivery.reviewedAt && ` · Reviewed: ${new Date(delivery.reviewedAt).toLocaleString()}`}
                 </p>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Transactions */}
+      {order.transactions.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Transactions</h2>
+          <div className="space-y-3">
+            {order.transactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-4"
+              >
+                <div>
+                  <p className="text-sm text-gray-900">
+                    Total: {formatCurrency(tx.amount)} &middot; Fee: {formatCurrency(tx.platformFee)} &middot; Payout: {formatCurrency(tx.creatorPayout)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {new Date(tx.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    tx.status === "RELEASED"
+                      ? "bg-green-100 text-green-700"
+                      : tx.status === "PENDING"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {tx.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

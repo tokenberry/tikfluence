@@ -62,6 +62,7 @@ model User {
   brand           Brand?
   tickets         SupportTicket[]  @relation("TicketCreator")
   assignedTickets SupportTicket[]  @relation("TicketAssignee")
+  notifications   Notification[]
 
   @@index([role])
   @@index([email])
@@ -312,6 +313,21 @@ model TicketMessage {
   createdAt DateTime      @default(now())
 
   @@index([ticketId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
 }
 
 model PlatformSettings {

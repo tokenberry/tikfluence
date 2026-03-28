@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
+import NotificationBell from "./NotificationBell"
 
 const roleNavLinks: Record<string, { label: string; href: string }[]> = {
   CREATOR: [
@@ -61,6 +62,9 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 ))}
+
+                {/* Notifications */}
+                <NotificationBell />
 
                 {/* User menu */}
                 <div className="relative">

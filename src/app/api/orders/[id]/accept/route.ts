@@ -57,10 +57,31 @@ export async function POST(
     if (session.user.role === "CREATOR") {
       const creator = await prisma.creator.findUnique({
         where: { userId: session.user.id },
-        select: { id: true },
+        select: { id: true, supportsShortVideo: true, supportsLive: true },
       })
       if (!creator) {
         return NextResponse.json({ error: "Creator profile not found" }, { status: 404 })
+      }
+
+      // Check content type compatibility
+      const orderType = order.type
+      if (orderType === "LIVE" && !creator.supportsLive) {
+        return NextResponse.json(
+          { error: "You cannot accept LIVE orders because your profile does not support LIVE streams" },
+          { status: 403 }
+        )
+      }
+      if (orderType === "SHORT_VIDEO" && !creator.supportsShortVideo) {
+        return NextResponse.json(
+          { error: "You cannot accept Short Video orders because your profile does not support Short Videos" },
+          { status: 403 }
+        )
+      }
+      if (orderType === "COMBO" && (!creator.supportsLive || !creator.supportsShortVideo)) {
+        return NextResponse.json(
+          { error: "You cannot accept Combo orders because your profile must support both Short Video and LIVE streams" },
+          { status: 403 }
+        )
       }
 
       // Check if already assigned

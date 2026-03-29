@@ -13,6 +13,8 @@ const registerSchema = z.object({
   role: z.enum(["CREATOR", "NETWORK", "BRAND"]),
   // Creator-specific
   tiktokUsername: z.string().optional(),
+  supportsShortVideo: z.boolean().optional(),
+  supportsLive: z.boolean().optional(),
   // Network-specific
   companyName: z.string().optional(),
   // Brand-specific
@@ -66,6 +68,8 @@ export async function POST(req: NextRequest) {
           data: {
             userId: newUser.id,
             tiktokUsername: data.tiktokUsername,
+            supportsShortVideo: data.supportsShortVideo ?? true,
+            supportsLive: data.supportsLive ?? false,
           },
         })
       } else if (data.role === "NETWORK") {

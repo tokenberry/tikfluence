@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic"
 const onboardingSchema = z.object({
   role: z.enum(["CREATOR", "NETWORK", "BRAND"]),
   tiktokUsername: z.string().optional(),
+  supportsShortVideo: z.boolean().optional(),
+  supportsLive: z.boolean().optional(),
   companyName: z.string().optional(),
   industry: z.string().optional(),
 })
@@ -58,6 +60,8 @@ export async function POST(req: NextRequest) {
           data: {
             userId: session.user.id,
             tiktokUsername: data.tiktokUsername,
+            supportsShortVideo: data.supportsShortVideo ?? true,
+            supportsLive: data.supportsLive ?? false,
           },
         })
       } else if (data.role === "NETWORK") {

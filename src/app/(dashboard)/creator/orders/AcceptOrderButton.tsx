@@ -24,7 +24,8 @@ export default function AcceptOrderButton({
       if (res.ok) {
         router.refresh();
       } else {
-        alert("Failed to accept order.");
+        const data = await res.json().catch(() => null);
+        alert(data?.error || "Failed to accept order.");
       }
     } catch {
       alert("An error occurred.");

@@ -339,4 +339,29 @@ Major feature release adding 3 order types (SHORT_VIDEO, LIVE, COMBO) and AI-pow
 
 ---
 
+### v0.4.1 — Content Type Selection & Order Type Lock (PR #TBD)
+
+**What changed:**
+
+1. **Creator content type selection during registration & onboarding**: Creators now choose whether they support Short Video, LIVE Stream, or both when creating their account (both credential-based registration and Google OAuth onboarding).
+
+2. **Editable content types on creator profile**: The Content Types section on the creator profile page is now interactive — creators can toggle Short Video / LIVE Stream support and save changes.
+
+3. **Creator profile update API**: The `PUT /api/creators/[id]` endpoint now accepts `supportsShortVideo` and `supportsLive` boolean fields.
+
+4. **Order type lock on acceptance**: Creators who don't support a required content type cannot accept incompatible orders:
+   - LIVE orders locked for creators without LIVE support
+   - Short Video orders locked for creators without Video support
+   - Combo orders locked for creators without both
+   - Backend enforcement in `POST /api/orders/[id]/accept`
+   - Frontend shows locked state with explanation text instead of Accept button
+
+5. **Order type badges on creator order listing**: Available orders now show type badges (Video / LIVE / Combo) so creators can see what's required at a glance.
+
+**Files created:** `src/app/(dashboard)/creator/profile/ContentTypeEditor.tsx`
+
+**Files modified:** `src/app/api/register/route.ts`, `src/app/api/onboarding/route.ts`, `src/app/api/creators/[id]/route.ts`, `src/app/api/orders/[id]/accept/route.ts`, `src/app/(auth)/register/page.tsx`, `src/app/(auth)/onboarding/page.tsx`, `src/app/(dashboard)/creator/profile/page.tsx`, `src/app/(dashboard)/creator/orders/page.tsx`, `src/app/(dashboard)/creator/orders/AcceptOrderButton.tsx`, `package.json`
+
+---
+
 *Last updated: March 29, 2026*

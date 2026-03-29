@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
@@ -29,9 +29,16 @@ const ORDER_TYPES: { value: OrderType; label: string; description: string; icon:
 
 export default function NewOrderPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const creatorId = searchParams.get("creatorId");
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>("SHORT_VIDEO");
+  const [creatorSupport, setCreatorSupport] = useState<{
+    name: string;
+    supportsShortVideo: boolean;
+    supportsLive: boolean;
+  } | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -51,6 +58,26 @@ export default function NewOrderPage() {
       .then((data) => setCategories(data.categories ?? []))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!creatorId) return;
+    fetch(`/api/creators/${creatorId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setCreatorSupport({
+          name: data.user?.name ?? "Creator",
+          supportsShortVideo: data.supportsShortVideo ?? true,
+          supportsLive: data.supportsLive ?? false,
+        });
+        // Auto-select the best available type
+        if (data.supportsShortVideo && !data.supportsLive) {
+          setOrderType("SHORT_VIDEO");
+        } else if (!data.supportsShortVideo && data.supportsLive) {
+          setOrderType("LIVE");
+        }
+      })
+      .catch(() => {});
+  }, [creatorId]);
 
   const impressions = parseInt(form.impressionTarget) || 0;
   const budget = parseFloat(form.budget) || 0;
@@ -116,23 +143,45 @@ export default function NewOrderPage() {
         {/* Order Type Selector */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Order Type *</label>
+          {creatorSupport && (
+            <p className="text-xs text-gray-500 mb-2">
+              Creating order for <span className="font-medium text-gray-700">{creatorSupport.name}</span> —
+              supports {[
+                creatorSupport.supportsShortVideo && "Short Video",
+                creatorSupport.supportsLive && "LIVE Stream",
+              ].filter(Boolean).join(" & ") || "no content types"}
+            </p>
+          )}
           <div className="grid grid-cols-3 gap-3">
-            {ORDER_TYPES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setOrderType(t.value)}
-                className={`rounded-lg border-2 p-3 text-left transition-all ${
-                  orderType === t.value
-                    ? "border-orange-500 bg-orange-50 ring-1 ring-orange-500"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="text-xl mb-1">{t.icon}</div>
-                <div className="text-sm font-semibold text-gray-900">{t.label}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{t.description}</div>
-              </button>
-            ))}
+            {ORDER_TYPES.map((t) => {
+              const isLocked = creatorSupport
+                ? (t.value === "LIVE" && !creatorSupport.supportsLive) ||
+                  (t.value === "SHORT_VIDEO" && !creatorSupport.supportsShortVideo) ||
+                  (t.value === "COMBO" && (!creatorSupport.supportsLive || !creatorSupport.supportsShortVideo))
+                : false;
+
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  disabled={isLocked}
+                  onClick={() => !isLocked && setOrderType(t.value)}
+                  className={`rounded-lg border-2 p-3 text-left transition-all ${
+                    isLocked
+                      ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                      : orderType === t.value
+                      ? "border-orange-500 bg-orange-50 ring-1 ring-orange-500"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="text-xl mb-1">{t.icon}</div>
+                  <div className="text-sm font-semibold text-gray-900">{t.label}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {isLocked ? "Creator doesn\u0027t support this type" : t.description}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 

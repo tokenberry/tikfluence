@@ -230,7 +230,7 @@ export default async function CreatorDetailPage({
         {/* CTA */}
         <div className="mt-8 border-t border-gray-100 pt-6">
           <Link
-            href="/brand/orders/new"
+            href={`/brand/orders/new?creatorId=${creator.id}`}
             className="inline-block rounded-md bg-[#d4772c] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#b85c1a] transition-colors"
           >
             Create Order for this Creator

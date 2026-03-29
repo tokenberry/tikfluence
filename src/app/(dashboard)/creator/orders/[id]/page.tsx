@@ -237,9 +237,17 @@ export default async function CreatorOrderDetailPage({
                   </div>
                 )}
                 {delivery.rejectionReason && (
-                  <p className="mt-2 text-sm text-red-600">
-                    Rejection reason: {delivery.rejectionReason}
-                  </p>
+                  <div className="mt-2">
+                    <p className="text-sm text-red-600">
+                      Rejection reason: {delivery.rejectionReason}
+                    </p>
+                    <a
+                      href={`/creator/tickets/new?orderId=${order.id}&orderTitle=${encodeURIComponent(order.title)}`}
+                      className="mt-2 inline-block rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700"
+                    >
+                      Report Issue
+                    </a>
+                  </div>
                 )}
                 <p className="mt-2 text-xs text-gray-400">
                   Submitted: {new Date(delivery.submittedAt).toLocaleString()}

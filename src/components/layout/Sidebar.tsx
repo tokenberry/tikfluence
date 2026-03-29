@@ -8,6 +8,7 @@ const roleNavLinks: Record<string, { label: string; href: string }[]> = {
   CREATOR: [
     { label: "Orders", href: "/creator/orders" },
     { label: "Earnings", href: "/creator/earnings" },
+    { label: "Tickets", href: "/creator/tickets" },
     { label: "Profile", href: "/creator/profile" },
     { label: "Settings", href: "/creator/settings" },
   ],
@@ -32,6 +33,7 @@ const roleNavLinks: Record<string, { label: string; href: string }[]> = {
   ],
   AGENCY: [
     { label: "Brands", href: "/agency/brands" },
+    { label: "Browse", href: "/agency/browse" },
     { label: "Creators", href: "/agency/creators" },
     { label: "Orders", href: "/agency/orders" },
     { label: "Earnings", href: "/agency/earnings" },

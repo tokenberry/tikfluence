@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { createTransfer } from "@/lib/stripe"
 import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
+import { analyzeDelivery } from "@/lib/ai"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -170,6 +171,44 @@ export async function POST(
           `Your delivery for "${order.title}" was approved. Payout: $${creatorPayout.toFixed(2)}`,
           assignment?.creator ? `/creator/orders/${id}` : `/network/orders/${id}`
         )
+      }
+
+      // Trigger async AI delivery analysis (non-blocking)
+      const creatorProfile = assignment?.creator
+      if (creatorProfile) {
+        const creatorDetails = await prisma.creator.findUnique({
+          where: { id: creatorProfile.id },
+          select: { tiktokUsername: true, followerCount: true, engagementRate: true },
+        })
+        if (creatorDetails) {
+          analyzeDelivery({
+            orderId: id,
+            deliveryId: latestDelivery.id,
+            orderTitle: order.title,
+            orderDescription: order.description,
+            orderBrief: order.brief,
+            orderType: order.type,
+            impressionTarget: order.impressionTarget,
+            budget: order.budget,
+            cpmRate: order.cpmRate,
+            liveFlatFee: order.liveFlatFee,
+            liveMinDuration: order.liveMinDuration,
+            deliveryType: latestDelivery.deliveryType,
+            impressions: latestDelivery.impressions,
+            views: latestDelivery.views,
+            likes: latestDelivery.likes,
+            comments: latestDelivery.comments,
+            shares: latestDelivery.shares,
+            streamDuration: latestDelivery.streamDuration,
+            peakViewers: latestDelivery.peakViewers,
+            avgConcurrentViewers: latestDelivery.avgConcurrentViewers,
+            chatMessages: latestDelivery.chatMessages,
+            giftsValue: latestDelivery.giftsValue,
+            creatorUsername: creatorDetails.tiktokUsername,
+            creatorFollowers: creatorDetails.followerCount,
+            creatorEngagementRate: creatorDetails.engagementRate,
+          }).catch((err) => console.error("AI delivery analysis failed:", err))
+        }
       }
 
       return NextResponse.json({ message: "Order approved and payment released" })

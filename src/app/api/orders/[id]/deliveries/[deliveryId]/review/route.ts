@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { createTransfer } from "@/lib/stripe"
 import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
+import { analyzeDelivery } from "@/lib/ai"
 
 export async function POST(
   request: NextRequest,
@@ -144,6 +145,43 @@ export async function POST(
           `Your delivery for "${order.title}" was approved. Payout: $${creatorPayout.toFixed(2)}`,
           assignment?.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
         )
+      }
+      // Trigger async AI delivery analysis (non-blocking)
+      const creatorProfile = assignment?.creator
+      if (creatorProfile) {
+        const creatorDetails = await prisma.creator.findUnique({
+          where: { id: creatorProfile.id },
+          select: { tiktokUsername: true, followerCount: true, engagementRate: true },
+        })
+        if (creatorDetails) {
+          analyzeDelivery({
+            orderId,
+            deliveryId,
+            orderTitle: order.title,
+            orderDescription: order.description,
+            orderBrief: order.brief,
+            orderType: order.type,
+            impressionTarget: order.impressionTarget,
+            budget: order.budget,
+            cpmRate: order.cpmRate,
+            liveFlatFee: order.liveFlatFee,
+            liveMinDuration: order.liveMinDuration,
+            deliveryType: delivery.deliveryType,
+            impressions: delivery.impressions,
+            views: delivery.views,
+            likes: delivery.likes,
+            comments: delivery.comments,
+            shares: delivery.shares,
+            streamDuration: delivery.streamDuration,
+            peakViewers: delivery.peakViewers,
+            avgConcurrentViewers: delivery.avgConcurrentViewers,
+            chatMessages: delivery.chatMessages,
+            giftsValue: delivery.giftsValue,
+            creatorUsername: creatorDetails.tiktokUsername,
+            creatorFollowers: creatorDetails.followerCount,
+            creatorEngagementRate: creatorDetails.engagementRate,
+          }).catch((err) => console.error("AI delivery analysis failed:", err))
+        }
       }
     } else {
       await prisma.$transaction(async (tx) => {

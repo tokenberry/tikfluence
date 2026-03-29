@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryForm from "./DeliveryForm";
+import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 
 export const dynamic = "force-dynamic"
 
@@ -247,6 +248,11 @@ export default async function CreatorOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* AI Delivery Analysis */}
+      {order.status === "COMPLETED" && (
+        <DeliveryAiInsights orderId={order.id} />
       )}
     </div>
   );

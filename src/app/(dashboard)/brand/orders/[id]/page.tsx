@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryActions from "./DeliveryActions";
 import OrderActions from "./OrderActions";
+import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 
 export const dynamic = "force-dynamic";
 
@@ -347,6 +348,11 @@ export default async function BrandOrderDetailPage({
           </div>
         )}
       </div>
+
+      {/* AI Delivery Analysis */}
+      {order.status === "COMPLETED" && (
+        <DeliveryAiInsights orderId={order.id} />
+      )}
     </div>
   );
 }

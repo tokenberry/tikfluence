@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { z } from "zod"
+
+const updateBrandSchema = z.object({
+  companyName: z.string().min(1).max(200),
+  website: z.string().url().max(500).optional().or(z.literal("")),
+  industry: z.string().max(100).optional().or(z.literal("")),
+  description: z.string().max(5000).optional().or(z.literal("")),
+})
 
 export const dynamic = "force-dynamic"
 
@@ -39,14 +47,16 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { companyName, website, industry, description } = body
+    const parsed = updateBrandSchema.safeParse(body)
 
-    if (!companyName) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Company name is required" },
+        { error: "Invalid request body", details: parsed.error.flatten() },
         { status: 400 }
       )
     }
+
+    const { companyName, website, industry, description } = parsed.data
 
     const brand = await prisma.brand.update({
       where: { userId: session.user.id },

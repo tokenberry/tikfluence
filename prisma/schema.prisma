@@ -459,6 +459,7 @@ model AgencyBrand {
   agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   brandId  String
   brand    Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  status   String   @default("PENDING") // PENDING, APPROVED, REJECTED
   addedAt  DateTime @default(now())
   notes    String?
 

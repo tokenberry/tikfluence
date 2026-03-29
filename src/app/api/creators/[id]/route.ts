@@ -10,6 +10,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { id } = await params
 
     const creator = await prisma.creator.findUnique({
@@ -43,6 +48,13 @@ export async function GET(
 
     if (!creator) {
       return NextResponse.json({ error: "Creator not found" }, { status: 404 })
+    }
+
+    // Strip email for non-owners (only the creator themselves or admin can see email)
+    const isOwner = creator.user.id === session.user.id
+    const isAdmin = session.user.role === "ADMIN" || session.user.role === "ACCOUNT_MANAGER"
+    if (!isOwner && !isAdmin) {
+      creator.user.email = ""
     }
 
     return NextResponse.json(creator)

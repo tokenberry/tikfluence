@@ -111,10 +111,14 @@ export async function POST(request: NextRequest) {
       data: {
         agencyId: agency.id,
         brandId,
+        status: "PENDING",
       },
     })
 
-    return NextResponse.json(agencyBrand, { status: 201 })
+    return NextResponse.json(
+      { ...agencyBrand, message: "Brand claim submitted. Awaiting admin approval." },
+      { status: 201 }
+    )
   } catch (error) {
     console.error("Error adding brand to agency:", error)
     return NextResponse.json(

@@ -13,6 +13,8 @@ export default function OnboardingPage() {
   const [tiktokUsername, setTiktokUsername] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [industry, setIndustry] = useState("")
+  const [supportsShortVideo, setSupportsShortVideo] = useState(true)
+  const [supportsLive, setSupportsLive] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -32,10 +34,12 @@ export default function OnboardingPage() {
     setLoading(true)
 
     try {
-      const body: Record<string, string> = { role }
+      const body: Record<string, string | boolean> = { role }
 
       if (role === "CREATOR") {
         body.tiktokUsername = tiktokUsername
+        body.supportsShortVideo = supportsShortVideo
+        body.supportsLive = supportsLive
       } else if (role === "NETWORK") {
         body.companyName = companyName
       } else if (role === "BRAND") {
@@ -138,28 +142,60 @@ export default function OnboardingPage() {
 
         {/* Role-specific fields */}
         {role === "CREATOR" && (
-          <div>
-            <label
-              htmlFor="tiktok"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              TikTok Username
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                @
-              </span>
-              <input
-                id="tiktok"
-                type="text"
-                required
-                value={tiktokUsername}
-                onChange={(e) => setTiktokUsername(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-                placeholder="your_tiktok_handle"
-              />
+          <>
+            <div>
+              <label
+                htmlFor="tiktok"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                TikTok Username
+              </label>
+              <div className="flex">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  @
+                </span>
+                <input
+                  id="tiktok"
+                  type="text"
+                  required
+                  value={tiktokUsername}
+                  onChange={(e) => setTiktokUsername(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
+                  placeholder="your_tiktok_handle"
+                />
+              </div>
             </div>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Content Types You Support
+              </label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSupportsShortVideo(!supportsShortVideo)}
+                  className={`flex-1 rounded-md border p-3 text-center text-sm font-medium transition-colors ${
+                    supportsShortVideo
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  Short Video
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSupportsLive(!supportsLive)}
+                  className={`flex-1 rounded-md border p-3 text-center text-sm font-medium transition-colors ${
+                    supportsLive
+                      ? "border-red-500 bg-red-50 text-red-700"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  LIVE Stream
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-400">Select at least one content type</p>
+            </div>
+          </>
         )}
 
         {role === "NETWORK" && (

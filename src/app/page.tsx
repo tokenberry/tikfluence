@@ -3,41 +3,13 @@ import Link from "next/link"
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">T</span>
-              </div>
-              <span className="text-xl font-bold">Tikfluence</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/login"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Hero */}
       <section className="py-20 lg:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
             Connect Brands with
             <br />
-            <span className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-amber-600 bg-clip-text text-transparent">
               TikTok Creators
             </span>
           </h1>
@@ -48,13 +20,13 @@ export default function HomePage() {
           <div className="mt-10 flex items-center justify-center gap-4">
             <Link
               href="/register?role=brand"
-              className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
+              className="rounded-lg bg-[#d4772c] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#c86b1e] transition"
             >
               I&apos;m a Brand
             </Link>
             <Link
               href="/register?role=creator"
-              className="rounded-lg border border-border px-6 py-3 text-sm font-semibold shadow-sm hover:bg-accent transition"
+              className="rounded-lg border border-[#d4772c] px-6 py-3 text-sm font-semibold text-[#d4772c] shadow-sm hover:bg-accent transition"
             >
               I&apos;m a Creator
             </Link>
@@ -68,7 +40,7 @@ export default function HomePage() {
           <h2 className="text-center text-3xl font-bold">How It Works</h2>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             <div className="rounded-xl border bg-card p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 text-pink-600">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-[#d4772c]">
                 <span className="text-xl font-bold">1</span>
               </div>
               <h3 className="text-lg font-semibold">Creators Sign Up</h3>
@@ -78,7 +50,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="rounded-xl border bg-card p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-[#c86b1e]">
                 <span className="text-xl font-bold">2</span>
               </div>
               <h3 className="text-lg font-semibold">Brands Post Orders</h3>
@@ -88,7 +60,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="rounded-xl border bg-card p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-[#b85c1a]">
                 <span className="text-xl font-bold">3</span>
               </div>
               <h3 className="text-lg font-semibold">Deliver & Get Paid</h3>
@@ -104,7 +76,7 @@ export default function HomePage() {
       {/* Features */}
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-3xl font-bold">Why Tikfluence?</h2>
+          <h2 className="text-center text-3xl font-bold">Why Foxolog?</h2>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
@@ -149,7 +121,7 @@ export default function HomePage() {
           <div className="mt-8">
             <Link
               href="/register"
-              className="rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
+              className="rounded-lg bg-[#d4772c] px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#c86b1e] transition"
             >
               Create Your Account
             </Link>
@@ -162,13 +134,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">T</span>
+              <div className="h-6 w-6 rounded bg-[#d4772c] flex items-center justify-center">
+                <img src="/fox-logo.svg" alt="Foxolog" className="h-6 w-6" />
               </div>
-              <span className="text-sm font-semibold">Tikfluence</span>
+              <span className="text-sm font-semibold">Foxolog</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Tikfluence. All rights reserved.
+              &copy; {new Date().getFullYear()} Foxolog. All rights reserved.
             </p>
           </div>
         </div>

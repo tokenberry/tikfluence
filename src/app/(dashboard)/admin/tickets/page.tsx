@@ -1,6 +1,9 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic"
 
 export const dynamic = "force-dynamic";
 
@@ -58,10 +61,13 @@ export default async function AdminTicketsPage() {
                   return (
                     <tr
                       key={ticket.id}
-                      className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => window.location.href = `/admin/tickets/${ticket.id}`}
+                      className="hover:bg-gray-50"
                     >
-                      <td className="px-6 py-4 font-medium text-gray-900">{ticket.subject}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        <Link href={`/admin/tickets/${ticket.id}`} className="hover:text-[#d4772c]">
+                          {ticket.subject}
+                        </Link>
+                      </td>
                       <td className="px-6 py-4">
                         <div>
                           <p className="text-gray-900">{ticket.creator.name}</p>

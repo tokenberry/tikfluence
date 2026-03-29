@@ -47,7 +47,7 @@ export async function GET() {
 
     const userRoleCounts = usersByRole.reduce(
       (acc, item) => {
-        acc[item.role] = item._count.id
+        if (item.role) acc[item.role] = item._count.id
         return acc
       },
       {} as Record<string, number>

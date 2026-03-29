@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -45,23 +46,53 @@ enum TicketStatus {
 model User {
   id              String    @id @default(cuid())
   email           String    @unique
-  password        String
+  password        String?
   name            String
-  role            UserRole
+  role            UserRole?
   avatar          String?
+  image           String?
   emailVerified   DateTime?
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  accounts        Account[]
   creator         Creator?
   network         CreatorNetwork?
   brand           Brand?
   tickets         SupportTicket[]  @relation("TicketCreator")
   assignedTickets SupportTicket[]  @relation("TicketAssignee")
+  notifications   Notification[]
 
   @@index([role])
   @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Creator {
@@ -214,7 +245,9 @@ model Delivery {
   order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   tiktokLink      String
+  tiktokLinks     String[]  @default([])
   screenshotUrl   String?
+  screenshots     String[]  @default([])
   impressions     Int?
   views           Int?
   likes           Int?
@@ -280,6 +313,21 @@ model TicketMessage {
   createdAt DateTime      @default(now())
 
   @@index([ticketId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
 }
 
 model PlatformSettings {

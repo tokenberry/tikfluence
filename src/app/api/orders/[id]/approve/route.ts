@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { createTransfer } from "@/lib/stripe"
+import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -37,8 +39,20 @@ export async function POST(
         },
         assignments: {
           include: {
-            creator: { select: { id: true, stripeAccountId: true } },
-            network: { select: { id: true, stripeAccountId: true } },
+            creator: {
+              select: {
+                id: true,
+                stripeAccountId: true,
+                user: { select: { id: true, email: true, name: true } },
+              },
+            },
+            network: {
+              select: {
+                id: true,
+                stripeAccountId: true,
+                user: { select: { id: true, email: true, name: true } },
+              },
+            },
           },
         },
       },
@@ -117,7 +131,7 @@ export async function POST(
         await tx.order.update({
           where: { id },
           data: {
-            status: "APPROVED",
+            status: "COMPLETED",
             paymentStatus: stripeTransferId ? "RELEASED" : "HELD",
           },
         })
@@ -140,6 +154,24 @@ export async function POST(
         })
       })
 
+      // Notify creator/network of approval
+      const assignee = assignment?.creator ?? assignment?.network
+      if (assignee?.user) {
+        sendOrderApprovedEmail(
+          assignee.user.email,
+          assignee.user.name,
+          order.title,
+          creatorPayout
+        )
+        createNotification(
+          assignee.user.id,
+          "delivery_approved",
+          "Delivery approved!",
+          `Your delivery for "${order.title}" was approved. Payout: $${creatorPayout.toFixed(2)}`,
+          assignment?.creator ? `/creator/orders/${id}` : `/network/orders/${id}`
+        )
+      }
+
       return NextResponse.json({ message: "Order approved and payment released" })
     } else {
       // Rejection
@@ -158,6 +190,25 @@ export async function POST(
           data: { status: "REVISION" },
         })
       })
+
+      // Notify creator/network of rejection
+      const assignment = order.assignments[0]
+      const rejectedAssignee = assignment?.creator ?? assignment?.network
+      if (rejectedAssignee?.user) {
+        sendOrderRejectedEmail(
+          rejectedAssignee.user.email,
+          rejectedAssignee.user.name,
+          order.title,
+          rejectionReason
+        )
+        createNotification(
+          rejectedAssignee.user.id,
+          "delivery_rejected",
+          "Revision requested",
+          `The brand requested a revision for "${order.title}"${rejectionReason ? `: ${rejectionReason}` : ""}`,
+          assignment?.creator ? `/creator/orders/${id}` : `/network/orders/${id}`
+        )
+      }
 
       return NextResponse.json({ message: "Delivery rejected, revision requested" })
     }

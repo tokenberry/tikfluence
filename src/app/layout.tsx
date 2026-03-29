@@ -4,9 +4,9 @@ import Providers from "@/app/providers"
 import Navbar from "@/components/layout/Navbar"
 
 export const metadata: Metadata = {
-  title: "Tikfluence - TikTok Influencer Marketplace",
+  title: "Foxolog - TikTok Influencer Marketplace",
   description:
-    "Connect brands with TikTok creators. Tikfluence is the marketplace where brands find the perfect TikTok influencers for their campaigns and creators monetize their content.",
+    "Connect brands with TikTok creators. Foxolog is the marketplace where brands find the perfect TikTok influencers for their campaigns and creators monetize their content.",
 }
 
 export default function RootLayout({

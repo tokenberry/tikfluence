@@ -15,6 +15,7 @@ export default function NewOrderPage() {
     categoryId: "",
     impressionTarget: "",
     budget: "",
+    deadline: "",
   });
 
   useEffect(() => {
@@ -43,6 +44,7 @@ export default function NewOrderPage() {
           impressionTarget: impressions,
           budget,
           cpmRate,
+          deadline: form.deadline,
         }),
       });
       if (res.ok) {
@@ -152,6 +154,19 @@ export default function NewOrderPage() {
               placeholder="e.g. 500"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Deadline *</label>
+          <input
+            type="date"
+            required
+            min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+            value={form.deadline}
+            onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+          <p className="mt-1 text-xs text-gray-400">The latest date the creator must deliver by</p>
         </div>
 
         {/* CPM Preview */}

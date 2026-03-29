@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { sendWelcomeEmail } from "@/lib/email"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 
@@ -92,6 +93,8 @@ export async function POST(req: NextRequest) {
 
       return newUser
     })
+
+    sendWelcomeEmail(data.email, data.name, data.role)
 
     return NextResponse.json(
       { message: "Registration successful", userId: user.id },

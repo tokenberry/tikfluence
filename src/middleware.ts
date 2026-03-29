@@ -12,6 +12,17 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const user = req.auth?.user
 
+  // Authenticated users without a role must complete onboarding first
+  if (user && !user.role) {
+    if (pathname === "/onboarding") {
+      return NextResponse.next()
+    }
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.next()
+    }
+    return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin))
+  }
+
   // Public routes - no auth required
   const publicRoutes = ["/", "/login", "/register", "/api/auth"]
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
@@ -30,12 +41,23 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Check role-based access for dashboard routes
-  const role = user.role
+  const role = user.role!
+
+  // Users with a role cannot access onboarding
+  if (pathname === "/onboarding") {
+    const dashboardMap: Record<string, string> = {
+      CREATOR: "/creator/orders",
+      NETWORK: "/network/creators",
+      BRAND: "/brand/orders",
+      ADMIN: "/admin/users",
+    }
+    return NextResponse.redirect(
+      new URL(dashboardMap[role] || "/", req.nextUrl.origin)
+    )
+  }
   for (const [allowedRole, routes] of Object.entries(roleRoutes)) {
     for (const route of routes) {
       if (pathname.startsWith(route) && role !== allowedRole) {
-        // Redirect to their own dashboard
         const dashboardMap: Record<string, string> = {
           CREATOR: "/creator/orders",
           NETWORK: "/network/creators",

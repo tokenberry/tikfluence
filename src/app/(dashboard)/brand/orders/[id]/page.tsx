@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryActions from "./DeliveryActions";
+import OrderActions from "./OrderActions";
+
+export const dynamic = "force-dynamic"
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +42,12 @@ export default async function BrandOrderDetailPage({
     );
   }
 
-  const statusSteps = ["DRAFT", "OPEN", "ASSIGNED", "IN_PROGRESS", "DELIVERED", "APPROVED", "COMPLETED"];
-  const currentIndex = statusSteps.indexOf(order.status);
+  const statusSteps = ["DRAFT", "OPEN", "ASSIGNED", "IN_PROGRESS", "DELIVERED", "COMPLETED"];
+  const isRevision = order.status === "REVISION";
+  const isDisputed = order.status === "DISPUTED";
+  const currentIndex = isRevision || isDisputed
+    ? statusSteps.indexOf("DELIVERED")
+    : statusSteps.indexOf(order.status);
 
   const statusColors: Record<string, string> = {
     DRAFT: "bg-gray-100 text-gray-700",
@@ -54,6 +61,9 @@ export default async function BrandOrderDetailPage({
     DISPUTED: "bg-red-100 text-red-700",
     CANCELLED: "bg-gray-100 text-gray-700",
   };
+
+  const isOverdue = order.expiresAt && new Date(order.expiresAt) < new Date() &&
+    !["COMPLETED", "CANCELLED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -80,8 +90,13 @@ export default async function BrandOrderDetailPage({
         </span>
       </div>
 
+      {/* Actions */}
+      {(order.status === "DRAFT" || order.status === "OPEN") && (
+        <OrderActions orderId={order.id} status={order.status} />
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-500">Impressions</p>
           <p className="mt-1 text-lg font-semibold text-gray-900">{formatNumber(order.impressionTarget)}</p>
@@ -97,6 +112,13 @@ export default async function BrandOrderDetailPage({
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-500">Max Creators</p>
           <p className="mt-1 text-lg font-semibold text-gray-900">{order.maxCreators}</p>
+        </div>
+        <div className={`rounded-lg border p-4 shadow-sm ${isOverdue ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"}`}>
+          <p className="text-sm text-gray-500">Deadline</p>
+          <p className={`mt-1 text-lg font-semibold ${isOverdue ? "text-red-600" : "text-gray-900"}`}>
+            {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "No deadline"}
+          </p>
+          {isOverdue && <p className="text-xs font-medium text-red-500">Overdue</p>}
         </div>
       </div>
 
@@ -116,18 +138,28 @@ export default async function BrandOrderDetailPage({
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Order Timeline</h2>
         <div className="flex items-center justify-between">
-          {statusSteps.map((step, i) => (
-            <div key={step} className="flex flex-1 flex-col items-center">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                  i <= currentIndex ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
-                }`}
-              >
-                {i + 1}
+          {statusSteps.map((step, i) => {
+            const isActive = i <= currentIndex;
+            const isRevisionStep = isRevision && step === "DELIVERED";
+            return (
+              <div key={step} className="flex flex-1 flex-col items-center">
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                    isRevisionStep
+                      ? "bg-orange-500 text-white ring-2 ring-orange-300"
+                      : isActive
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  {i + 1}
+                </div>
+                <span className={`mt-1 text-xs ${isRevisionStep ? "font-semibold text-orange-600" : "text-gray-500"}`}>
+                  {isRevisionStep ? "REVISION" : step.replace("_", " ")}
+                </span>
               </div>
-              <span className="mt-1 text-xs text-gray-500">{step.replace("_", " ")}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -182,38 +214,26 @@ export default async function BrandOrderDetailPage({
                 className="rounded-lg border border-gray-100 bg-gray-50 p-4"
               >
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="space-y-1">
                     <a
                       href={delivery.tiktokLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-indigo-600 hover:underline"
+                      className="text-indigo-600 hover:underline block"
                     >
                       {delivery.tiktokLink}
                     </a>
-                    <div className="mt-2 flex gap-4 text-sm text-gray-600">
-                      {delivery.impressions != null && (
-                        <span>Impressions: {formatNumber(delivery.impressions)}</span>
-                      )}
-                      {delivery.views != null && (
-                        <span>Views: {formatNumber(delivery.views)}</span>
-                      )}
-                      {delivery.likes != null && (
-                        <span>Likes: {formatNumber(delivery.likes)}</span>
-                      )}
-                      {delivery.comments != null && (
-                        <span>Comments: {formatNumber(delivery.comments)}</span>
-                      )}
-                      {delivery.shares != null && (
-                        <span>Shares: {formatNumber(delivery.shares)}</span>
-                      )}
-                    </div>
-                    {delivery.notes && (
-                      <p className="mt-2 text-sm text-gray-500">{delivery.notes}</p>
-                    )}
-                    <p className="mt-2 text-xs text-gray-400">
-                      Submitted: {new Date(delivery.submittedAt).toLocaleString()}
-                    </p>
+                    {delivery.tiktokLinks.map((link: string, i: number) => (
+                      <a
+                        key={i}
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:underline block"
+                      >
+                        {link}
+                      </a>
+                    ))}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {delivery.approved === true && (
@@ -231,11 +251,47 @@ export default async function BrandOrderDetailPage({
                     )}
                   </div>
                 </div>
+                <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
+                  {delivery.impressions != null && (
+                    <span>Impressions: {formatNumber(delivery.impressions)}</span>
+                  )}
+                  {delivery.views != null && (
+                    <span>Views: {formatNumber(delivery.views)}</span>
+                  )}
+                  {delivery.likes != null && (
+                    <span>Likes: {formatNumber(delivery.likes)}</span>
+                  )}
+                  {delivery.comments != null && (
+                    <span>Comments: {formatNumber(delivery.comments)}</span>
+                  )}
+                  {delivery.shares != null && (
+                    <span>Shares: {formatNumber(delivery.shares)}</span>
+                  )}
+                </div>
+                {delivery.notes && (
+                  <p className="mt-2 text-sm text-gray-500">{delivery.notes}</p>
+                )}
+                {delivery.screenshots.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {delivery.screenshots.map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={url}
+                          alt={`Screenshot ${i + 1}`}
+                          className="h-20 w-20 rounded-lg border border-gray-200 object-cover hover:opacity-80 transition-opacity"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
                 {delivery.rejectionReason && (
                   <p className="mt-2 text-sm text-red-600">
                     Reason: {delivery.rejectionReason}
                   </p>
                 )}
+                <p className="mt-2 text-xs text-gray-400">
+                  Submitted: {new Date(delivery.submittedAt).toLocaleString()}
+                </p>
               </div>
             ))}
           </div>

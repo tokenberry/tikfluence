@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
 import RefreshTikTokButton from "./RefreshTikTokButton";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"
 
 const tierLabels: Record<number, { label: string; color: string }> = {
   1: { label: "Bronze", color: "bg-amber-700 text-white" },

@@ -31,7 +31,7 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] Sidebar (role-based links, active state highlighting)
 - [x] Dashboard layout (sidebar + main content)
 
-### API Routes (25 routes)
+### API Routes (43+ routes)
 - [x] `POST /api/register` - User registration with role-specific profile creation
 - [x] `GET /api/creators` - List creators with filters (category, tier, search, pagination)
 - [x] `GET/PUT /api/creators/[id]` - Get/update creator profile
@@ -61,11 +61,13 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] `GET/PUT /api/notifications` - List user notifications, mark all read
 - [x] `PUT /api/notifications/[id]` - Mark single notification read
 
-### Dashboard Pages (20+ pages)
-- [x] **Creator**: Profile, Orders, Order Detail (with delivery form), Earnings
-- [x] **Network**: Creators list, Add creator, Orders, Order detail, Earnings
-- [x] **Brand**: Browse creators, Orders list, New order form (with deadline), Order detail (with approve/reject, screenshots), Settings
-- [x] **Admin**: Users management, Orders, Order detail (with admin actions), Transactions, Tickets, Settings, Analytics
+### Dashboard Pages (35+ pages)
+- [x] **Creator**: Profile, Orders, Order Detail (with delivery form), Earnings, Settings
+- [x] **Network**: Creators list, Add creator, Orders, Order detail, Earnings, Settings
+- [x] **Brand**: Browse creators, Creator detail, Orders list, New order form (with deadline), Order detail (with approve/reject, screenshots), Settings
+- [x] **Admin**: Users management, Orders, Order detail (with admin actions), Transactions, Tickets, Settings, Analytics, Agency-Brand Claims
+- [x] **Agency**: Brands, Brand detail, Creators, Creator detail, Orders, New order, Earnings
+- [x] **Account Manager**: Clients, Client detail (with notes), Orders, Notes, Analytics
 
 ### Core Libraries
 - [x] `src/lib/prisma.ts` - Prisma client singleton
@@ -76,6 +78,7 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] `src/lib/utils.ts` - Shared utilities
 - [x] `src/lib/notifications.ts` - In-app notification helper
 - [x] `src/lib/email.ts` - Resend email notifications (6 templates)
+- [x] `src/lib/ai.ts` - Anthropic SDK integration (creator analysis + delivery analysis)
 
 ### Branding & Theme
 - [x] Rebranded from Tikfluence to Foxolog
@@ -100,15 +103,15 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 ### Medium Priority
 - [ ] **shadcn/ui components**: Architecture planned for reusable UI components (CreatorCard, OrderCard, etc.) - currently using inline Tailwind
 - [ ] **File storage**: Currently saves to `/uploads` locally - needs S3/Vercel Blob for production
-- [ ] **Error pages**: Custom 404, 500 error pages
-- [ ] **Loading states**: Skeleton loaders for dashboard pages
+- [x] **Error pages**: Custom 404, 500 error pages
+- [x] **Loading states**: Skeleton loaders for dashboard pages
 - [ ] **Form validation**: Enhanced client-side validation with Zod on forms
 - [ ] **Search & filters**: Full-text search on creator browse page
 - [ ] **Pagination**: Proper pagination UI on list pages
 
 ### Low Priority / Future
-- [ ] **Creator settings page**: Missing from creator dashboard (in architecture but not built)
-- [ ] **Network settings page**: Missing from network dashboard
+- [x] **Creator settings page**: Bio, portfolio links editor
+- [x] **Network settings page**: Company profile editor
 - [ ] **TikTok auto-refresh**: Cron job to refresh creator metrics every 7 days
 - [ ] **Order expiration**: Auto-expire orders past deadline (deadlines now stored and displayed, but no auto-expiry cron yet)
 - [ ] **Analytics charts**: Visual charts on admin analytics page
@@ -168,6 +171,10 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.2.7 | 2026-03-27 | Feat: delivery form — drag-drop screenshot upload (max 10), multiple TikTok links, timeline grey line fix, auto prisma db push on Vercel build |
 | 0.3.0 | 2026-03-28 | Feat: 6 order system fixes — screenshot display, order deadlines, REVISION timeline, in-app notifications, admin order detail page, APPROVED→COMPLETED flow |
 | 0.4.0 | 2026-03-29 | Feat: 3 order types (SHORT_VIDEO/LIVE/COMBO) with type-specific pricing, delivery metrics, and content guidelines + AI-powered creator scoring via Claude API |
+| 0.4.1 | 2026-03-29 | Fix: Content type selection on registration/onboarding, editable content types on creator profile, order type lock on incompatible creators |
+| 0.5.0 | 2026-03-29 | Feat: Agency + Account Manager dimension — 2 new roles, 7 new models (Agency, AgencyBrand, AgencyCreator, AccountManager, AccountManagerBrand, AccountManagerAgency, InternalNote), full dashboards + API routes for both roles, admin AM management |
+| 0.6.0 | 2026-03-29 | Feat: Post-delivery AI analysis — AiDeliveryAnalysis model, async AI analysis on delivery approval via Claude, DeliveryAiInsights component on brand + creator order pages, performance scoring (0-100) |
+| 0.6.1 | 2026-03-29 | Fix: Security hardening — authorization on GET /orders/[id] (IDOR), Zod validation on delivery review + brand profile, auth on GET /creators/[id], duplicate AM assignment check, agency-brand PENDING approval status |
 
 ---
 
@@ -334,8 +341,10 @@ Major feature release adding 3 order types (SHORT_VIDEO, LIVE, COMBO) and AI-pow
 - Run `prisma db push` to apply schema changes (auto-runs on Vercel build)
 - Set `ANTHROPIC_API_KEY` in Vercel environment variables
 
-**Planned for v0.5.0:** Post-delivery AI analysis + "What's Next" suggestions
-**Planned for v0.6.0:** Separate Agency dashboard with managed campaigns
+**v0.5.0 (completed):** Agency + Account Manager roles with full dashboards
+**v0.6.0 (completed):** Post-delivery AI analysis + "What's Next" suggestions
+**v0.6.1 (completed):** Security hardening (authorization, validation, data protection)
+**v0.7.0 (current):** Polish — admin agency approval page, settings pages, error pages, skeleton loaders, mobile responsiveness
 
 ---
 
@@ -364,4 +373,4 @@ Major feature release adding 3 order types (SHORT_VIDEO, LIVE, COMBO) and AI-pow
 
 ---
 
-*Last updated: March 29, 2026*
+*Last updated: March 29, 2026 (v0.7.0)*

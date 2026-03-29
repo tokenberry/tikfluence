@@ -59,10 +59,10 @@ export default async function CreatorOrderDetailPage({
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold text-gray-900">{order.title}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{order.title}</h1>
             <OrderTypeBadge type={order.type} />
           </div>
           <p className="mt-1 text-gray-500">{order.brand.companyName}</p>
@@ -118,12 +118,12 @@ export default async function CreatorOrderDetailPage({
       {/* Status Timeline */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Order Timeline</h2>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-y-3">
           {statusSteps.map((step, i) => {
             const isActive = i <= currentIndex;
             const isRevisionStep = isRevision && step === "DELIVERED";
             return (
-              <div key={step} className="flex flex-1 flex-col items-center">
+              <div key={step} className="flex flex-1 min-w-[60px] flex-col items-center">
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
                     isRevisionStep
@@ -135,7 +135,7 @@ export default async function CreatorOrderDetailPage({
                 >
                   {i + 1}
                 </div>
-                <span className={`mt-1 text-xs ${isRevisionStep ? "font-semibold text-orange-600" : "text-gray-500"}`}>
+                <span className={`mt-1 text-[10px] sm:text-xs text-center ${isRevisionStep ? "font-semibold text-orange-600" : "text-gray-500"}`}>
                   {isRevisionStep ? "REVISION" : step.replace("_", " ")}
                 </span>
               </div>

@@ -3,24 +3,48 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-export default function DeliveryForm({ orderId }: { orderId: string }) {
+type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
+type DeliveryType = "SHORT_VIDEO" | "LIVE";
+
+export default function DeliveryForm({
+  orderId,
+  orderType = "SHORT_VIDEO",
+}: {
+  orderId: string;
+  orderType?: OrderType;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [tiktokLinks, setTiktokLinks] = useState<string[]>([""]);
   const [screenshots, setScreenshots] = useState<{ file: File; preview: string }[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState({
+  // For COMBO orders, let creator pick which type they're delivering
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>(
+    orderType === "LIVE" ? "LIVE" : "SHORT_VIDEO"
+  );
+
+  const [videoForm, setVideoForm] = useState({
     impressions: "",
     views: "",
     likes: "",
     comments: "",
     shares: "",
-    notes: "",
   });
+
+  const [liveForm, setLiveForm] = useState({
+    streamDuration: "",
+    peakViewers: "",
+    avgConcurrentViewers: "",
+    chatMessages: "",
+    giftsValue: "",
+  });
+
+  const [notes, setNotes] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const MAX_SCREENSHOTS = 10;
+  const isLiveDelivery = deliveryType === "LIVE";
 
   const addFiles = useCallback(
     (files: FileList | File[]) => {
@@ -113,7 +137,7 @@ export default function DeliveryForm({ orderId }: { orderId: string }) {
 
     const validLinks = tiktokLinks.filter((l) => l.trim());
     if (validLinks.length === 0) {
-      alert("Please add at least one TikTok link.");
+      alert(isLiveDelivery ? "Please add the LIVE stream replay link." : "Please add at least one TikTok link.");
       return;
     }
 
@@ -125,34 +149,41 @@ export default function DeliveryForm({ orderId }: { orderId: string }) {
 
       const [primaryLink, ...additionalLinks] = validLinks;
 
+      const payload: Record<string, unknown> = {
+        deliveryType,
+        tiktokLink: primaryLink,
+        tiktokLinks: additionalLinks,
+        screenshots: uploadedUrls,
+        notes: notes || undefined,
+      };
+
+      if (isLiveDelivery) {
+        if (liveForm.streamDuration) payload.streamDuration = parseInt(liveForm.streamDuration);
+        if (liveForm.peakViewers) payload.peakViewers = parseInt(liveForm.peakViewers);
+        if (liveForm.avgConcurrentViewers) payload.avgConcurrentViewers = parseInt(liveForm.avgConcurrentViewers);
+        if (liveForm.chatMessages) payload.chatMessages = parseInt(liveForm.chatMessages);
+        if (liveForm.giftsValue) payload.giftsValue = parseFloat(liveForm.giftsValue);
+      } else {
+        if (videoForm.impressions) payload.impressions = parseInt(videoForm.impressions);
+        if (videoForm.views) payload.views = parseInt(videoForm.views);
+        if (videoForm.likes) payload.likes = parseInt(videoForm.likes);
+        if (videoForm.comments) payload.comments = parseInt(videoForm.comments);
+        if (videoForm.shares) payload.shares = parseInt(videoForm.shares);
+      }
+
       const res = await fetch(`/api/orders/${orderId}/deliver`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tiktokLink: primaryLink,
-          tiktokLinks: additionalLinks,
-          screenshots: uploadedUrls,
-          impressions: form.impressions ? parseInt(form.impressions) : undefined,
-          views: form.views ? parseInt(form.views) : undefined,
-          likes: form.likes ? parseInt(form.likes) : undefined,
-          comments: form.comments ? parseInt(form.comments) : undefined,
-          shares: form.shares ? parseInt(form.shares) : undefined,
-          notes: form.notes || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         screenshots.forEach((s) => URL.revokeObjectURL(s.preview));
         router.refresh();
         setTiktokLinks([""]);
         setScreenshots([]);
-        setForm({
-          impressions: "",
-          views: "",
-          likes: "",
-          comments: "",
-          shares: "",
-          notes: "",
-        });
+        setVideoForm({ impressions: "", views: "", likes: "", comments: "", shares: "" });
+        setLiveForm({ streamDuration: "", peakViewers: "", avgConcurrentViewers: "", chatMessages: "", giftsValue: "" });
+        setNotes("");
       } else {
         alert("Failed to submit delivery.");
       }
@@ -164,21 +195,57 @@ export default function DeliveryForm({ orderId }: { orderId: string }) {
     }
   }
 
+  const inputClasses =
+    "mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500";
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4" onPaste={handlePaste}>
+      {/* Delivery Type Selector (COMBO only) */}
+      {orderType === "COMBO" && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Type *</label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setDeliveryType("SHORT_VIDEO")}
+              className={`flex-1 rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all ${
+                deliveryType === "SHORT_VIDEO"
+                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  : "border-gray-200 text-gray-600 hover:border-gray-300"
+              }`}
+            >
+              Short Video
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryType("LIVE")}
+              className={`flex-1 rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all ${
+                deliveryType === "LIVE"
+                  ? "border-red-500 bg-red-50 text-red-700"
+                  : "border-gray-200 text-gray-600 hover:border-gray-300"
+              }`}
+            >
+              LIVE Stream
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* TikTok Links */}
       <div>
         <div className="flex items-center justify-between">
           <label className="block text-sm font-medium text-gray-700">
-            TikTok Links *
+            {isLiveDelivery ? "LIVE Stream Replay Link *" : "TikTok Links *"}
           </label>
-          <button
-            type="button"
-            onClick={addLinkField}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
-          >
-            + Add another link
-          </button>
+          {!isLiveDelivery && (
+            <button
+              type="button"
+              onClick={addLinkField}
+              className="text-xs font-medium text-orange-600 hover:text-orange-800"
+            >
+              + Add another link
+            </button>
+          )}
         </div>
         <div className="mt-1 space-y-2">
           {tiktokLinks.map((link, i) => (
@@ -187,8 +254,12 @@ export default function DeliveryForm({ orderId }: { orderId: string }) {
                 type="url"
                 value={link}
                 onChange={(e) => updateLink(i, e.target.value)}
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="https://www.tiktok.com/@user/video/..."
+                className={`flex-1 ${inputClasses}`}
+                placeholder={
+                  isLiveDelivery
+                    ? "https://www.tiktok.com/@user/live/..."
+                    : "https://www.tiktok.com/@user/video/..."
+                }
                 required={i === 0}
               />
               {tiktokLinks.length > 1 && (
@@ -215,7 +286,7 @@ export default function DeliveryForm({ orderId }: { orderId: string }) {
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
           onClick={() => fileInputRef.current?.click()}
-          className="mt-1 flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 transition-colors hover:border-indigo-400 hover:bg-indigo-50/30"
+          className="mt-1 flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 transition-colors hover:border-orange-400 hover:bg-orange-50/30"
         >
           {screenshots.length === 0 ? (
             <>
@@ -251,7 +322,7 @@ export default function DeliveryForm({ orderId }: { orderId: string }) {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-2xl text-gray-400 hover:border-indigo-400 hover:text-indigo-500"
+                  className="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-2xl text-gray-400 hover:border-orange-400 hover:text-orange-500"
                 >
                   +
                 </button>
@@ -272,37 +343,98 @@ export default function DeliveryForm({ orderId }: { orderId: string }) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        {(["impressions", "views", "likes", "comments", "shares"] as const).map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium capitalize text-gray-700">{field}</label>
-            <input
-              type="number"
-              min="0"
-              value={form[field]}
-              onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            />
+      {/* Metrics — type-specific */}
+      {isLiveDelivery ? (
+        <div>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">LIVE Stream Metrics</h4>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600">Duration (min) *</label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={liveForm.streamDuration}
+                onChange={(e) => setLiveForm({ ...liveForm, streamDuration: e.target.value })}
+                className={inputClasses}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600">Peak Viewers</label>
+              <input
+                type="number"
+                min="0"
+                value={liveForm.peakViewers}
+                onChange={(e) => setLiveForm({ ...liveForm, peakViewers: e.target.value })}
+                className={inputClasses}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600">Avg Concurrent</label>
+              <input
+                type="number"
+                min="0"
+                value={liveForm.avgConcurrentViewers}
+                onChange={(e) => setLiveForm({ ...liveForm, avgConcurrentViewers: e.target.value })}
+                className={inputClasses}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600">Chat Messages</label>
+              <input
+                type="number"
+                min="0"
+                value={liveForm.chatMessages}
+                onChange={(e) => setLiveForm({ ...liveForm, chatMessages: e.target.value })}
+                className={inputClasses}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600">Gifts Value ($)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={liveForm.giftsValue}
+                onChange={(e) => setLiveForm({ ...liveForm, giftsValue: e.target.value })}
+                className={inputClasses}
+              />
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          {(["impressions", "views", "likes", "comments", "shares"] as const).map((field) => (
+            <div key={field}>
+              <label className="block text-sm font-medium capitalize text-gray-700">{field}</label>
+              <input
+                type="number"
+                min="0"
+                value={videoForm[field]}
+                onChange={(e) => setVideoForm({ ...videoForm, [field]: e.target.value })}
+                className={inputClasses}
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700">Notes</label>
         <textarea
-          value={form.notes}
-          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className={inputClasses}
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+        className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-50"
       >
-        {uploading ? "Uploading screenshots..." : loading ? "Submitting..." : "Submit Delivery"}
+        {uploading ? "Uploading screenshots..." : loading ? "Submitting..." : `Submit ${isLiveDelivery ? "LIVE" : "Video"} Delivery`}
       </button>
     </form>
   );

@@ -36,6 +36,17 @@ enum PaymentStatus {
   FAILED
 }
 
+enum OrderType {
+  SHORT_VIDEO
+  LIVE
+  COMBO
+}
+
+enum DeliveryType {
+  SHORT_VIDEO
+  LIVE
+}
+
 enum TicketStatus {
   OPEN
   IN_PROGRESS
@@ -44,24 +55,24 @@ enum TicketStatus {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  password        String?
-  name            String
-  role            UserRole?
-  avatar          String?
-  image           String?
-  emailVerified   DateTime?
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  name          String
+  role          UserRole?
+  avatar        String?
+  image         String?
+  emailVerified DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   accounts        Account[]
   creator         Creator?
   network         CreatorNetwork?
   brand           Brand?
-  tickets         SupportTicket[]  @relation("TicketCreator")
-  assignedTickets SupportTicket[]  @relation("TicketAssignee")
+  tickets         SupportTicket[] @relation("TicketCreator")
+  assignedTickets SupportTicket[] @relation("TicketAssignee")
   notifications   Notification[]
 
   @@index([role])
@@ -96,38 +107,42 @@ model VerificationToken {
 }
 
 model Creator {
-  id                String    @id @default(cuid())
-  userId            String    @unique
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  tiktokUsername    String    @unique
-  tiktokId          String?   @unique
-  tiktokVerified    Boolean   @default(false)
+  tiktokUsername String  @unique
+  tiktokId       String? @unique
+  tiktokVerified Boolean @default(false)
 
-  followerCount     Int       @default(0)
-  avgViews          Int       @default(0)
-  engagementRate    Float     @default(0)
-  totalLikes        Int       @default(0)
-  totalVideos       Int       @default(0)
+  followerCount  Int   @default(0)
+  avgViews       Int   @default(0)
+  engagementRate Float @default(0)
+  totalLikes     Int   @default(0)
+  totalVideos    Int   @default(0)
 
-  score             Float     @default(0)
-  tier              Int       @default(1)
-  pricePerThousand  Float     @default(2.0)
+  score            Float @default(0)
+  tier             Int   @default(1)
+  pricePerThousand Float @default(2.0)
 
-  bio               String?
-  categories        CreatorCategory[]
-  portfolioLinks    String[]  @default([])
+  bio            String?
+  categories     CreatorCategory[]
+  portfolioLinks String[]          @default([])
 
-  stripeAccountId   String?
-  stripeOnboarded   Boolean   @default(false)
+  stripeAccountId String?
+  stripeOnboarded Boolean @default(false)
 
-  networkId         String?
-  network           CreatorNetwork? @relation(fields: [networkId], references: [id])
+  networkId String?
+  network   CreatorNetwork? @relation(fields: [networkId], references: [id])
 
-  metricsUpdatedAt  DateTime?
-  orderAssignments  OrderAssignment[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  supportsLive       Boolean @default(false)
+  supportsShortVideo Boolean @default(true)
+
+  metricsUpdatedAt DateTime?
+  orderAssignments OrderAssignment[]
+  aiAnalyses       AiCreatorAnalysis[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@index([score])
   @@index([tier])
@@ -135,46 +150,46 @@ model Creator {
 }
 
 model CreatorNetwork {
-  id               String    @id @default(cuid())
-  userId           String    @unique
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  companyName      String
-  website          String?
-  description      String?
+  companyName String
+  website     String?
+  description String?
 
-  stripeAccountId  String?
-  stripeOnboarded  Boolean   @default(false)
+  stripeAccountId String?
+  stripeOnboarded Boolean @default(false)
 
   creators         Creator[]
   orderAssignments OrderAssignment[]
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model Brand {
-  id            String    @id @default(cuid())
-  userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  companyName   String
-  website       String?
-  industry      String?
-  description   String?
-  logo          String?
+  companyName String
+  website     String?
+  industry    String?
+  description String?
+  logo        String?
 
-  orders        Order[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Category {
-  id        String            @id @default(cuid())
-  name      String            @unique
-  slug      String            @unique
-  icon      String?
-  creators  CreatorCategory[]
-  orders    Order[]
+  id       String            @id @default(cuid())
+  name     String            @unique
+  slug     String            @unique
+  icon     String?
+  creators CreatorCategory[]
+  orders   Order[]
 
   @@index([slug])
 }
@@ -189,32 +204,40 @@ model CreatorCategory {
 }
 
 model Order {
-  id                String        @id @default(cuid())
-  brandId           String
-  brand             Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
-  title             String
-  description       String
-  brief             String?
-  categoryId        String
-  category          Category      @relation(fields: [categoryId], references: [id])
+  title       String
+  description String
+  brief       String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
 
-  impressionTarget  Int
-  budget            Float
-  cpmRate           Float
+  type OrderType @default(SHORT_VIDEO)
 
-  status            OrderStatus   @default(DRAFT)
-  maxCreators       Int           @default(1)
+  // SHORT_VIDEO pricing (CPM-based)
+  impressionTarget Int
+  budget           Float
+  cpmRate          Float
 
-  stripePaymentId   String?
-  paymentStatus     PaymentStatus @default(PENDING)
+  // LIVE pricing (flat fee per stream)
+  liveFlatFee     Float?
+  liveMinDuration Int?
+  liveGuidelines  String?
 
-  assignments       OrderAssignment[]
-  deliveries        Delivery[]
-  transactions      Transaction[]
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  expiresAt         DateTime?
+  status      OrderStatus @default(DRAFT)
+  maxCreators Int         @default(1)
+
+  stripePaymentId String?
+  paymentStatus   PaymentStatus @default(PENDING)
+
+  assignments  OrderAssignment[]
+  deliveries   Delivery[]
+  transactions Transaction[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  expiresAt    DateTime?
 
   @@index([status])
   @@index([brandId])
@@ -222,17 +245,17 @@ model Order {
 }
 
 model OrderAssignment {
-  id          String          @id @default(cuid())
-  orderId     String
-  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  creatorId   String?
-  creator     Creator?        @relation(fields: [creatorId], references: [id])
-  networkId   String?
-  network     CreatorNetwork? @relation(fields: [networkId], references: [id])
+  creatorId String?
+  creator   Creator?        @relation(fields: [creatorId], references: [id])
+  networkId String?
+  network   CreatorNetwork? @relation(fields: [networkId], references: [id])
 
-  status      OrderStatus     @default(ASSIGNED)
-  acceptedAt  DateTime        @default(now())
+  status      OrderStatus @default(ASSIGNED)
+  acceptedAt  DateTime    @default(now())
   completedAt DateTime?
 
   @@index([orderId])
@@ -240,20 +263,32 @@ model OrderAssignment {
 }
 
 model Delivery {
-  id              String    @id @default(cuid())
-  orderId         String
-  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  tiktokLink      String
-  tiktokLinks     String[]  @default([])
-  screenshotUrl   String?
-  screenshots     String[]  @default([])
-  impressions     Int?
-  views           Int?
-  likes           Int?
-  comments        Int?
-  shares          Int?
-  notes           String?
+  deliveryType DeliveryType @default(SHORT_VIDEO)
+
+  tiktokLink    String
+  tiktokLinks   String[] @default([])
+  screenshotUrl String?
+  screenshots   String[] @default([])
+
+  // SHORT_VIDEO metrics
+  impressions Int?
+  views       Int?
+  likes       Int?
+  comments    Int?
+  shares      Int?
+
+  // LIVE metrics
+  streamDuration       Int?
+  peakViewers          Int?
+  avgConcurrentViewers Int?
+  chatMessages         Int?
+  giftsValue           Float?
+
+  notes String?
 
   submittedAt     DateTime  @default(now())
   reviewedAt      DateTime?
@@ -264,42 +299,42 @@ model Delivery {
 }
 
 model Transaction {
-  id               String        @id @default(cuid())
-  orderId          String
-  order            Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  amount           Float
-  platformFee      Float
-  creatorPayout    Float
-  currency         String        @default("usd")
+  amount        Float
+  platformFee   Float
+  creatorPayout Float
+  currency      String @default("usd")
 
   stripePaymentId  String?
   stripeTransferId String?
   status           PaymentStatus @default(PENDING)
 
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([status])
 }
 
 model SupportTicket {
-  id          String       @id @default(cuid())
-  creatorId   String
-  creator     User         @relation("TicketCreator", fields: [creatorId], references: [id])
+  id        String @id @default(cuid())
+  creatorId String
+  creator   User   @relation("TicketCreator", fields: [creatorId], references: [id])
 
-  assigneeId  String?
-  assignee    User?        @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  assigneeId String?
+  assignee   User?   @relation("TicketAssignee", fields: [assigneeId], references: [id])
 
   subject     String
   description String
   status      TicketStatus @default(OPEN)
   priority    Int          @default(0)
 
-  messages    TicketMessage[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  messages  TicketMessage[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   @@index([status])
 }
@@ -328,6 +363,25 @@ model Notification {
 
   @@index([userId, read])
   @@index([userId, createdAt])
+}
+
+model AiCreatorAnalysis {
+  id        String  @id @default(cuid())
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  summary          String
+  strengths        String[]
+  weaknesses       String[]
+  bestContentTypes String[]
+  audienceInsights String?
+  contentStyle     String?
+  recommendedCpm   Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([creatorId])
 }
 
 model PlatformSettings {

@@ -100,8 +100,12 @@ const createOrderSchema = z.object({
   description: z.string().min(1).max(5000),
   brief: z.string().max(10000).optional(),
   categoryId: z.string().min(1),
-  impressionTarget: z.number().int().min(1),
-  budget: z.number().min(0),
+  type: z.enum(["SHORT_VIDEO", "LIVE", "COMBO"]).default("SHORT_VIDEO"),
+  impressionTarget: z.number().int().min(0).default(0),
+  budget: z.number().min(0).default(0),
+  liveFlatFee: z.number().min(0).optional(),
+  liveMinDuration: z.number().int().min(1).optional(),
+  liveGuidelines: z.string().max(5000).optional(),
   maxCreators: z.number().int().min(1).default(1),
   deadline: z.string().min(1),
 })
@@ -136,7 +140,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, brief, categoryId, impressionTarget, budget, maxCreators, deadline } = parsed.data
+    const { title, description, brief, categoryId, type, impressionTarget, budget, liveFlatFee, liveMinDuration, liveGuidelines, maxCreators, deadline } = parsed.data
+
+    // Validate type-specific requirements
+    if (type === "SHORT_VIDEO" && (impressionTarget <= 0 || budget <= 0)) {
+      return NextResponse.json({ error: "Short Video orders require impressionTarget and budget" }, { status: 400 })
+    }
+    if (type === "LIVE" && (!liveFlatFee || liveFlatFee <= 0)) {
+      return NextResponse.json({ error: "LIVE orders require a flat fee per stream" }, { status: 400 })
+    }
+    if (type === "COMBO") {
+      if (impressionTarget <= 0 || budget <= 0) {
+        return NextResponse.json({ error: "COMBO orders require impressionTarget and budget for the Short Video portion" }, { status: 400 })
+      }
+      if (!liveFlatFee || liveFlatFee <= 0) {
+        return NextResponse.json({ error: "COMBO orders require a flat fee for the LIVE portion" }, { status: 400 })
+      }
+    }
 
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
@@ -146,8 +166,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 })
     }
 
-    // CPM = (budget / impressionTarget) * 1000
-    const cpmRate = (budget / impressionTarget) * 1000
+    // CPM = (budget / impressionTarget) * 1000 — only relevant for SHORT_VIDEO/COMBO
+    const cpmRate = impressionTarget > 0 ? (budget / impressionTarget) * 1000 : 0
 
     const order = await prisma.order.create({
       data: {
@@ -156,9 +176,13 @@ export async function POST(request: NextRequest) {
         description,
         brief,
         categoryId,
+        type,
         impressionTarget,
         budget,
         cpmRate,
+        liveFlatFee: liveFlatFee ?? null,
+        liveMinDuration: liveMinDuration ?? null,
+        liveGuidelines: liveGuidelines ?? null,
         maxCreators,
         expiresAt: new Date(deadline),
         status: "DRAFT",

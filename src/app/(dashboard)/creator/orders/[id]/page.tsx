@@ -60,7 +60,10 @@ export default async function CreatorOrderDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{order.title}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold text-gray-900">{order.title}</h1>
+            <OrderTypeBadge type={order.type} />
+          </div>
           <p className="mt-1 text-gray-500">{order.brand.companyName}</p>
         </div>
         <StatusBadge status={order.status} />
@@ -69,9 +72,19 @@ export default async function CreatorOrderDetailPage({
       {/* Order Info */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <InfoCard label="Category" value={order.category.name} />
-        <InfoCard label="Impressions" value={formatNumber(order.impressionTarget)} />
-        <InfoCard label="Budget" value={formatCurrency(order.budget)} />
-        <InfoCard label="CPM Rate" value={formatCurrency(order.cpmRate)} />
+        {(order.type === "SHORT_VIDEO" || order.type === "COMBO") && (
+          <>
+            <InfoCard label="Impressions" value={formatNumber(order.impressionTarget)} />
+            <InfoCard label="Video Budget" value={formatCurrency(order.budget)} />
+            <InfoCard label="CPM Rate" value={formatCurrency(order.cpmRate)} />
+          </>
+        )}
+        {(order.type === "LIVE" || order.type === "COMBO") && (
+          <>
+            <InfoCard label="LIVE Fee" value={formatCurrency(order.liveFlatFee ?? 0)} />
+            {order.liveMinDuration && <InfoCard label="Min Duration" value={`${order.liveMinDuration} min`} />}
+          </>
+        )}
         <div className={`rounded-lg border p-4 shadow-sm ${isOverdue ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"}`}>
           <p className="text-sm text-gray-500">Deadline</p>
           <p className={`mt-1 text-lg font-semibold ${isOverdue ? "text-red-600" : "text-gray-900"}`}>
@@ -80,6 +93,14 @@ export default async function CreatorOrderDetailPage({
           {isOverdue && <p className="text-xs font-medium text-red-500">Overdue</p>}
         </div>
       </div>
+
+      {/* LIVE Content Guidelines */}
+      {(order.type === "LIVE" || order.type === "COMBO") && order.liveGuidelines && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <h3 className="text-sm font-semibold text-amber-800">LIVE Content Guidelines</h3>
+          <p className="mt-1 text-sm text-amber-700 whitespace-pre-wrap">{order.liveGuidelines}</p>
+        </div>
+      )}
 
       {/* Description & Brief */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
@@ -126,7 +147,7 @@ export default async function CreatorOrderDetailPage({
       {isAssigned && (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Submit Delivery</h2>
-          <DeliveryForm orderId={order.id} />
+          <DeliveryForm orderId={order.id} orderType={order.type} />
         </div>
       )}
 
@@ -178,10 +199,25 @@ export default async function CreatorOrderDetailPage({
                       : "Pending Review"}
                   </span>
                 </div>
+                {delivery.deliveryType === "LIVE" && (
+                  <span className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">LIVE</span>
+                )}
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
-                  {delivery.impressions != null && <span>Impressions: {formatNumber(delivery.impressions)}</span>}
-                  {delivery.views != null && <span>Views: {formatNumber(delivery.views)}</span>}
-                  {delivery.likes != null && <span>Likes: {formatNumber(delivery.likes)}</span>}
+                  {delivery.deliveryType === "LIVE" ? (
+                    <>
+                      {delivery.streamDuration != null && <span>Duration: {delivery.streamDuration} min</span>}
+                      {delivery.peakViewers != null && <span>Peak Viewers: {formatNumber(delivery.peakViewers)}</span>}
+                      {delivery.avgConcurrentViewers != null && <span>Avg Concurrent: {formatNumber(delivery.avgConcurrentViewers)}</span>}
+                      {delivery.chatMessages != null && <span>Chat: {formatNumber(delivery.chatMessages)}</span>}
+                      {delivery.giftsValue != null && <span>Gifts: {formatCurrency(delivery.giftsValue)}</span>}
+                    </>
+                  ) : (
+                    <>
+                      {delivery.impressions != null && <span>Impressions: {formatNumber(delivery.impressions)}</span>}
+                      {delivery.views != null && <span>Views: {formatNumber(delivery.views)}</span>}
+                      {delivery.likes != null && <span>Likes: {formatNumber(delivery.likes)}</span>}
+                    </>
+                  )}
                 </div>
                 {delivery.notes && (
                   <p className="mt-2 text-sm text-gray-500">{delivery.notes}</p>
@@ -222,6 +258,24 @@ function InfoCard({ label, value }: { label: string; value: string }) {
       <p className="text-sm text-gray-500">{label}</p>
       <p className="mt-1 text-lg font-semibold text-gray-900">{value}</p>
     </div>
+  );
+}
+
+function OrderTypeBadge({ type }: { type: string }) {
+  const styles: Record<string, string> = {
+    SHORT_VIDEO: "bg-blue-100 text-blue-700",
+    LIVE: "bg-red-100 text-red-700",
+    COMBO: "bg-purple-100 text-purple-700",
+  };
+  const labels: Record<string, string> = {
+    SHORT_VIDEO: "Short Video",
+    LIVE: "LIVE Stream",
+    COMBO: "Combo",
+  };
+  return (
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[type] ?? "bg-gray-100 text-gray-700"}`}>
+      {labels[type] ?? type}
+    </span>
   );
 }
 

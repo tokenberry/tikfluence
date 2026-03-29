@@ -244,10 +244,11 @@ model Order {
   agencyId     String?
   agency       Agency?           @relation(fields: [agencyId], references: [id])
 
-  assignments  OrderAssignment[]
-  deliveries   Delivery[]
-  transactions Transaction[]
-  internalNotes InternalNote[]
+  assignments      OrderAssignment[]
+  deliveries       Delivery[]
+  transactions     Transaction[]
+  internalNotes    InternalNote[]
+  aiDeliveryAnalyses AiDeliveryAnalysis[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   expiresAt    DateTime?
@@ -308,6 +309,7 @@ model Delivery {
   reviewedAt      DateTime?
   approved        Boolean?
   rejectionReason String?
+  aiAnalyses      AiDeliveryAnalysis[]
 
   @@index([orderId])
 }
@@ -396,6 +398,30 @@ model AiCreatorAnalysis {
   updatedAt DateTime @updatedAt
 
   @@index([creatorId])
+}
+
+model AiDeliveryAnalysis {
+  id         String @id @default(cuid())
+  orderId    String
+  order      Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  performanceSummary    String
+  performanceScore      Int         // 0-100
+  metricsBreakdown      String      // JSON string of metric-by-metric analysis
+  briefAlignment        String      // how well the delivery matched the brief
+  audienceEngagement    String      // analysis of engagement patterns
+  strengths             String[]
+  improvements          String[]
+  whatsNext             String[]    // actionable next-step suggestions
+  recommendedNextOrder  String?     // suggested next campaign type/approach
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([deliveryId])
 }
 
 model PlatformSettings {

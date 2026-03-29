@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 
 export const dynamic = "force-dynamic"
 
@@ -74,12 +75,12 @@ export default async function NetworkOrderDetailPage({
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {order.title}
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{order.title}</h1>
             {order.type && <OrderTypeBadge type={order.type} />}
-          </h1>
+          </div>
           <p className="mt-1 text-gray-500">{order.brand.companyName}</p>
         </div>
         <span
@@ -159,12 +160,12 @@ export default async function NetworkOrderDetailPage({
       {/* Timeline */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Order Timeline</h2>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-y-3">
           {statusSteps.map((step, i) => {
             const isActive = i <= currentIndex;
             const isRevisionStep = isRevision && step === "DELIVERED";
             return (
-              <div key={step} className="flex flex-1 flex-col items-center">
+              <div key={step} className="flex flex-1 min-w-[60px] flex-col items-center">
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
                     isRevisionStep
@@ -176,7 +177,7 @@ export default async function NetworkOrderDetailPage({
                 >
                   {i + 1}
                 </div>
-                <span className={`mt-1 text-xs ${isRevisionStep ? "font-semibold text-orange-600" : "text-gray-500"}`}>
+                <span className={`mt-1 text-[10px] sm:text-xs text-center ${isRevisionStep ? "font-semibold text-orange-600" : "text-gray-500"}`}>
                   {isRevisionStep ? "REVISION" : step.replace("_", " ")}
                 </span>
               </div>
@@ -310,6 +311,11 @@ export default async function NetworkOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* AI Delivery Analysis */}
+      {order.status === "COMPLETED" && (
+        <DeliveryAiInsights orderId={order.id} />
       )}
     </div>
   );

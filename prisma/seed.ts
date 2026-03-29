@@ -702,6 +702,7 @@ async function main() {
     create: {
       agencyId: agency.id,
       brandId: brand1.id,
+      status: "APPROVED",
       notes: "Premium client — handles all TikTok campaigns",
     },
   })
@@ -711,6 +712,7 @@ async function main() {
     create: {
       agencyId: agency.id,
       brandId: brand2.id,
+      status: "APPROVED",
       notes: "New client — fitness vertical campaigns",
     },
   })

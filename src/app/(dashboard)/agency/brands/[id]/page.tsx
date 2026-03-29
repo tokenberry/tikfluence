@@ -119,7 +119,9 @@ export default async function AgencyBrandDetailPage({
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {order.title}
+                      <a href={`/agency/orders/${order.id}`} className="hover:text-[#d4772c]">
+                        {order.title}
+                      </a>
                     </h3>
                     <p className="mt-1 text-sm text-gray-500">
                       {order.category.name}

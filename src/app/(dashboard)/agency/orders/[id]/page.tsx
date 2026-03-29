@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import AgencyOrderActions from "../../brands/[id]/AgencyOrderActions";
+import DeliveryActions from "@/app/(dashboard)/brand/orders/[id]/DeliveryActions";
 
 export const dynamic = "force-dynamic";
 
@@ -261,21 +262,21 @@ export default async function AgencyOrderDetailPage({
                       </a>
                     ))}
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      delivery.approved === true
-                        ? "bg-green-100 text-green-700"
-                        : delivery.approved === false
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {delivery.approved === true
-                      ? "Approved"
-                      : delivery.approved === false
-                      ? "Rejected"
-                      : "Pending Review"}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    {delivery.approved === true && (
+                      <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                        Approved
+                      </span>
+                    )}
+                    {delivery.approved === false && (
+                      <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                        Rejected
+                      </span>
+                    )}
+                    {delivery.approved === null && (
+                      <DeliveryActions deliveryId={delivery.id} orderId={order.id} />
+                    )}
+                  </div>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
                   {delivery.deliveryType === "LIVE" ? (

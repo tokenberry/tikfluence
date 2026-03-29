@@ -49,6 +49,7 @@ export default function NewOrderPage() {
     liveFlatFee: "",
     liveMinDuration: "",
     liveGuidelines: "",
+    maxCreators: "1",
     deadline: "",
   });
 
@@ -107,6 +108,7 @@ export default function NewOrderPage() {
             ? parseInt(form.liveMinDuration)
             : undefined,
           liveGuidelines: showLiveFields ? form.liveGuidelines || undefined : undefined,
+          maxCreators: parseInt(form.maxCreators) || 1,
           deadline: form.deadline,
         }),
       });
@@ -374,6 +376,23 @@ export default function NewOrderPage() {
             </p>
           </div>
         )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Max Creators *</label>
+          <input
+            type="number"
+            required
+            min="1"
+            max="100"
+            value={form.maxCreators}
+            onChange={(e) => setForm({ ...form, maxCreators: e.target.value })}
+            className={inputClasses}
+            placeholder="1"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            How many creators can claim this order (budget is split between them)
+          </p>
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Deadline *</label>

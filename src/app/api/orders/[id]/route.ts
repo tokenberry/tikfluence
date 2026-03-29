@@ -110,7 +110,7 @@ export async function PUT(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        brand: { select: { userId: true } },
+        brand: { select: { id: true, userId: true } },
       },
     })
 
@@ -118,7 +118,18 @@ export async function PUT(
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    if (order.brand.userId !== session.user.id) {
+    // Allow brand owner or agency managing this brand
+    let authorized = order.brand.userId === session.user.id
+    if (!authorized && session.user.role === "AGENCY") {
+      const agency = await prisma.agency.findUnique({ where: { userId: session.user.id } })
+      if (agency) {
+        const link = await prisma.agencyBrand.findFirst({
+          where: { agencyId: agency.id, brandId: order.brand.id, status: "APPROVED" },
+        })
+        if (link) authorized = true
+      }
+    }
+    if (!authorized) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -182,7 +193,7 @@ export async function DELETE(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        brand: { select: { userId: true } },
+        brand: { select: { id: true, userId: true } },
       },
     })
 
@@ -190,7 +201,17 @@ export async function DELETE(
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    if (order.brand.userId !== session.user.id && session.user.role !== "ADMIN") {
+    let canDelete = order.brand.userId === session.user.id || session.user.role === "ADMIN"
+    if (!canDelete && session.user.role === "AGENCY") {
+      const agency = await prisma.agency.findUnique({ where: { userId: session.user.id } })
+      if (agency) {
+        const link = await prisma.agencyBrand.findFirst({
+          where: { agencyId: agency.id, brandId: order.brand.id, status: "APPROVED" },
+        })
+        if (link) canDelete = true
+      }
+    }
+    if (!canDelete) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 

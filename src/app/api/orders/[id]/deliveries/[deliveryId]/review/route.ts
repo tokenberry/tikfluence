@@ -18,7 +18,7 @@ export async function POST(
 ) {
   try {
     const session = await auth()
-    if (!session?.user || session.user.role !== "BRAND") {
+    if (!session?.user || !session.user.role || !["BRAND", "AGENCY"].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -27,7 +27,7 @@ export async function POST(
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        brand: { select: { userId: true } },
+        brand: { select: { id: true, userId: true } },
         assignments: {
           include: {
             creator: {
@@ -49,8 +49,23 @@ export async function POST(
       },
     })
 
-    if (!order || order.brand.userId !== session.user.id) {
+    if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    // Verify authorization: brand owner or managing agency
+    let canReview = order.brand.userId === session.user.id
+    if (!canReview && session.user.role === "AGENCY") {
+      const agency = await prisma.agency.findUnique({ where: { userId: session.user.id } })
+      if (agency) {
+        const link = await prisma.agencyBrand.findFirst({
+          where: { agencyId: agency.id, brandId: order.brand.id, status: "APPROVED" },
+        })
+        if (link) canReview = true
+      }
+    }
+    if (!canReview) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const delivery = await prisma.delivery.findUnique({

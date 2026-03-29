@@ -20,13 +20,11 @@ export default function RequestBrandForm() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    if (!open || search.length < 2) {
-      setBrands([]);
-      return;
-    }
+    if (!open) return;
     setLoading(true);
     const timeout = setTimeout(() => {
-      fetch(`/api/brands?search=${encodeURIComponent(search)}`)
+      const params = search.length >= 2 ? `?search=${encodeURIComponent(search)}` : "";
+      fetch(`/api/brands${params}`)
         .then((res) => res.json())
         .then((data) => setBrands(data.brands ?? []))
         .catch(() => setBrands([]))
@@ -123,7 +121,7 @@ export default function RequestBrandForm() {
         </div>
       )}
 
-      {!loading && search.length >= 2 && brands.length === 0 && (
+      {!loading && brands.length === 0 && (
         <p className="mt-2 text-xs text-gray-400">No brands found.</p>
       )}
 

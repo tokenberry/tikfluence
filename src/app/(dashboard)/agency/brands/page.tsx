@@ -68,12 +68,18 @@ export default async function AgencyBrandsPage() {
               {agencyBrands.map((ab) => (
                 <tr key={ab.id} className="transition hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <a
-                      href={`/agency/brands/${ab.brand.id}`}
-                      className="font-medium text-gray-900 hover:text-[#d4772c]"
-                    >
-                      {ab.brand.companyName}
-                    </a>
+                    {ab.status === "APPROVED" ? (
+                      <a
+                        href={`/agency/brands/${ab.brand.id}`}
+                        className="font-medium text-gray-900 hover:text-[#d4772c]"
+                      >
+                        {ab.brand.companyName}
+                      </a>
+                    ) : (
+                      <span className="font-medium text-gray-400">
+                        {ab.brand.companyName}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {ab.brand.industry ?? "—"}

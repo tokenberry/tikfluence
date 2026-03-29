@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import AgencyOrderActions from "./AgencyOrderActions";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function AgencyBrandDetailPage({
   const agencyBrand = await prisma.agencyBrand.findUnique({
     where: { agencyId_brandId: { agencyId: agency.id, brandId: id } },
   });
-  if (!agencyBrand) redirect("/agency/brands");
+  if (!agencyBrand || agencyBrand.status !== "APPROVED") redirect("/agency/brands");
 
   const brand = await prisma.brand.findUnique({
     where: { id },
@@ -147,6 +148,11 @@ export default async function AgencyBrandDetailPage({
                     Created: {new Date(order.createdAt).toLocaleDateString()}
                   </span>
                 </div>
+                {(order.status === "DRAFT" || order.status === "OPEN") && (
+                  <div className="mt-3">
+                    <AgencyOrderActions orderId={order.id} status={order.status} />
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -47,6 +47,15 @@ export async function POST(
     const { brandId, agencyId, priority } = parsed.data
 
     if (brandId) {
+      const existing = await prisma.accountManagerBrand.findFirst({
+        where: { accountManagerId: id, brandId },
+      })
+      if (existing) {
+        return NextResponse.json(
+          { error: "Brand is already assigned to this account manager" },
+          { status: 409 }
+        )
+      }
       const assignment = await prisma.accountManagerBrand.create({
         data: {
           accountManagerId: id,
@@ -58,6 +67,15 @@ export async function POST(
     }
 
     if (agencyId) {
+      const existing = await prisma.accountManagerAgency.findFirst({
+        where: { accountManagerId: id, agencyId },
+      })
+      if (existing) {
+        return NextResponse.json(
+          { error: "Agency is already assigned to this account manager" },
+          { status: 409 }
+        )
+      }
       const assignment = await prisma.accountManagerAgency.create({
         data: {
           accountManagerId: id,

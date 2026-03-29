@@ -34,7 +34,7 @@ export async function GET(
               },
             },
             network: {
-              select: { id: true, companyName: true },
+              select: { id: true, companyName: true, user: { select: { id: true } } },
             },
           },
         },
@@ -47,6 +47,31 @@ export async function GET(
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    // Authorization: only involved parties can view order details
+    const userId = session.user.id
+    const role = session.user.role
+    const isBrandOwner = order.brand.userId === userId
+    const isAssigned = order.assignments.some(
+      (a) => a.creator?.user?.id === userId || a.network?.user?.id === userId
+    )
+
+    if (!isBrandOwner && !isAssigned && role !== "ADMIN" && role !== "ACCOUNT_MANAGER") {
+      // Check if user is an agency managing this brand
+      if (role === "AGENCY") {
+        const agency = await prisma.agency.findUnique({ where: { userId } })
+        const manages = agency
+          ? await prisma.agencyBrand.findFirst({
+              where: { agencyId: agency.id, brandId: order.brand.id },
+            })
+          : null
+        if (!manages) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        }
+      } else {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
     }
 
     return NextResponse.json(order)

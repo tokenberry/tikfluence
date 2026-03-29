@@ -180,8 +180,8 @@ export async function POST(request: NextRequest) {
       const link = await prisma.agencyBrand.findUnique({
         where: { agencyId_brandId: { agencyId: agency.id, brandId: bodyBrandId } },
       })
-      if (!link) {
-        return NextResponse.json({ error: "Brand is not managed by your agency" }, { status: 403 })
+      if (!link || link.status !== "APPROVED") {
+        return NextResponse.json({ error: "Brand is not managed by your agency or claim is pending approval" }, { status: 403 })
       }
       resolvedBrandId = bodyBrandId
       resolvedAgencyId = agency.id

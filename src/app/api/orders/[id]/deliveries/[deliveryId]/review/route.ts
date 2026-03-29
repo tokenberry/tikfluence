@@ -5,6 +5,12 @@ import { createTransfer } from "@/lib/stripe"
 import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
 import { analyzeDelivery } from "@/lib/ai"
+import { z } from "zod"
+
+const reviewSchema = z.object({
+  approved: z.boolean(),
+  rejectionReason: z.string().max(5000).optional(),
+})
 
 export async function POST(
   request: NextRequest,
@@ -66,7 +72,16 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { approved, rejectionReason } = body
+    const parsed = reviewSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const { approved, rejectionReason } = parsed.data
 
     if (approved) {
       // Get platform fee settings

@@ -6,6 +6,8 @@ const roleRoutes: Record<string, string[]> = {
   NETWORK: ["/network"],
   BRAND: ["/brand"],
   ADMIN: ["/admin"],
+  AGENCY: ["/agency"],
+  ACCOUNT_MANAGER: ["/account-manager"],
 }
 
 export default auth((req) => {
@@ -50,6 +52,8 @@ export default auth((req) => {
       NETWORK: "/network/creators",
       BRAND: "/brand/orders",
       ADMIN: "/admin/users",
+      AGENCY: "/agency/brands",
+      ACCOUNT_MANAGER: "/account-manager/clients",
     }
     return NextResponse.redirect(
       new URL(dashboardMap[role] || "/", req.nextUrl.origin)

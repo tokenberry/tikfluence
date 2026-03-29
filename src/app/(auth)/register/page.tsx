@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-type Role = "CREATOR" | "NETWORK" | "BRAND"
+type Role = "CREATOR" | "NETWORK" | "BRAND" | "AGENCY"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [tiktokUsername, setTiktokUsername] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [industry, setIndustry] = useState("")
+  const [agencyWebsite, setAgencyWebsite] = useState("")
   const [supportsShortVideo, setSupportsShortVideo] = useState(true)
   const [supportsLive, setSupportsLive] = useState(false)
   const [error, setError] = useState("")
@@ -46,6 +47,10 @@ export default function RegisterPage() {
       setError("Company name is required for brands")
       return
     }
+    if (role === "AGENCY" && !companyName.trim()) {
+      setError("Company name is required for agencies")
+      return
+    }
 
     setLoading(true)
 
@@ -66,6 +71,9 @@ export default function RegisterPage() {
       } else if (role === "BRAND") {
         body.brandCompanyName = companyName
         if (industry) body.industry = industry
+      } else if (role === "AGENCY") {
+        body.agencyCompanyName = companyName
+        if (agencyWebsite) body.agencyWebsite = agencyWebsite
       }
 
       const res = await fetch("/api/register", {
@@ -105,6 +113,11 @@ export default function RegisterPage() {
       label: "Brand",
       description: "I want to promote my brand",
     },
+    {
+      value: "AGENCY",
+      label: "Agency",
+      description: "I manage brands & creators",
+    },
   ]
 
   return (
@@ -128,7 +141,7 @@ export default function RegisterPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             I am a...
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {roles.map((r) => (
               <button
                 key={r.value}
@@ -315,6 +328,44 @@ export default function RegisterPage() {
                 onChange={(e) => setIndustry(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder="e.g. Fashion, Tech, Food"
+              />
+            </div>
+          </>
+        )}
+
+        {role === "AGENCY" && (
+          <>
+            <div>
+              <label
+                htmlFor="company-agency"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Agency Name
+              </label>
+              <input
+                id="company-agency"
+                type="text"
+                required
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
+                placeholder="Your agency's name"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="agency-website"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Website
+              </label>
+              <input
+                id="agency-website"
+                type="text"
+                value={agencyWebsite}
+                onChange={(e) => setAgencyWebsite(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
+                placeholder="https://youragency.com"
               />
             </div>
           </>

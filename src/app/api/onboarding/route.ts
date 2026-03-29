@@ -7,12 +7,13 @@ import { z } from "zod"
 export const dynamic = "force-dynamic"
 
 const onboardingSchema = z.object({
-  role: z.enum(["CREATOR", "NETWORK", "BRAND"]),
+  role: z.enum(["CREATOR", "NETWORK", "BRAND", "AGENCY"]),
   tiktokUsername: z.string().optional(),
   supportsShortVideo: z.boolean().optional(),
   supportsLive: z.boolean().optional(),
   companyName: z.string().optional(),
   industry: z.string().optional(),
+  agencyWebsite: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -83,6 +84,17 @@ export async function POST(req: NextRequest) {
             userId: session.user.id,
             companyName: data.companyName,
             industry: data.industry,
+          },
+        })
+      } else if (data.role === "AGENCY") {
+        if (!data.companyName) {
+          throw new Error("Company name is required for agencies")
+        }
+        await tx.agency.create({
+          data: {
+            userId: session.user.id,
+            companyName: data.companyName,
+            website: data.agencyWebsite,
           },
         })
       }

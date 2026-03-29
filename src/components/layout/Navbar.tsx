@@ -28,6 +28,18 @@ const roleNavLinks: Record<string, { label: string; href: string }[]> = {
     { label: "Tickets", href: "/admin/tickets" },
     { label: "Settings", href: "/admin/settings" },
   ],
+  AGENCY: [
+    { label: "Brands", href: "/agency/brands" },
+    { label: "Creators", href: "/agency/creators" },
+    { label: "Orders", href: "/agency/orders" },
+    { label: "Earnings", href: "/agency/earnings" },
+  ],
+  ACCOUNT_MANAGER: [
+    { label: "Clients", href: "/account-manager/clients" },
+    { label: "Orders", href: "/account-manager/orders" },
+    { label: "Notes", href: "/account-manager/notes" },
+    { label: "Analytics", href: "/account-manager/analytics" },
+  ],
 }
 
 export default function Navbar() {

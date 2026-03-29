@@ -10,7 +10,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   name: z.string().min(2),
-  role: z.enum(["CREATOR", "NETWORK", "BRAND"]),
+  role: z.enum(["CREATOR", "NETWORK", "BRAND", "AGENCY"]),
   // Creator-specific
   tiktokUsername: z.string().optional(),
   supportsShortVideo: z.boolean().optional(),
@@ -20,6 +20,9 @@ const registerSchema = z.object({
   // Brand-specific
   brandCompanyName: z.string().optional(),
   industry: z.string().optional(),
+  // Agency-specific
+  agencyCompanyName: z.string().optional(),
+  agencyWebsite: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -91,6 +94,17 @@ export async function POST(req: NextRequest) {
             userId: newUser.id,
             companyName: data.brandCompanyName,
             industry: data.industry,
+          },
+        })
+      } else if (data.role === "AGENCY") {
+        if (!data.agencyCompanyName) {
+          throw new Error("Company name is required for agencies")
+        }
+        await tx.agency.create({
+          data: {
+            userId: newUser.id,
+            companyName: data.agencyCompanyName,
+            website: data.agencyWebsite,
           },
         })
       }

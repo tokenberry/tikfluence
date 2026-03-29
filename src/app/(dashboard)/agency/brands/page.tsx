@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import RequestBrandForm from "./RequestBrandForm";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +31,7 @@ export default async function AgencyBrandsPage() {
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Managed Brands</h1>
-        <span className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-500">
-          Contact admin to link brands
-        </span>
+        <RequestBrandForm />
       </div>
 
       {agencyBrands.length === 0 ? (

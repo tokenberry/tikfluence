@@ -31,20 +31,22 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] Sidebar (role-based links, active state highlighting)
 - [x] Dashboard layout (sidebar + main content)
 
-### API Routes (43+ routes)
+### API Routes (48+ routes)
 - [x] `POST /api/register` - User registration with role-specific profile creation
 - [x] `GET /api/creators` - List creators with filters (category, tier, search, pagination)
 - [x] `GET/PUT /api/creators/[id]` - Get/update creator profile
+- [x] `GET /api/creators/me` - Current user's creator profile
 - [x] `POST /api/creators/[id]/score` - Recalculate creator score via TikTok API
 - [x] `GET /api/categories` - List all categories (for dropdowns)
+- [x] `GET /api/brands` - Search brands by company name
 - [x] `GET /api/networks` - List networks (admin only)
 - [x] `GET/POST /api/networks/[id]/creators` - List/add creators in network
-- [x] `GET/POST /api/orders` - List orders (role-filtered), create order (brand only)
-- [x] `GET/PUT/DELETE /api/orders/[id]` - Order CRUD
+- [x] `GET/POST /api/orders` - List orders (role-filtered), create order (brand/agency)
+- [x] `GET/PUT/DELETE /api/orders/[id]` - Order CRUD (with agency authorization)
 - [x] `POST /api/orders/[id]/accept` - Creator/network accepts order
 - [x] `POST /api/orders/[id]/deliver` - Submit delivery with TikTok metrics, multiple links & screenshots
 - [x] `POST /api/orders/[id]/approve` - Brand approves/rejects delivery
-- [x] `POST /api/orders/[id]/deliveries/[deliveryId]/review` - Brand approve/reject individual delivery
+- [x] `POST /api/orders/[id]/deliveries/[deliveryId]/review` - Brand/agency approve/reject individual delivery
 - [x] `POST /api/orders/[id]/dispute` - Open dispute, creates support ticket
 - [x] `POST /api/payments/connect` - Create Stripe Connect account + onboarding
 - [x] `POST /api/payments/webhook` - Stripe webhook handler
@@ -54,20 +56,24 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] `GET /api/admin/orders` - Admin order listing with filters
 - [x] `GET /api/admin/analytics` - Platform analytics
 - [x] `GET/PUT /api/admin/settings` - Platform settings (fee rate, budget limits)
+- [x] `GET/PUT /api/admin/agency-brands` - Admin agency-brand approval (list + approve/reject)
 - [x] `GET/PUT /api/brand/profile` - Brand settings profile management
+- [x] `GET/PUT /api/network/profile` - Network profile management
 - [x] `GET /api/network/creators/search` - Search unaffiliated creators by email/tiktok
 - [x] `POST /api/network/creators` - Add creator to network
+- [x] `GET/POST /api/agency/brands` - List agency brands + request existing / create new brand
 - [x] `POST /api/upload` - File upload (images, 10MB max)
 - [x] `GET/PUT /api/notifications` - List user notifications, mark all read
 - [x] `PUT /api/notifications/[id]` - Mark single notification read
 
-### Dashboard Pages (35+ pages)
-- [x] **Creator**: Profile, Orders, Order Detail (with delivery form), Earnings, Settings
+### Dashboard Pages (40+ pages)
+- [x] **Creator**: Profile, Orders, Order Detail (with delivery form + "Report Issue" on rejected), Earnings, Tickets (list + new), Settings
 - [x] **Network**: Creators list, Add creator, Orders, Order detail, Earnings, Settings
-- [x] **Brand**: Browse creators, Creator detail, Orders list, New order form (with deadline), Order detail (with approve/reject, screenshots), Settings
-- [x] **Admin**: Users management, Orders, Order detail (with admin actions), Transactions, Tickets, Settings, Analytics, Agency-Brand Claims
-- [x] **Agency**: Brands, Brand detail, Creators, Creator detail, Orders, New order, Earnings
+- [x] **Brand**: Browse creators, Creator detail, Orders list, New order form (with deadline + max creators), Order detail (with approve/reject, screenshots), Settings
+- [x] **Admin**: Users management, Orders, Order detail (with admin actions), Transactions, Tickets (list + detail with reply), Settings, Analytics, Agency-Brand Claims
+- [x] **Agency**: Brands (with add/create brand), Brand detail, Browse creators, Creator detail, Creators, Creator detail, Orders, Order detail (with delivery review), New order, Earnings
 - [x] **Account Manager**: Clients, Client detail (with notes), Orders, Notes, Analytics
+- [x] **Shared**: Custom 404 page, Custom 500 error page, Dashboard skeleton loader
 
 ### Core Libraries
 - [x] `src/lib/prisma.ts` - Prisma client singleton
@@ -175,6 +181,12 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.5.0 | 2026-03-29 | Feat: Agency + Account Manager dimension — 2 new roles, 7 new models (Agency, AgencyBrand, AgencyCreator, AccountManager, AccountManagerBrand, AccountManagerAgency, InternalNote), full dashboards + API routes for both roles, admin AM management |
 | 0.6.0 | 2026-03-29 | Feat: Post-delivery AI analysis — AiDeliveryAnalysis model, async AI analysis on delivery approval via Claude, DeliveryAiInsights component on brand + creator order pages, performance scoring (0-100) |
 | 0.6.1 | 2026-03-29 | Fix: Security hardening — authorization on GET /orders/[id] (IDOR), Zod validation on delivery review + brand profile, auth on GET /creators/[id], duplicate AM assignment check, agency-brand PENDING approval status |
+| 0.7.0 | 2026-03-29 | Feat: Admin agency approval page, creator/network settings pages, error pages, loading states, mobile-responsive timelines |
+| 0.7.1 | 2026-03-29 | Fix: Admin ticket detail 404, agency brand status display, non-approved brands blocked |
+| 0.7.2 | 2026-03-29 | Feat: Agency order publish/cancel, agency order detail page, clickable order titles |
+| 0.7.3 | 2026-03-29 | Feat: Agency delivery review (approve/reject), clickable orders on brand detail |
+| 0.7.4 | 2026-03-29 | Feat: Creator support tickets (list + create with order context), max creators field on order form, agency browse creators page |
+| 0.8.0 | 2026-03-29 | Feat: Agency brand management — search existing brands (request with admin approval) or create new brands (auto-approved), approved-only brand dropdown on order creation |
 
 ---
 
@@ -344,7 +356,9 @@ Major feature release adding 3 order types (SHORT_VIDEO, LIVE, COMBO) and AI-pow
 **v0.5.0 (completed):** Agency + Account Manager roles with full dashboards
 **v0.6.0 (completed):** Post-delivery AI analysis + "What's Next" suggestions
 **v0.6.1 (completed):** Security hardening (authorization, validation, data protection)
-**v0.7.0 (current):** Polish — admin agency approval page, settings pages, error pages, skeleton loaders, mobile responsiveness
+**v0.7.0 (completed):** Polish — admin agency approval page, settings pages, error pages, skeleton loaders, mobile responsiveness
+**v0.7.1–v0.7.4 (completed):** Agency workflow fixes — ticket detail, brand status, order management, delivery review, browse creators
+**v0.8.0 (current):** Agency brand management — create/request brands, approved-only order dropdown
 
 ---
 
@@ -371,6 +385,60 @@ Major feature release adding 3 order types (SHORT_VIDEO, LIVE, COMBO) and AI-pow
 
 **Files modified:** `src/app/api/register/route.ts`, `src/app/api/onboarding/route.ts`, `src/app/api/creators/[id]/route.ts`, `src/app/api/orders/[id]/accept/route.ts`, `src/app/(auth)/register/page.tsx`, `src/app/(auth)/onboarding/page.tsx`, `src/app/(dashboard)/creator/profile/page.tsx`, `src/app/(dashboard)/creator/orders/page.tsx`, `src/app/(dashboard)/creator/orders/AcceptOrderButton.tsx`, `package.json`
 
+### March 29, 2026 (Session 2)
+
+**v0.7.0 → v0.8.0 — Agency Workflow + Creator Tickets + Brand Management**
+
+Continued from v0.7.0 session. Focused on agency workflow completeness, creator support tickets, and brand management.
+
+**v0.7.1 (PR #29/#30):** Fixed admin ticket detail 404 (created full ticket detail page with status/priority controls, message thread, reply form). Added approval status badges (PENDING/APPROVED/REJECTED) to agency brands page. Blocked non-approved brands from being clickable.
+
+**v0.7.2 (PR #30/#31):** Agency order publish/cancel — agencies with approved brand links can now publish (DRAFT→OPEN) and cancel orders via `AgencyOrderActions` component. Created agency order detail page (`/agency/orders/[id]`) with full order view, stats, timeline, creators, deliveries, screenshots, AI insights. Made order titles clickable on agency orders list.
+
+**v0.7.3 (PR #32):** Agency delivery review — updated `POST /orders/[id]/deliveries/[deliveryId]/review` to allow AGENCY role with proper AgencyBrand authorization check. Added `DeliveryActions` component (approve/reject buttons) to agency order detail page for pending deliveries. Made order titles clickable on agency brand detail page.
+
+**v0.7.4 (PR #33):** Three features:
+1. **Creator support tickets** — "Report Issue" button on rejected deliveries linking to ticket creation form pre-filled with order context. Created `/creator/tickets` list page and `/creator/tickets/new` creation page. Added "Tickets" to creator sidebar.
+2. **Max creators field** — Added `maxCreators` number input to order creation form (field existed in schema/API but wasn't in UI). Shows "How many creators can claim this order (budget is split between them)".
+3. **Agency browse creators** — Created `/agency/browse` page (same search/filter/grid UI as brand browse) with creator detail pages at `/agency/browse/[id]`. Added "Browse" to agency sidebar.
+
+**v0.8.0 (PR #34/#35/#36):** Agency brand management:
+- Replaced static "Contact admin to link brands" with working "Add Brand" button
+- Search-first flow: type brand name → if found, "Request" button (requires admin approval, PENDING status) → if not found, create form appears automatically with industry/website/description fields
+- Agency-created brands are auto-approved (APPROVED status, no admin needed)
+- Created `GET /api/brands` endpoint for brand search
+- Updated `POST /api/agency/brands` to support `createBrand: true` mode (creates User + Brand + AgencyBrand in transaction)
+- Fixed agency order creation dropdown to only show APPROVED brands
+
+**Key patterns established:**
+- Agency authorization: find agency by userId → check AgencyBrand link with `status: "APPROVED"`
+- Reuse of client components across dashboards (DeliveryActions, AgencyOrderActions)
+- AgencyBrand approval workflow: agency claims/creates brand → admin approves (or auto-approve for created) → only APPROVED links allow order creation, brand detail access, delivery review
+
+**Files created:**
+- `src/app/(dashboard)/admin/tickets/[id]/page.tsx` — Admin ticket detail
+- `src/app/(dashboard)/admin/agency-brands/page.tsx` — Admin agency-brand approval
+- `src/app/api/admin/agency-brands/route.ts` — Admin agency-brand API
+- `src/app/(dashboard)/agency/orders/[id]/page.tsx` — Agency order detail
+- `src/app/(dashboard)/agency/brands/[id]/AgencyOrderActions.tsx` — Agency order publish/cancel
+- `src/app/(dashboard)/agency/brands/RequestBrandForm.tsx` — Add brand form (search/create)
+- `src/app/(dashboard)/agency/browse/page.tsx` — Agency browse creators
+- `src/app/(dashboard)/agency/browse/[id]/page.tsx` — Agency creator detail
+- `src/app/(dashboard)/creator/tickets/page.tsx` — Creator tickets list
+- `src/app/(dashboard)/creator/tickets/new/page.tsx` — Create ticket form
+- `src/app/(dashboard)/creator/settings/page.tsx` — Creator settings
+- `src/app/(dashboard)/network/settings/page.tsx` — Network settings
+- `src/app/api/creators/me/route.ts` — Creator profile API
+- `src/app/api/network/profile/route.ts` — Network profile API
+- `src/app/api/brands/route.ts` — Brands search API
+- `src/app/not-found.tsx` — Custom 404
+- `src/app/error.tsx` — Custom 500
+- `src/app/(dashboard)/loading.tsx` — Dashboard skeleton loader
+
+**Files modified:** `src/app/api/orders/[id]/route.ts`, `src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`, `src/app/api/agency/brands/route.ts`, `src/app/api/orders/route.ts`, `src/app/(dashboard)/agency/brands/page.tsx`, `src/app/(dashboard)/agency/brands/[id]/page.tsx`, `src/app/(dashboard)/agency/orders/page.tsx`, `src/app/(dashboard)/agency/orders/new/page.tsx`, `src/app/(dashboard)/brand/orders/new/page.tsx`, `src/app/(dashboard)/creator/orders/[id]/page.tsx`, `src/components/layout/Sidebar.tsx`, `prisma/schema.prisma`, `prisma/seed.ts`, `package.json`
+
+**PRs merged:** #27, #28, #29, #30, #31, #32, #33, #34, #35, #36
+
 ---
 
-*Last updated: March 29, 2026 (v0.7.0)*
+*Last updated: March 29, 2026 (v0.8.0)*

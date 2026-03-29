@@ -672,6 +672,150 @@ async function main() {
   )
   console.log("Created 1 support ticket with dispute messages")
 
+  // ── Demo Agency ──────────────────────────────────────────────
+  const agencyUser = await prisma.user.upsert({
+    where: { email: "agency@mediabuy.com" },
+    update: {},
+    create: {
+      email: "agency@mediabuy.com",
+      password: hashedPassword,
+      name: "Rachel Kim",
+      role: "AGENCY",
+    },
+  })
+  const agency = await prisma.agency.upsert({
+    where: { userId: agencyUser.id },
+    update: {},
+    create: {
+      userId: agencyUser.id,
+      companyName: "MediaBuy Agency",
+      website: "https://mediabuy.example.com",
+      description:
+        "Full-service digital marketing agency specializing in TikTok influencer campaigns.",
+    },
+  })
+
+  // Link agency to brands (TechGlow + FitFuel)
+  await prisma.agencyBrand.upsert({
+    where: { agencyId_brandId: { agencyId: agency.id, brandId: brand1.id } },
+    update: {},
+    create: {
+      agencyId: agency.id,
+      brandId: brand1.id,
+      notes: "Premium client — handles all TikTok campaigns",
+    },
+  })
+  await prisma.agencyBrand.upsert({
+    where: { agencyId_brandId: { agencyId: agency.id, brandId: brand2.id } },
+    update: {},
+    create: {
+      agencyId: agency.id,
+      brandId: brand2.id,
+      notes: "New client — fitness vertical campaigns",
+    },
+  })
+
+  // Link agency to creators (Emily + Alex)
+  await prisma.agencyCreator.upsert({
+    where: { agencyId_creatorId: { agencyId: agency.id, creatorId: creator1.id } },
+    update: {},
+    create: {
+      agencyId: agency.id,
+      creatorId: creator1.id,
+      notes: "Top performer — dance & lifestyle",
+    },
+  })
+  await prisma.agencyCreator.upsert({
+    where: { agencyId_creatorId: { agencyId: agency.id, creatorId: creator2.id } },
+    update: {},
+    create: {
+      agencyId: agency.id,
+      creatorId: creator2.id,
+      notes: "Tech niche specialist",
+    },
+  })
+  console.log("Created 1 demo agency (agency@mediabuy.com / demo123)")
+  console.log("  → Manages brands: TechGlow, FitFuel")
+  console.log("  → Manages creators: Emily Zhang, Alex Kim")
+
+  // ── Demo Account Manager ───────────────────────────────────
+  const amUser = await prisma.user.upsert({
+    where: { email: "am@foxolog.com" },
+    update: {},
+    create: {
+      email: "am@foxolog.com",
+      password: hashedPassword,
+      name: "Sarah Miller",
+      role: "ACCOUNT_MANAGER",
+    },
+  })
+  const am = await prisma.accountManager.upsert({
+    where: { userId: amUser.id },
+    update: {},
+    create: {
+      userId: amUser.id,
+      department: "Enterprise",
+    },
+  })
+
+  // Assign AM to brands (TechGlow=VIP, UrbanStyle=Normal)
+  await prisma.accountManagerBrand.upsert({
+    where: { accountManagerId_brandId: { accountManagerId: am.id, brandId: brand1.id } },
+    update: {},
+    create: {
+      accountManagerId: am.id,
+      brandId: brand1.id,
+      priority: 2, // VIP
+    },
+  })
+  await prisma.accountManagerBrand.upsert({
+    where: { accountManagerId_brandId: { accountManagerId: am.id, brandId: brand3.id } },
+    update: {},
+    create: {
+      accountManagerId: am.id,
+      brandId: brand3.id,
+      priority: 0, // Normal
+    },
+  })
+
+  // Assign AM to agency (MediaBuy=High)
+  await prisma.accountManagerAgency.upsert({
+    where: { accountManagerId_agencyId: { accountManagerId: am.id, agencyId: agency.id } },
+    update: {},
+    create: {
+      accountManagerId: am.id,
+      agencyId: agency.id,
+      priority: 1, // High
+    },
+  })
+
+  // Add some internal notes
+  await prisma.internalNote.create({
+    data: {
+      accountManagerId: am.id,
+      brandId: brand1.id,
+      content: "TechGlow Q2 budget approved — $50k allocated for TikTok campaigns. Planning 3 product launches.",
+    },
+  })
+  await prisma.internalNote.create({
+    data: {
+      accountManagerId: am.id,
+      brandId: brand3.id,
+      content: "UrbanStyle onboarding call completed. They want to focus on Gen Z streetwear content.",
+    },
+  })
+  await prisma.internalNote.create({
+    data: {
+      accountManagerId: am.id,
+      agencyId: agency.id,
+      content: "MediaBuy Agency expanding into fitness vertical. Connecting them with FitFuel.",
+    },
+  })
+  console.log("Created 1 demo account manager (am@foxolog.com / demo123)")
+  console.log("  → Assigned brands: TechGlow (VIP), UrbanStyle (Normal)")
+  console.log("  → Assigned agency: MediaBuy (High)")
+  console.log("  → 3 internal notes seeded")
+
   // ── Summary ─────────────────────────────────────────────────
   console.log("\n--- Seed Complete ---")
   console.log("Admin:    admin@foxolog.com / admin123")
@@ -684,6 +828,8 @@ async function main() {
   console.log("          creator@sofiafood.com / demo123   (Tier 3 - Established)")
   console.log("          creator@jamesfitness.com / demo123 (Tier 2 - Rising)")
   console.log("          creator@lilybeauty.com / demo123  (Tier 1 - Starter)")
+  console.log("Agency:   agency@mediabuy.com / demo123")
+  console.log("Acct Mgr: am@foxolog.com / demo123")
 }
 
 main()

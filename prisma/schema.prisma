@@ -13,6 +13,8 @@ enum UserRole {
   NETWORK
   BRAND
   ADMIN
+  AGENCY
+  ACCOUNT_MANAGER
 }
 
 enum OrderStatus {
@@ -71,6 +73,8 @@ model User {
   creator         Creator?
   network         CreatorNetwork?
   brand           Brand?
+  agency          Agency?
+  accountManager  AccountManager?
   tickets         SupportTicket[] @relation("TicketCreator")
   assignedTickets SupportTicket[] @relation("TicketAssignee")
   notifications   Notification[]
@@ -141,6 +145,8 @@ model Creator {
   metricsUpdatedAt DateTime?
   orderAssignments OrderAssignment[]
   aiAnalyses       AiCreatorAnalysis[]
+  agencyCreators   AgencyCreator[]
+  internalNotes    InternalNote[]
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
@@ -178,9 +184,12 @@ model Brand {
   description String?
   logo        String?
 
-  orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  orders              Order[]
+  agencyBrands        AgencyBrand[]
+  accountManagerBrand AccountManagerBrand[]
+  internalNotes       InternalNote[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Category {
@@ -232,9 +241,13 @@ model Order {
   stripePaymentId String?
   paymentStatus   PaymentStatus @default(PENDING)
 
+  agencyId     String?
+  agency       Agency?           @relation(fields: [agencyId], references: [id])
+
   assignments  OrderAssignment[]
   deliveries   Delivery[]
   transactions Transaction[]
+  internalNotes InternalNote[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   expiresAt    DateTime?
@@ -242,6 +255,7 @@ model Order {
   @@index([status])
   @@index([brandId])
   @@index([categoryId])
+  @@index([agencyId])
 }
 
 model OrderAssignment {
@@ -389,4 +403,121 @@ model PlatformSettings {
   platformFeeRate Float  @default(0.15)
   minOrderBudget  Float  @default(5.00)
   maxOrderBudget  Float  @default(100000)
+}
+
+// ──── Agency & Account Manager ────
+
+model Agency {
+  id          String @id @default(cuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String
+  website     String?
+  description String?
+  logo        String?
+
+  managedBrands   AgencyBrand[]
+  managedCreators AgencyCreator[]
+  orders          Order[]
+  accountManagerAgency AccountManagerAgency[]
+  internalNotes   InternalNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgencyBrand {
+  id       String @id @default(cuid())
+  agencyId String
+  agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  brandId  String
+  brand    Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  addedAt  DateTime @default(now())
+  notes    String?
+
+  @@unique([agencyId, brandId])
+  @@index([agencyId])
+  @@index([brandId])
+}
+
+model AgencyCreator {
+  id        String  @id @default(cuid())
+  agencyId  String
+  agency    Agency  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  addedAt   DateTime @default(now())
+  notes     String?
+
+  @@unique([agencyId, creatorId])
+  @@index([agencyId])
+  @@index([creatorId])
+}
+
+model AccountManager {
+  id         String @id @default(cuid())
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department String?
+
+  assignedBrands   AccountManagerBrand[]
+  assignedAgencies AccountManagerAgency[]
+  internalNotes    InternalNote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AccountManagerBrand {
+  id               String         @id @default(cuid())
+  accountManagerId String
+  accountManager   AccountManager @relation(fields: [accountManagerId], references: [id], onDelete: Cascade)
+  brandId          String
+  brand            Brand          @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  assignedAt       DateTime       @default(now())
+  priority         Int            @default(0)
+
+  @@unique([accountManagerId, brandId])
+  @@index([accountManagerId])
+  @@index([brandId])
+}
+
+model AccountManagerAgency {
+  id               String         @id @default(cuid())
+  accountManagerId String
+  accountManager   AccountManager @relation(fields: [accountManagerId], references: [id], onDelete: Cascade)
+  agencyId         String
+  agency           Agency         @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  assignedAt       DateTime       @default(now())
+  priority         Int            @default(0)
+
+  @@unique([accountManagerId, agencyId])
+  @@index([accountManagerId])
+  @@index([agencyId])
+}
+
+model InternalNote {
+  id               String         @id @default(cuid())
+  accountManagerId String
+  accountManager   AccountManager @relation(fields: [accountManagerId], references: [id], onDelete: Cascade)
+
+  brandId   String?
+  brand     Brand?   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  agencyId  String?
+  agency    Agency?  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  creatorId String?
+  creator   Creator? @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([agencyId])
+  @@index([creatorId])
+  @@index([orderId])
+  @@index([accountManagerId])
 }

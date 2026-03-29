@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 
-type Role = "CREATOR" | "NETWORK" | "BRAND"
+type Role = "CREATOR" | "NETWORK" | "BRAND" | "AGENCY"
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -13,6 +13,7 @@ export default function OnboardingPage() {
   const [tiktokUsername, setTiktokUsername] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [industry, setIndustry] = useState("")
+  const [agencyWebsite, setAgencyWebsite] = useState("")
   const [supportsShortVideo, setSupportsShortVideo] = useState(true)
   const [supportsLive, setSupportsLive] = useState(false)
   const [error, setError] = useState("")
@@ -26,7 +27,7 @@ export default function OnboardingPage() {
       setError("TikTok username is required for creators")
       return
     }
-    if ((role === "NETWORK" || role === "BRAND") && !companyName.trim()) {
+    if ((role === "NETWORK" || role === "BRAND" || role === "AGENCY") && !companyName.trim()) {
       setError("Company name is required")
       return
     }
@@ -45,6 +46,9 @@ export default function OnboardingPage() {
       } else if (role === "BRAND") {
         body.companyName = companyName
         if (industry) body.industry = industry
+      } else if (role === "AGENCY") {
+        body.companyName = companyName
+        if (agencyWebsite) body.agencyWebsite = agencyWebsite
       }
 
       const res = await fetch("/api/onboarding", {
@@ -68,6 +72,7 @@ export default function OnboardingPage() {
         CREATOR: "/creator/orders",
         NETWORK: "/network/creators",
         BRAND: "/brand/orders",
+        AGENCY: "/agency/brands",
       }
       router.push(dashboardMap[role])
       router.refresh()
@@ -94,6 +99,11 @@ export default function OnboardingPage() {
       label: "Brand",
       description: "I want to promote my brand",
     },
+    {
+      value: "AGENCY",
+      label: "Agency",
+      description: "I manage brands & creators",
+    },
   ]
 
   return (
@@ -119,7 +129,7 @@ export default function OnboardingPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             I am a...
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {roles.map((r) => (
               <button
                 key={r.value}
@@ -251,6 +261,44 @@ export default function OnboardingPage() {
                 onChange={(e) => setIndustry(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder="e.g. Fashion, Tech, Food"
+              />
+            </div>
+          </>
+        )}
+
+        {role === "AGENCY" && (
+          <>
+            <div>
+              <label
+                htmlFor="company-agency"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Agency Name
+              </label>
+              <input
+                id="company-agency"
+                type="text"
+                required
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
+                placeholder="Your agency's name"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="agency-website"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Website
+              </label>
+              <input
+                id="agency-website"
+                type="text"
+                value={agencyWebsite}
+                onChange={(e) => setAgencyWebsite(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
+                placeholder="https://youragency.com"
               />
             </div>
           </>

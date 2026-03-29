@@ -54,6 +54,24 @@ export async function GET(request: NextRequest) {
       if (!status) {
         where.status = "OPEN"
       }
+    } else if (session.user.role === "AGENCY") {
+      const agency = await prisma.agency.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+      if (!agency) {
+        return NextResponse.json({ error: "Agency profile not found" }, { status: 404 })
+      }
+      where.agencyId = agency.id
+    } else if (session.user.role === "ACCOUNT_MANAGER") {
+      const am = await prisma.accountManager.findUnique({
+        where: { userId: session.user.id },
+        include: { assignedBrands: { select: { brandId: true } } },
+      })
+      if (!am) {
+        return NextResponse.json({ error: "Account manager not found" }, { status: 404 })
+      }
+      where.brandId = { in: am.assignedBrands.map((b: { brandId: string }) => b.brandId) }
     } else if (session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
@@ -100,6 +118,7 @@ const createOrderSchema = z.object({
   description: z.string().min(1).max(5000),
   brief: z.string().max(10000).optional(),
   categoryId: z.string().min(1),
+  brandId: z.string().optional(), // required for AGENCY/ACCOUNT_MANAGER
   type: z.enum(["SHORT_VIDEO", "LIVE", "COMBO"]).default("SHORT_VIDEO"),
   impressionTarget: z.number().int().min(0).default(0),
   budget: z.number().min(0).default(0),
@@ -117,17 +136,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (session.user.role !== "BRAND") {
-      return NextResponse.json({ error: "Only brands can create orders" }, { status: 403 })
-    }
-
-    const brand = await prisma.brand.findUnique({
-      where: { userId: session.user.id },
-      select: { id: true },
-    })
-
-    if (!brand) {
-      return NextResponse.json({ error: "Brand profile not found" }, { status: 404 })
+    if (!["BRAND", "AGENCY", "ACCOUNT_MANAGER"].includes(session.user.role ?? "")) {
+      return NextResponse.json({ error: "Not authorized to create orders" }, { status: 403 })
     }
 
     const body = await request.json()
@@ -140,7 +150,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, brief, categoryId, type, impressionTarget, budget, liveFlatFee, liveMinDuration, liveGuidelines, maxCreators, deadline } = parsed.data
+    const { title, description, brief, categoryId, brandId: bodyBrandId, type, impressionTarget, budget, liveFlatFee, liveMinDuration, liveGuidelines, maxCreators, deadline } = parsed.data
+
+    // Resolve brand and agency based on role
+    let resolvedBrandId: string
+    let resolvedAgencyId: string | null = null
+
+    if (session.user.role === "BRAND") {
+      const brand = await prisma.brand.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+      if (!brand) {
+        return NextResponse.json({ error: "Brand profile not found" }, { status: 404 })
+      }
+      resolvedBrandId = brand.id
+    } else if (session.user.role === "AGENCY") {
+      if (!bodyBrandId) {
+        return NextResponse.json({ error: "brandId is required for agency orders" }, { status: 400 })
+      }
+      const agency = await prisma.agency.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+      if (!agency) {
+        return NextResponse.json({ error: "Agency profile not found" }, { status: 404 })
+      }
+      // Verify agency manages this brand
+      const link = await prisma.agencyBrand.findUnique({
+        where: { agencyId_brandId: { agencyId: agency.id, brandId: bodyBrandId } },
+      })
+      if (!link) {
+        return NextResponse.json({ error: "Brand is not managed by your agency" }, { status: 403 })
+      }
+      resolvedBrandId = bodyBrandId
+      resolvedAgencyId = agency.id
+    } else {
+      // ACCOUNT_MANAGER
+      if (!bodyBrandId) {
+        return NextResponse.json({ error: "brandId is required" }, { status: 400 })
+      }
+      const am = await prisma.accountManager.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      })
+      if (!am) {
+        return NextResponse.json({ error: "Account manager profile not found" }, { status: 404 })
+      }
+      const assignment = await prisma.accountManagerBrand.findUnique({
+        where: { accountManagerId_brandId: { accountManagerId: am.id, brandId: bodyBrandId } },
+      })
+      if (!assignment) {
+        return NextResponse.json({ error: "Brand is not assigned to you" }, { status: 403 })
+      }
+      resolvedBrandId = bodyBrandId
+    }
 
     // Validate type-specific requirements
     if (type === "SHORT_VIDEO" && (impressionTarget <= 0 || budget <= 0)) {
@@ -171,7 +235,8 @@ export async function POST(request: NextRequest) {
 
     const order = await prisma.order.create({
       data: {
-        brandId: brand.id,
+        brandId: resolvedBrandId,
+        agencyId: resolvedAgencyId,
         title,
         description,
         brief,

@@ -66,6 +66,8 @@ export default function AdminUsersPage() {
     NETWORK: "bg-blue-100 text-blue-700",
     BRAND: "bg-green-100 text-green-700",
     ADMIN: "bg-red-100 text-red-700",
+    AGENCY: "bg-orange-100 text-orange-700",
+    ACCOUNT_MANAGER: "bg-cyan-100 text-cyan-700",
   };
 
   return (
@@ -91,6 +93,8 @@ export default function AdminUsersPage() {
           <option value="NETWORK">Network</option>
           <option value="BRAND">Brand</option>
           <option value="ADMIN">Admin</option>
+          <option value="AGENCY">Agency</option>
+          <option value="ACCOUNT_MANAGER">Account Manager</option>
         </select>
       </div>
 

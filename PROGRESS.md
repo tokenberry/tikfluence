@@ -149,6 +149,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `RESEND_API_KEY` | Configured (Resend — domain verified) |
 | `TIKTOK_CLIENT_KEY` | Not set |
 | `TIKTOK_CLIENT_SECRET` | Not set |
+| `ANTHROPIC_API_KEY` | Not set |
 
 ---
 
@@ -166,6 +167,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.2.6 | 2026-03-27 | Feat: 4 missing API endpoints — brand profile, network creator search/add, delivery review |
 | 0.2.7 | 2026-03-27 | Feat: delivery form — drag-drop screenshot upload (max 10), multiple TikTok links, timeline grey line fix, auto prisma db push on Vercel build |
 | 0.3.0 | 2026-03-28 | Feat: 6 order system fixes — screenshot display, order deadlines, REVISION timeline, in-app notifications, admin order detail page, APPROVED→COMPLETED flow |
+| 0.4.0 | 2026-03-29 | Feat: 3 order types (SHORT_VIDEO/LIVE/COMBO) with type-specific pricing, delivery metrics, and content guidelines + AI-powered creator scoring via Claude API |
 
 ---
 
@@ -287,6 +289,54 @@ Session focused on fixing 6 user-reported issues with the order lifecycle, deliv
 **Infrastructure needed after merge:**
 - Run `prisma db push` to add `Notification` table to Neon database (auto-runs on Vercel build)
 
+### March 29, 2026
+
+**v0.3.0 → v0.4.0 — Order Types + AI Creator Scoring**
+
+Major feature release adding 3 order types (SHORT_VIDEO, LIVE, COMBO) and AI-powered creator analysis via Claude API.
+
+**Phase 1 — Order Types (LIVE / SHORT_VIDEO / COMBO):**
+
+- **Schema**: Added `OrderType` and `DeliveryType` enums. Order model gets `type` (defaults SHORT_VIDEO for backward compat), `liveFlatFee`, `liveMinDuration`, `liveGuidelines`. Delivery model gets `deliveryType`, `streamDuration`, `peakViewers`, `avgConcurrentViewers`, `chatMessages`, `giftsValue`. Creator model gets `supportsLive`, `supportsShortVideo` flags.
+
+- **Order Creation**: New 3-card type selector (Short Video / LIVE Stream / Combo) on brand order form. Conditional fields based on type — SHORT_VIDEO shows CPM-based pricing (existing), LIVE shows flat fee per stream + min duration + content guidelines, COMBO shows both. LIVE restriction warning banner: "Must use product placement or sponsored gameplay."
+
+- **Delivery Flow**: DeliveryForm now type-aware — shows video metrics (impressions, views, likes, etc.) for SHORT_VIDEO or LIVE metrics (stream duration, peak viewers, concurrent viewers, chat messages, gifts value) for LIVE. COMBO orders let creators toggle between submitting a LIVE or SHORT_VIDEO delivery.
+
+- **Pricing Model**: SHORT_VIDEO = CPM-based (existing). LIVE = flat fee per stream. COMBO = CPM budget for video portion + flat fee for LIVE portion.
+
+- **All 4 order detail pages**: Updated (brand, creator, network, admin) with OrderTypeBadge component, conditional info cards (video vs LIVE metrics), LIVE content guidelines section, and type-specific delivery metric display.
+
+- **Creator Browse**: Added content type filter dropdown (All / Short Video / LIVE), content type badges (Video/LIVE) on creator cards. Updated `/api/creators` to accept `contentType` filter.
+
+**Phase 2 — AI-Powered Creator Scoring:**
+
+- **`src/lib/ai.ts`**: Anthropic SDK integration with `analyzeCreator()` function. Sends structured prompt with creator's TikTok metrics, categories, engagement data to Claude Sonnet. Returns natural language summary, strengths, weaknesses, best content types, audience insights, content style, recommended CPM. Stores results in `AiCreatorAnalysis` table.
+
+- **`AiCreatorAnalysis` model**: New Prisma model storing AI analysis results — summary, strengths[], weaknesses[], bestContentTypes[], audienceInsights, contentStyle, recommendedCpm. Indexed by creatorId.
+
+- **`POST/GET /api/creators/[id]/ai-analyze`**: POST triggers AI analysis (creator or admin only). GET returns latest analysis.
+
+- **Creator Profile**: New `AiInsights` client component — shows AI analysis with strengths/weaknesses cards, content type suitability badges, recommended CPM, and "Run/Refresh AI Analysis" button.
+
+- **Brand Creator Detail**: Server-side AI insights display with summary, best-for badges, strengths/weaknesses, and AI recommended CPM.
+
+**Files created:** `src/lib/ai.ts`, `src/app/api/creators/[id]/ai-analyze/route.ts`, `src/app/(dashboard)/creator/profile/AiInsights.tsx`
+
+**Files modified:** `prisma/schema.prisma`, `package.json`, `package-lock.json`, `src/app/api/orders/route.ts`, `src/app/api/orders/[id]/deliver/route.ts`, `src/app/api/creators/route.ts`, `src/app/(dashboard)/brand/orders/new/page.tsx`, `src/app/(dashboard)/brand/orders/[id]/page.tsx`, `src/app/(dashboard)/brand/browse/page.tsx`, `src/app/(dashboard)/brand/browse/[id]/page.tsx`, `src/app/(dashboard)/creator/orders/[id]/page.tsx`, `src/app/(dashboard)/creator/orders/[id]/DeliveryForm.tsx`, `src/app/(dashboard)/creator/profile/page.tsx`, `src/app/(dashboard)/network/orders/[id]/page.tsx`, `src/app/(dashboard)/admin/orders/[id]/page.tsx`
+
+**Dependencies added:** `@anthropic-ai/sdk`
+
+**Environment variables needed:**
+- `ANTHROPIC_API_KEY` — Required for AI creator analysis feature
+
+**Infrastructure needed after merge:**
+- Run `prisma db push` to apply schema changes (auto-runs on Vercel build)
+- Set `ANTHROPIC_API_KEY` in Vercel environment variables
+
+**Planned for v0.5.0:** Post-delivery AI analysis + "What's Next" suggestions
+**Planned for v0.6.0:** Separate Agency dashboard with managed campaigns
+
 ---
 
-*Last updated: March 28, 2026*
+*Last updated: March 29, 2026*

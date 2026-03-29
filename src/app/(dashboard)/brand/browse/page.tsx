@@ -19,6 +19,8 @@ interface CreatorResult {
   score: number;
   tier: number;
   pricePerThousand: number;
+  supportsLive: boolean;
+  supportsShortVideo: boolean;
   user: { name: string; avatar: string | null };
   categories: Array<{ category: { name: string } }>;
 }
@@ -29,6 +31,7 @@ export default function BrowseCreatorsPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [tierFilter, setTierFilter] = useState("");
+  const [contentFilter, setContentFilter] = useState("");
   const [loading, setLoading] = useState(true);
 
   const fetchCreators = useCallback(async () => {
@@ -38,6 +41,7 @@ export default function BrowseCreatorsPage() {
       if (search) params.set("search", search);
       if (categoryFilter) params.set("category", categoryFilter);
       if (tierFilter) params.set("tier", tierFilter);
+      if (contentFilter) params.set("contentType", contentFilter);
 
       const res = await fetch(`/api/creators?${params.toString()}`);
       if (res.ok) {
@@ -49,7 +53,7 @@ export default function BrowseCreatorsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, categoryFilter, tierFilter]);
+  }, [search, categoryFilter, tierFilter, contentFilter]);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -100,6 +104,15 @@ export default function BrowseCreatorsPage() {
           <option value="4">Platinum</option>
           <option value="5">Diamond</option>
         </select>
+        <select
+          value={contentFilter}
+          onChange={(e) => setContentFilter(e.target.value)}
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+        >
+          <option value="">All Content Types</option>
+          <option value="video">Short Video</option>
+          <option value="live">LIVE Stream</option>
+        </select>
       </div>
 
       {/* Creator Grid */}
@@ -145,7 +158,17 @@ export default function BrowseCreatorsPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                {/* Content Type Badges */}
+                <div className="mt-3 flex gap-1">
+                  {creator.supportsShortVideo && (
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">Video</span>
+                  )}
+                  {creator.supportsLive && (
+                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">LIVE</span>
+                  )}
+                </div>
+
+                <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-3">
                   <div className="flex flex-wrap gap-1">
                     {creator.categories.slice(0, 2).map(({ category }, i) => (
                       <span

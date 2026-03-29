@@ -8,15 +8,23 @@ import { z } from "zod"
 export const dynamic = "force-dynamic"
 
 const deliverySchema = z.object({
+  deliveryType: z.enum(["SHORT_VIDEO", "LIVE"]).default("SHORT_VIDEO"),
   tiktokLink: z.string().url(),
   tiktokLinks: z.array(z.string().url()).default([]),
   screenshotUrl: z.string().url().optional(),
   screenshots: z.array(z.string()).default([]),
+  // SHORT_VIDEO metrics
   impressions: z.number().int().min(0).optional(),
   views: z.number().int().min(0).optional(),
   likes: z.number().int().min(0).optional(),
   comments: z.number().int().min(0).optional(),
   shares: z.number().int().min(0).optional(),
+  // LIVE metrics
+  streamDuration: z.number().int().min(1).optional(),
+  peakViewers: z.number().int().min(0).optional(),
+  avgConcurrentViewers: z.number().int().min(0).optional(),
+  chatMessages: z.number().int().min(0).optional(),
+  giftsValue: z.number().min(0).optional(),
   notes: z.string().max(5000).optional(),
 })
 

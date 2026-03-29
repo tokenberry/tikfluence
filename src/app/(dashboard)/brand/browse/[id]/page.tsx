@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { formatNumber, formatCurrency } from "@/lib/utils";
+import { getLatestCreatorAnalysis } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export default async function CreatorDetailPage({
   if (!creator) notFound();
 
   const tier = tierLabels[creator.tier] ?? tierLabels[1];
+  const aiAnalysis = await getLatestCreatorAnalysis(creator.id);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
@@ -154,6 +156,74 @@ export default async function CreatorDetailPage({
                 </a>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Content Types */}
+        <div className="mt-6">
+          <h2 className="text-sm font-semibold text-gray-700">Supports</h2>
+          <div className="mt-2 flex gap-2">
+            {creator.supportsShortVideo && (
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">Short Video</span>
+            )}
+            {creator.supportsLive && (
+              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">LIVE Stream</span>
+            )}
+          </div>
+        </div>
+
+        {/* AI Insights */}
+        {aiAnalysis && (
+          <div className="mt-6 rounded-lg border border-orange-200 bg-orange-50/50 p-5">
+            <h2 className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+              AI Insights
+            </h2>
+            <p className="mt-2 text-sm text-gray-700">{aiAnalysis.summary}</p>
+
+            {aiAnalysis.bestContentTypes.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs font-medium text-gray-500 mb-1">Best for:</p>
+                <div className="flex gap-1.5">
+                  {aiAnalysis.bestContentTypes.map((type) => (
+                    <span
+                      key={type}
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        type === "LIVE" ? "bg-red-100 text-red-700"
+                        : type === "SHORT_VIDEO" ? "bg-blue-100 text-blue-700"
+                        : "bg-purple-100 text-purple-700"
+                      }`}
+                    >
+                      {type === "SHORT_VIDEO" ? "Short Video" : type === "LIVE" ? "LIVE Stream" : type}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs font-medium text-green-600 mb-1">Strengths</p>
+                <ul className="space-y-0.5">
+                  {aiAnalysis.strengths.slice(0, 3).map((s, i) => (
+                    <li key={i} className="text-xs text-gray-600">+ {s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-amber-600 mb-1">Consider</p>
+                <ul className="space-y-0.5">
+                  {aiAnalysis.weaknesses.slice(0, 2).map((w, i) => (
+                    <li key={i} className="text-xs text-gray-600">- {w}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {aiAnalysis.recommendedCpm != null && (
+              <p className="mt-3 text-xs text-orange-700">
+                AI Recommended CPM: <span className="font-bold">${aiAnalysis.recommendedCpm.toFixed(2)}</span>
+              </p>
+            )}
           </div>
         )}
 

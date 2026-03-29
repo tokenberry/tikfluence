@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
 import RefreshTikTokButton from "./RefreshTikTokButton";
+import AiInsights from "./AiInsights";
 
 export const dynamic = "force-dynamic"
 
@@ -104,6 +105,25 @@ export default async function CreatorProfilePage() {
             ))
           ) : (
             <p className="text-gray-500">No categories selected.</p>
+          )}
+        </div>
+      </div>
+
+      {/* AI Insights */}
+      <AiInsights creatorId={creator.id} />
+
+      {/* Content Type Support */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900">Content Types</h2>
+        <div className="mt-3 flex gap-3">
+          {creator.supportsShortVideo && (
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">Short Video</span>
+          )}
+          {creator.supportsLive && (
+            <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">LIVE Stream</span>
+          )}
+          {!creator.supportsShortVideo && !creator.supportsLive && (
+            <p className="text-sm text-gray-500">No content types configured.</p>
           )}
         </div>
       </div>

@@ -9,6 +9,7 @@ type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 interface ManagedBrand {
   id: string;
   brandId: string;
+  status: string;
   brand: {
     id: string;
     companyName: string;
@@ -63,7 +64,8 @@ export default function AgencyNewOrderPage() {
     fetch("/api/agency/brands")
       .then((res) => res.json())
       .then((data) => {
-        const list = data.brands ?? data ?? [];
+        const all = data.brands ?? data ?? [];
+        const list = all.filter((b: ManagedBrand) => b.status === "APPROVED");
         setBrands(list);
         if (preselectedBrandId && list.some((b: ManagedBrand) => b.brand.id === preselectedBrandId)) {
           setSelectedBrandId(preselectedBrandId);

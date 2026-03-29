@@ -97,7 +97,12 @@ export default async function AgencyOrdersPage() {
               {orders.map((order) => (
                 <tr key={order.id} className="transition hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{order.title}</p>
+                    <a
+                      href={`/agency/orders/${order.id}`}
+                      className="font-medium text-gray-900 hover:text-[#d4772c]"
+                    >
+                      {order.title}
+                    </a>
                     <p className="text-xs text-gray-500">
                       {order._count.assignments} assignment(s)
                     </p>

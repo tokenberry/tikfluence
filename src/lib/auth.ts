@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
+import TikTok from "next-auth/providers/tiktok"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
@@ -28,6 +29,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    TikTok({
+      clientId: process.env.AUTH_TIKTOK_ID,
+      clientSecret: process.env.AUTH_TIKTOK_SECRET,
+      authorization: {
+        url: "https://www.tiktok.com/v2/auth/authorize",
+        params: {
+          client_key: process.env.AUTH_TIKTOK_ID,
+          scope: "user.info.basic,user.info.profile",
+        },
+      },
+      userinfo:
+        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,avatar_url,display_name,username",
+      profile(profile) {
+        const user = profile.data.user
+        return {
+          id: user.open_id,
+          name: user.display_name,
+          image: user.avatar_url,
+          // TikTok doesn't provide email — generate a placeholder
+          email: `tiktok_${user.open_id}@placeholder.foxolog.com`,
+        }
+      },
     }),
     Credentials({
       name: "credentials",

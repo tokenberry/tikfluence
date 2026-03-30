@@ -7,6 +7,7 @@ interface VerificationBannerProps {
   creatorId: string
   isVerified: boolean
   verifiedAt: string | null
+  verificationMethod: string | null
   existingCode: string | null
   codeExpiresAt: string | null
 }
@@ -17,6 +18,7 @@ export default function VerificationBanner({
   creatorId,
   isVerified,
   verifiedAt,
+  verificationMethod,
   existingCode,
   codeExpiresAt,
 }: VerificationBannerProps) {
@@ -91,7 +93,10 @@ export default function VerificationBanner({
       <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
         <BadgeCheck className="h-6 w-6 text-emerald-600" />
         <div>
-          <p className="font-semibold text-emerald-800">TikTok Account Verified</p>
+          <p className="font-semibold text-emerald-800">
+            TikTok Account Verified
+            {verificationMethod === "OAUTH" && " via TikTok Login"}
+          </p>
           {verifiedAt && (
             <p className="text-sm text-emerald-600">
               Verified on {new Date(verifiedAt).toLocaleDateString()}

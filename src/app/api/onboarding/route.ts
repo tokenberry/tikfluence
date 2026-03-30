@@ -57,12 +57,24 @@ export async function POST(req: NextRequest) {
           throw new Error("TikTok username already registered")
         }
 
+        // Check if user signed in via TikTok OAuth — auto-verify if so
+        const tiktokAccount = await tx.account.findFirst({
+          where: { userId: session.user.id, provider: "tiktok" },
+        })
+
         await tx.creator.create({
           data: {
             userId: session.user.id,
             tiktokUsername: data.tiktokUsername,
             supportsShortVideo: data.supportsShortVideo ?? true,
             supportsLive: data.supportsLive ?? false,
+            ...(tiktokAccount
+              ? {
+                  tiktokVerified: true,
+                  verifiedAt: new Date(),
+                  verificationMethod: "OAUTH",
+                }
+              : {}),
           },
         })
       } else if (data.role === "NETWORK") {

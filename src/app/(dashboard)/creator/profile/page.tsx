@@ -63,6 +63,7 @@ export default async function CreatorProfilePage() {
         creatorId={creator.id}
         isVerified={creator.tiktokVerified}
         verifiedAt={creator.verifiedAt?.toISOString() ?? null}
+        verificationMethod={creator.verificationMethod}
         existingCode={creator.verificationCode}
         codeExpiresAt={creator.verificationCodeExp?.toISOString() ?? null}
       />

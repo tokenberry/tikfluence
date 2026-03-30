@@ -26,7 +26,7 @@ export default auth((req) => {
   }
 
   // Public routes - no auth required
-  const publicRoutes = ["/", "/login", "/register", "/api/auth"]
+  const publicRoutes = ["/", "/login", "/register", "/api/auth", "/terms", "/privacy"]
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next()
   }

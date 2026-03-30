@@ -57,7 +57,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white">
-            <img src="/fox-logo.svg" alt="Foxolog" className="h-8 w-8" />
+            <img src="/fox-logo.png" alt="Foxolog" className="h-8 w-8 rounded-full" />
             Foxolog
           </Link>
 

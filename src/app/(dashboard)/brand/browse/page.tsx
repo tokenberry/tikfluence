@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { formatNumber, formatCurrency } from "@/lib/utils";
+import VerifiedBadge from "@/components/VerifiedBadge";
 
 const tierLabels: Record<number, { label: string; color: string }> = {
   1: { label: "Bronze", color: "bg-amber-700 text-white" },
@@ -19,6 +20,7 @@ interface CreatorResult {
   score: number;
   tier: number;
   pricePerThousand: number;
+  tiktokVerified: boolean;
   supportsLive: boolean;
   supportsShortVideo: boolean;
   user: { name: string; avatar: string | null };
@@ -136,7 +138,10 @@ export default function BrowseCreatorsPage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">{creator.user.name}</h3>
-                    <p className="text-sm text-gray-500">@{creator.tiktokUsername}</p>
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
+                      @{creator.tiktokUsername}
+                      <VerifiedBadge verified={creator.tiktokVerified} />
+                    </p>
                   </div>
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${tier.color}`}>
                     {tier.label}

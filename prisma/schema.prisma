@@ -117,7 +117,11 @@ model Creator {
 
   tiktokUsername String  @unique
   tiktokId       String? @unique
-  tiktokVerified Boolean @default(false)
+  tiktokVerified      Boolean   @default(false)
+  verificationCode    String?
+  verificationCodeExp DateTime?
+  verifiedAt          DateTime?
+  verificationMethod  String?
 
   followerCount  Int   @default(0)
   avgViews       Int   @default(0)

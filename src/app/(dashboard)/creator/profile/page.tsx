@@ -5,6 +5,7 @@ import { formatNumber } from "@/lib/utils";
 import RefreshTikTokButton from "./RefreshTikTokButton";
 import AiInsights from "./AiInsights";
 import ContentTypeEditor from "./ContentTypeEditor";
+import VerificationBanner from "./VerificationBanner";
 
 export const dynamic = "force-dynamic"
 
@@ -56,6 +57,15 @@ export default async function CreatorProfilePage() {
           </span>
         </div>
       </div>
+
+      {/* TikTok Verification */}
+      <VerificationBanner
+        creatorId={creator.id}
+        isVerified={creator.tiktokVerified}
+        verifiedAt={creator.verifiedAt?.toISOString() ?? null}
+        existingCode={creator.verificationCode}
+        codeExpiresAt={creator.verificationCodeExp?.toISOString() ?? null}
+      />
 
       {/* TikTok Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

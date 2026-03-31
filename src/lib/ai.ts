@@ -1,9 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { prisma } from "./prisma"
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY ?? "",
-})
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY is not configured")
+  }
+  return new Anthropic({ apiKey })
+}
 
 interface CreatorData {
   id: string
@@ -67,6 +71,8 @@ Be honest and specific. Base your analysis on the metrics provided. If engagemen
 
 Respond ONLY with the JSON object, no additional text.`
 
+  const anthropic = getAnthropicClient()
+
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 1024,
@@ -74,7 +80,14 @@ Respond ONLY with the JSON object, no additional text.`
   })
 
   const text = response.content[0].type === "text" ? response.content[0].text : ""
-  const parsed = JSON.parse(text) as CreatorAnalysisResult
+
+  let parsed: CreatorAnalysisResult
+  try {
+    parsed = JSON.parse(text) as CreatorAnalysisResult
+  } catch {
+    console.error("Failed to parse AI creator analysis response:", text.slice(0, 200))
+    throw new Error("AI returned invalid JSON for creator analysis")
+  }
 
   // Store in database
   await prisma.aiCreatorAnalysis.create({
@@ -196,6 +209,8 @@ Be data-driven and specific. Reference actual numbers. If impressions exceeded t
 
 Respond ONLY with the JSON object, no additional text.`
 
+  const anthropic = getAnthropicClient()
+
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 1500,
@@ -203,7 +218,14 @@ Respond ONLY with the JSON object, no additional text.`
   })
 
   const text = response.content[0].type === "text" ? response.content[0].text : ""
-  const parsed = JSON.parse(text) as DeliveryAnalysisResult
+
+  let parsed: DeliveryAnalysisResult
+  try {
+    parsed = JSON.parse(text) as DeliveryAnalysisResult
+  } catch {
+    console.error("Failed to parse AI delivery analysis response:", text.slice(0, 200))
+    throw new Error("AI returned invalid JSON for delivery analysis")
+  }
 
   // Store in database
   await prisma.aiDeliveryAnalysis.create({

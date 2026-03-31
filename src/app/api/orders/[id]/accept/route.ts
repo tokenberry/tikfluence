@@ -29,7 +29,6 @@ export async function POST(
       where: { id },
       include: {
         brand: { include: { user: { select: { id: true, email: true, name: true } } } },
-        _count: { select: { assignments: true } },
       },
     })
 
@@ -40,13 +39,6 @@ export async function POST(
     if (order.status !== "OPEN") {
       return NextResponse.json(
         { error: "Order is not open for acceptance" },
-        { status: 400 }
-      )
-    }
-
-    if (order._count.assignments >= order.maxCreators) {
-      return NextResponse.json(
-        { error: "Maximum number of creators reached for this order" },
         { status: 400 }
       )
     }
@@ -84,14 +76,6 @@ export async function POST(
         )
       }
 
-      // Check if already assigned
-      const existing = await prisma.orderAssignment.findFirst({
-        where: { orderId: id, creatorId: creator.id },
-      })
-      if (existing) {
-        return NextResponse.json({ error: "Already assigned to this order" }, { status: 409 })
-      }
-
       creatorId = creator.id
     } else {
       const network = await prisma.creatorNetwork.findUnique({
@@ -102,17 +86,30 @@ export async function POST(
         return NextResponse.json({ error: "Network profile not found" }, { status: 404 })
       }
 
-      const existing = await prisma.orderAssignment.findFirst({
-        where: { orderId: id, networkId: network.id },
-      })
-      if (existing) {
-        return NextResponse.json({ error: "Already assigned to this order" }, { status: 409 })
-      }
-
       networkId = network.id
     }
 
+    // All checks inside transaction to prevent race conditions
     const result = await prisma.$transaction(async (tx) => {
+      // Re-check assignment count atomically
+      const currentCount = await tx.orderAssignment.count({
+        where: { orderId: id },
+      })
+      if (currentCount >= order.maxCreators) {
+        throw new Error("MAX_CREATORS_REACHED")
+      }
+
+      // Check if already assigned (inside transaction)
+      const existing = await tx.orderAssignment.findFirst({
+        where: {
+          orderId: id,
+          ...(creatorId ? { creatorId } : { networkId }),
+        },
+      })
+      if (existing) {
+        throw new Error("ALREADY_ASSIGNED")
+      }
+
       const assignment = await tx.orderAssignment.create({
         data: {
           orderId: id,
@@ -140,7 +137,19 @@ export async function POST(
       })
 
       return assignment
+    }).catch((err) => {
+      if (err.message === "MAX_CREATORS_REACHED") {
+        return { error: "Maximum number of creators reached for this order", status: 400 } as const
+      }
+      if (err.message === "ALREADY_ASSIGNED") {
+        return { error: "Already assigned to this order", status: 409 } as const
+      }
+      throw err
     })
+
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
+    }
 
     // Notify brand that a creator/network accepted
     const creatorName =

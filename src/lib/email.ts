@@ -6,6 +6,7 @@ const resend = process.env.RESEND_API_KEY
 
 const FROM = "Foxolog <notifications@foxolog.com>"
 const BRAND_COLOR = "#d4772c"
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.foxolog.com"
 
 function emailWrapper(title: string, body: string): string {
   return `
@@ -51,7 +52,7 @@ export function sendWelcomeEmail(email: string, name: string, role: string) {
       You're all set to start using the platform.
     </p>
     <div style="text-align: center; margin: 24px 0;">
-      <a href="https://www.foxolog.com/login" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+      <a href="${APP_URL}/login" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
         Sign in to Foxolog
       </a>
     </div>
@@ -75,7 +76,7 @@ export function sendOrderAcceptedEmail(
       "<strong>${orderTitle}</strong>". They'll start working on it shortly.
     </p>
     <div style="text-align: center; margin: 24px 0;">
-      <a href="https://www.foxolog.com/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+      <a href="${APP_URL}/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
         View Order
       </a>
     </div>
@@ -98,7 +99,7 @@ export function sendDeliverySubmittedEmail(
       Please review it and approve or request a revision.
     </p>
     <div style="text-align: center; margin: 24px 0;">
-      <a href="https://www.foxolog.com/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+      <a href="${APP_URL}/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
         Review Delivery
       </a>
     </div>
@@ -122,7 +123,7 @@ export function sendOrderApprovedEmail(
       A payout of <strong>$${payout.toFixed(2)}</strong> is being processed.
     </p>
     <div style="text-align: center; margin: 24px 0;">
-      <a href="https://www.foxolog.com/creator/earnings" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+      <a href="${APP_URL}/creator/earnings" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
         View Earnings
       </a>
     </div>
@@ -146,7 +147,7 @@ export function sendOrderRejectedEmail(
     </p>
     ${reason ? `<p style="color: #374151; line-height: 1.6; background: #fef3c7; padding: 12px; border-radius: 6px;"><strong>Feedback:</strong> ${reason}</p>` : ""}
     <div style="text-align: center; margin: 24px 0;">
-      <a href="https://www.foxolog.com/creator/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+      <a href="${APP_URL}/creator/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
         View Order
       </a>
     </div>
@@ -167,7 +168,7 @@ export function sendDisputeOpenedEmail(
       Our support team will review the case and reach out with a resolution.
     </p>
     <div style="text-align: center; margin: 24px 0;">
-      <a href="https://www.foxolog.com" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+      <a href="${APP_URL}" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
         Go to Foxolog
       </a>
     </div>

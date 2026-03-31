@@ -187,6 +187,8 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.7.3 | 2026-03-29 | Feat: Agency delivery review (approve/reject), clickable orders on brand detail |
 | 0.7.4 | 2026-03-29 | Feat: Creator support tickets (list + create with order context), max creators field on order form, agency browse creators page |
 | 0.8.0 | 2026-03-29 | Feat: Agency brand management — search existing brands (request with admin approval) or create new brands (auto-approved), approved-only brand dropdown on order creation |
+| 1.0.0 | 2026-03-30 | Feat: TikTok OAuth Login Kit integration, fox logo PNG + favicon |
+| 1.0.1 | 2026-03-31 | Fix: Security hardening — 10 critical/high fixes: AI JSON crash, Stripe webhook crash, middleware role redirects, race conditions in order acceptance & delivery approval, verification code entropy, email URL configurability, notification polling optimization, webhook idempotency, file upload magic byte validation |
 
 ---
 
@@ -441,4 +443,34 @@ Continued from v0.7.0 session. Focused on agency workflow completeness, creator 
 
 ---
 
-*Last updated: March 29, 2026 (v0.8.0)*
+### March 31, 2026
+
+**v1.0.0 → v1.0.1 — Security & Stability Hardening (10 Fixes)**
+
+Comprehensive codebase audit identified 10 critical/high-priority issues. All fixes are non-structural (bug fixes + hardening).
+
+1. **AI analysis JSON parsing crash** (`src/lib/ai.ts`): `JSON.parse()` on Claude API response had no try/catch — crashes if AI returns invalid JSON. Also fixed Anthropic API key defaulting to empty string `""` instead of failing gracefully. Wrapped both `analyzeCreator()` and `analyzeDelivery()` JSON parsing in try/catch with descriptive errors. Changed to lazy client initialization with API key validation.
+
+2. **Stripe webhook secret crash** (`src/lib/stripe.ts`): `process.env.STRIPE_WEBHOOK_SECRET!` non-null assertion would throw unhandled error at runtime if env var not set. Added explicit null check with descriptive error message.
+
+3. **Middleware missing role redirects** (`src/middleware.ts`): Second `dashboardMap` (lines 65-69) was missing `AGENCY` and `ACCOUNT_MANAGER` entries. Users with these roles would be redirected to "/" instead of their proper dashboard when accessing unauthorized routes. Added both missing mappings.
+
+4. **Race condition in order acceptance** (`src/app/api/orders/[id]/accept/route.ts`): `maxCreators` count check and duplicate assignment check were outside the Prisma transaction — concurrent requests could exceed the limit. Moved both checks inside `$transaction` for atomicity.
+
+5. **Race condition in delivery approval** (`src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`): `delivery.approved !== null` check was outside transaction — concurrent approve requests could both pass and double-process payments. Added re-check inside `$transaction`.
+
+6. **Weak verification code entropy** (`src/app/api/creators/[id]/verify/route.ts`): Verification code used only 3 bytes (24 bits / ~16M possibilities) of randomness — brute-forceable. Increased to 16 bytes (128 bits).
+
+7. **Hardcoded URLs in email templates** (`src/lib/email.ts`): All 6 email functions had URLs hardcoded to `https://www.foxolog.com/...`, breaking dev/staging environments. Extracted to `APP_URL` constant using `process.env.NEXT_PUBLIC_APP_URL` with production fallback.
+
+8. **NotificationBell tab visibility** (`src/components/layout/NotificationBell.tsx`): 30-second polling interval ran even when browser tab was hidden, wasting resources. Added `visibilitychange` listener to pause polling when tab is hidden and resume + immediate fetch when tab becomes visible.
+
+9. **Payment webhook idempotency** (`src/app/api/payments/webhook/route.ts`): Webhook events for `payment_intent.succeeded` and `payment_intent.payment_failed` could be processed multiple times with no deduplication. Added state checks before updates — only processes if order hasn't already been updated to that state or a more advanced state.
+
+10. **File upload MIME validation** (`src/app/api/upload/route.ts`): Only checked client-sent `file.type` MIME header which can be easily spoofed. Added server-side magic byte validation for JPEG, PNG, GIF, and WebP file signatures.
+
+**Files modified:** `src/lib/ai.ts`, `src/lib/stripe.ts`, `src/lib/email.ts`, `src/middleware.ts`, `src/app/api/orders/[id]/accept/route.ts`, `src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`, `src/app/api/creators/[id]/verify/route.ts`, `src/components/layout/NotificationBell.tsx`, `src/app/api/payments/webhook/route.ts`, `src/app/api/upload/route.ts`, `package.json`, `PROGRESS.md`
+
+---
+
+*Last updated: March 31, 2026 (v1.0.1)*

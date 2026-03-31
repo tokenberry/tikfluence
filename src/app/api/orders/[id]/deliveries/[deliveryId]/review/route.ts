@@ -127,7 +127,16 @@ export async function POST(
         }
       }
 
-      await prisma.$transaction(async (tx) => {
+      const txResult = await prisma.$transaction(async (tx) => {
+        // Re-check inside transaction to prevent double-approval race condition
+        const freshDelivery = await tx.delivery.findUnique({
+          where: { id: deliveryId },
+          select: { approved: true },
+        })
+        if (freshDelivery?.approved !== null) {
+          throw new Error("ALREADY_REVIEWED")
+        }
+
         await tx.delivery.update({
           where: { id: deliveryId },
           data: { approved: true, reviewedAt: new Date() },
@@ -157,7 +166,18 @@ export async function POST(
           where: { orderId },
           data: { completedAt: new Date() },
         })
+
+        return { success: true }
+      }).catch((err) => {
+        if (err.message === "ALREADY_REVIEWED") {
+          return { error: "Delivery has already been reviewed" } as const
+        }
+        throw err
       })
+
+      if ("error" in txResult) {
+        return NextResponse.json({ error: txResult.error }, { status: 400 })
+      }
 
       // Notify creator/network of approval
       const assignee = assignment?.creator ?? assignment?.network

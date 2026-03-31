@@ -67,6 +67,8 @@ export default auth((req) => {
           NETWORK: "/network/creators",
           BRAND: "/brand/orders",
           ADMIN: "/admin/users",
+          AGENCY: "/agency/brands",
+          ACCOUNT_MANAGER: "/account-manager/clients",
         }
         return NextResponse.redirect(
           new URL(dashboardMap[role] || "/", req.nextUrl.origin)

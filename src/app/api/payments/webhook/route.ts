@@ -33,13 +33,20 @@ export async function POST(request: NextRequest) {
         const orderId = paymentIntent.transfer_group?.replace("order_", "")
 
         if (orderId) {
-          await prisma.order.update({
+          // Idempotency: only update if not already marked as HELD
+          const order = await prisma.order.findUnique({
             where: { id: orderId },
-            data: {
-              stripePaymentId: paymentIntent.id,
-              paymentStatus: "HELD",
-            },
+            select: { paymentStatus: true, stripePaymentId: true },
           })
+          if (order && order.stripePaymentId !== paymentIntent.id) {
+            await prisma.order.update({
+              where: { id: orderId },
+              data: {
+                stripePaymentId: paymentIntent.id,
+                paymentStatus: "HELD",
+              },
+            })
+          }
         }
         break
       }
@@ -49,12 +56,19 @@ export async function POST(request: NextRequest) {
         const orderId = paymentIntent.transfer_group?.replace("order_", "")
 
         if (orderId) {
-          await prisma.order.update({
+          // Idempotency: only update if not already FAILED or further along
+          const order = await prisma.order.findUnique({
             where: { id: orderId },
-            data: {
-              paymentStatus: "FAILED",
-            },
+            select: { paymentStatus: true },
           })
+          if (order && !["FAILED", "RELEASED", "REFUNDED"].includes(order.paymentStatus)) {
+            await prisma.order.update({
+              where: { id: orderId },
+              data: {
+                paymentStatus: "FAILED",
+              },
+            })
+          }
         }
         break
       }

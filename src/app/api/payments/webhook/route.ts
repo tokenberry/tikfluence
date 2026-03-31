@@ -28,6 +28,46 @@ export async function POST(request: NextRequest) {
     }
 
     switch (event.type) {
+      case "checkout.session.completed": {
+        const checkoutSession = event.data.object
+        const orderId = checkoutSession.metadata?.orderId
+        const creditApplied = parseFloat(checkoutSession.metadata?.creditApplied || "0")
+
+        if (orderId) {
+          const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            select: { status: true, brand: { select: { id: true } } },
+          })
+
+          // Only process if order is still DRAFT (idempotency)
+          if (order && order.status === "DRAFT") {
+            await prisma.$transaction(async (tx) => {
+              // Apply credit deduction if any
+              if (creditApplied > 0) {
+                await tx.brandCredit.create({
+                  data: {
+                    brandId: order.brand.id,
+                    amount: -creditApplied,
+                    reason: "Credit applied to order",
+                    orderId,
+                  },
+                })
+              }
+
+              await tx.order.update({
+                where: { id: orderId },
+                data: {
+                  status: "OPEN",
+                  paymentStatus: "HELD",
+                  stripePaymentId: checkoutSession.payment_intent as string,
+                },
+              })
+            })
+          }
+        }
+        break
+      }
+
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object
         const orderId = paymentIntent.transfer_group?.replace("order_", "")

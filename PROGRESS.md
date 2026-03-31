@@ -471,6 +471,63 @@ Comprehensive codebase audit identified 10 critical/high-priority issues. All fi
 
 **Files modified:** `src/lib/ai.ts`, `src/lib/stripe.ts`, `src/lib/email.ts`, `src/middleware.ts`, `src/app/api/orders/[id]/accept/route.ts`, `src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`, `src/app/api/creators/[id]/verify/route.ts`, `src/components/layout/NotificationBell.tsx`, `src/app/api/payments/webhook/route.ts`, `src/app/api/upload/route.ts`, `package.json`, `PROGRESS.md`
 
+### March 31, 2026 (Session 2)
+
+**v1.0.1 → v1.1.0 — Payment Architecture (Stripe + Payoneer)**
+
+Complete payment flow implementation: Stripe for brand charges (escrow), Payoneer for creator payouts, platform credit system for refunds, and admin dispute resolution.
+
+**Design decisions:**
+- Brands pay at publish time (escrow via Stripe Checkout)
+- Budget split per creator: `budget / maxCreators`
+- Refunds issued as platform credit (not card refund) — simpler, no Stripe refund fees
+- Disputes: funds held until admin resolves
+- Platform fee determined by admin settings (`platformFeeRate`)
+- Payoneer for ALL creator payouts (supports MENA + Turkey regions that Stripe doesn't)
+- All payment code has dev-mode fallbacks — app works end-to-end without API keys
+
+**Phase 1 — Schema changes:**
+- `BrandCredit` model: brand refund wallet (id, brandId, amount, reason, orderId)
+- `Creator` / `CreatorNetwork`: added `payoutMethod` (default "PAYONEER"), `payoneerPayeeId`
+- `Order`: added `stripeCheckoutSessionId`, `creditApplied` (default 0), `amountCharged`
+- `Transaction`: added `payoneerPayoutId`, `payoutMethod` (default "PAYONEER")
+
+**Phase 2 — Brand checkout flow:**
+- `POST /api/orders/[id]/checkout`: Creates Stripe Checkout Session when brand publishes. Calculates credit balance, applies credit, charges remaining via Stripe. If fully covered by credit, publishes directly. Dev mode: publishes without payment when STRIPE_SECRET_KEY missing.
+- `OrderActions.tsx`: Rewritten — "Publish Order" → "Pay & Publish" button, fetches credit balance, shows credit info, redirects to Stripe Checkout or publishes directly.
+- `AgencyOrderActions.tsx`: Updated to use same checkout flow instead of broken PUT-to-OPEN approach.
+- Stripe webhook: Added `checkout.session.completed` handler — transitions order DRAFT→OPEN, sets paymentStatus HELD, applies credit deduction.
+
+**Phase 3 — Creator payout flow (Payoneer):**
+- `src/lib/payoneer.ts`: Full Payoneer Mass Payout API client — `registerPayee()`, `getPayeeStatus()`, `createPayout()`. Gracefully skips all API calls when PAYONEER_PARTNER_ID/PAYONEER_API_KEY not configured.
+- `POST /api/payouts/onboard`: Creators/networks register with Payoneer. Dev mode returns success without actual registration.
+- Updated `POST /api/orders/[id]/approve` and `POST /api/orders/[id]/deliveries/[deliveryId]/review`: Replaced Stripe Connect transfers with Payoneer payouts. Per-creator budget calculation, Transaction creation with `payoutMethod: "PAYONEER"`, non-blocking payout attempt.
+
+**Phase 4 — Credit system:**
+- `GET /api/brand/credits`: Returns brand's credit balance and history.
+- `DELETE /api/orders/[id]`: Now issues BrandCredit when cancelling paid orders (status !== DRAFT && paymentStatus === HELD).
+- Creator earnings page: Replaced Stripe Connect onboarding with Payoneer onboarding.
+
+**Phase 5 — Dispute resolution:**
+- `POST /api/admin/orders/[id]/resolve-dispute`: Admin-only endpoint with two resolution options:
+  - `release_to_creator`: Calculates per-creator payout, creates Transaction, attempts Payoneer transfer, notifies both parties.
+  - `credit_to_brand`: Creates BrandCredit record, cancels order, notifies both parties.
+
+**Files created:** `src/lib/payoneer.ts`, `src/app/api/orders/[id]/checkout/route.ts`, `src/app/api/brand/credits/route.ts`, `src/app/api/payouts/onboard/route.ts`, `src/app/api/admin/orders/[id]/resolve-dispute/route.ts`
+
+**Files modified:** `prisma/schema.prisma`, `package.json`, `src/app/(dashboard)/brand/orders/[id]/OrderActions.tsx`, `src/app/(dashboard)/brand/orders/[id]/page.tsx`, `src/app/(dashboard)/creator/earnings/page.tsx`, `src/app/(dashboard)/agency/brands/[id]/AgencyOrderActions.tsx`, `src/app/(dashboard)/agency/brands/[id]/page.tsx`, `src/app/(dashboard)/agency/orders/[id]/page.tsx`, `src/app/api/orders/[id]/route.ts`, `src/app/api/orders/[id]/approve/route.ts`, `src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`, `src/app/api/payments/webhook/route.ts`, `PROGRESS.md`
+
+**Environment variables needed:**
+- `STRIPE_SECRET_KEY` — Stripe API key (optional — dev mode works without it)
+- `STRIPE_WEBHOOK_SECRET` — Stripe webhook signing secret
+- `PAYONEER_PARTNER_ID` — Payoneer Mass Payout partner ID (optional — dev mode works without it)
+- `PAYONEER_API_KEY` — Payoneer API key (optional — dev mode works without it)
+- `PAYONEER_API_URL` — Payoneer API URL (defaults to sandbox)
+
+**Infrastructure needed after merge:**
+- Run `prisma db push` to apply schema changes (auto-runs on Vercel build)
+- Set Stripe and Payoneer env vars in Vercel when accounts are ready
+
 ---
 
-*Last updated: March 31, 2026 (v1.0.1)*
+*Last updated: March 31, 2026 (v1.1.0)*

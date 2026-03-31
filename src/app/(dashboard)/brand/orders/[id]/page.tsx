@@ -93,8 +93,8 @@ export default async function BrandOrderDetailPage({
       </div>
 
       {/* Actions */}
-      {(order.status === "DRAFT" || order.status === "OPEN") && (
-        <OrderActions orderId={order.id} status={order.status} />
+      {["DRAFT", "OPEN", "ASSIGNED", "IN_PROGRESS"].includes(order.status) && (
+        <OrderActions orderId={order.id} status={order.status} budget={order.budget} />
       )}
 
       {/* Stats */}

@@ -132,10 +132,18 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <img src="/fox-logo.png" alt="Foxolog" className="h-6 w-6 rounded-full" />
               <span className="text-sm font-semibold">Foxolog</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition">
+                Privacy Policy
+              </Link>
             </div>
             <p className="text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} Foxolog. All rights reserved.

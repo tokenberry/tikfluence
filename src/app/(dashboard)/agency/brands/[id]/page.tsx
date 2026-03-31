@@ -150,9 +150,9 @@ export default async function AgencyBrandDetailPage({
                     Created: {new Date(order.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                {(order.status === "DRAFT" || order.status === "OPEN") && (
+                {(order.status === "DRAFT" || order.status === "OPEN" || order.status === "ASSIGNED" || order.status === "IN_PROGRESS") && (
                   <div className="mt-3">
-                    <AgencyOrderActions orderId={order.id} status={order.status} />
+                    <AgencyOrderActions orderId={order.id} status={order.status} budget={order.budget} />
                   </div>
                 )}
               </div>

@@ -92,7 +92,7 @@ const updateOrderSchema = z.object({
   impressionTarget: z.number().int().min(1).optional(),
   budget: z.number().min(0).optional(),
   maxCreators: z.number().int().min(1).optional(),
-  status: z.enum(["DRAFT", "OPEN"]).optional(),
+  status: z.enum(["DRAFT"]).optional(), // OPEN transition requires checkout
 })
 
 export async function PUT(
@@ -215,12 +215,35 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    await prisma.order.update({
-      where: { id },
-      data: { status: "CANCELLED" },
+    // Issue credit if order was paid (OPEN or beyond with HELD payment)
+    const shouldIssueCredit =
+      order.status !== "DRAFT" && order.paymentStatus === "HELD"
+
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id },
+        data: {
+          status: "CANCELLED",
+          paymentStatus: shouldIssueCredit ? "REFUNDED" : order.paymentStatus,
+        },
+      })
+
+      if (shouldIssueCredit) {
+        await tx.brandCredit.create({
+          data: {
+            brandId: order.brand.id,
+            amount: order.budget,
+            reason: `Order cancelled: "${order.title}"`,
+            orderId: id,
+          },
+        })
+      }
     })
 
-    return NextResponse.json({ message: "Order cancelled" })
+    return NextResponse.json({
+      message: "Order cancelled",
+      creditIssued: shouldIssueCredit ? order.budget : 0,
+    })
   } catch (error) {
     console.error("Error cancelling order:", error)
     return NextResponse.json(

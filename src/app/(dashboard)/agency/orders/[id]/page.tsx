@@ -103,8 +103,8 @@ export default async function AgencyOrderDetailPage({
       </div>
 
       {/* Actions */}
-      {(order.status === "DRAFT" || order.status === "OPEN") && (
-        <AgencyOrderActions orderId={order.id} status={order.status} />
+      {(order.status === "DRAFT" || order.status === "OPEN" || order.status === "ASSIGNED" || order.status === "IN_PROGRESS") && (
+        <AgencyOrderActions orderId={order.id} status={order.status} budget={order.budget} />
       )}
 
       {/* Stats */}

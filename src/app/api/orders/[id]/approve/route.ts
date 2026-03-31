@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createTransfer } from "@/lib/stripe"
+import { createPayout } from "@/lib/payoneer"
 import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
 import { analyzeDelivery } from "@/lib/ai"
@@ -43,14 +43,14 @@ export async function POST(
             creator: {
               select: {
                 id: true,
-                stripeAccountId: true,
+                payoneerPayeeId: true,
                 user: { select: { id: true, email: true, name: true } },
               },
             },
             network: {
               select: {
                 id: true,
-                stripeAccountId: true,
+                payoneerPayeeId: true,
                 user: { select: { id: true, email: true, name: true } },
               },
             },
@@ -103,49 +103,33 @@ export async function POST(
         where: { id: "default" },
       })
       const feeRate = settings?.platformFeeRate ?? 0.15
-      const platformFee = order.budget * feeRate
-      const creatorPayout = order.budget - platformFee
 
-      // Try to release payment to creator/network
+      // Calculate per-creator share: budget / maxCreators
+      const perCreatorBudget = order.budget / order.maxCreators
+      const platformFee = perCreatorBudget * feeRate
+      const creatorPayout = perCreatorBudget - platformFee
+
       const assignment = order.assignments[0]
-      const stripeAccountId =
-        assignment?.creator?.stripeAccountId ??
-        assignment?.network?.stripeAccountId
 
-      let stripeTransferId: string | undefined
-
-      if (stripeAccountId && order.stripePaymentId) {
-        try {
-          const transfer = await createTransfer(
-            creatorPayout,
-            stripeAccountId,
-            `order_${order.id}`
-          )
-          stripeTransferId = transfer.id
-        } catch (err) {
-          console.error("Failed to create transfer:", err)
-        }
-      }
-
-      // Update order and create transaction
-      await prisma.$transaction(async (tx) => {
+      // Create transaction first, then attempt Payoneer payout
+      const txRecord = await prisma.$transaction(async (tx) => {
         await tx.order.update({
           where: { id },
           data: {
             status: "COMPLETED",
-            paymentStatus: stripeTransferId ? "RELEASED" : "HELD",
+            paymentStatus: "HELD",
           },
         })
 
-        await tx.transaction.create({
+        const transaction = await tx.transaction.create({
           data: {
             orderId: id,
-            amount: order.budget,
+            amount: perCreatorBudget,
             platformFee,
             creatorPayout,
             stripePaymentId: order.stripePaymentId,
-            stripeTransferId,
-            status: stripeTransferId ? "RELEASED" : "PENDING",
+            payoutMethod: "PAYONEER",
+            status: "PENDING",
           },
         })
 
@@ -153,7 +137,39 @@ export async function POST(
           where: { orderId: id },
           data: { completedAt: new Date() },
         })
+
+        return transaction
       })
+
+      // Attempt Payoneer payout (non-blocking)
+      const payeeId =
+        assignment?.creator?.payoneerPayeeId ??
+        assignment?.network?.payoneerPayeeId
+      if (payeeId) {
+        try {
+          const result = await createPayout({
+            payeeId,
+            amount: creatorPayout,
+            description: `Payout for order "${order.title}"`,
+            paymentId: txRecord.id,
+          })
+          if (result.payoutId) {
+            await prisma.transaction.update({
+              where: { id: txRecord.id },
+              data: {
+                payoneerPayoutId: result.payoutId,
+                status: "RELEASED",
+              },
+            })
+            await prisma.order.update({
+              where: { id },
+              data: { paymentStatus: "RELEASED" },
+            })
+          }
+        } catch (err) {
+          console.error("Payoneer payout failed (will retry via admin):", err)
+        }
+      }
 
       // Notify creator/network of approval
       const assignee = assignment?.creator ?? assignment?.network

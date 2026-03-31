@@ -139,6 +139,8 @@ model Creator {
 
   stripeAccountId String?
   stripeOnboarded Boolean @default(false)
+  payoutMethod    String  @default("PAYONEER") // PAYONEER or STRIPE
+  payoneerPayeeId String?
 
   networkId String?
   network   CreatorNetwork? @relation(fields: [networkId], references: [id])
@@ -170,6 +172,8 @@ model CreatorNetwork {
 
   stripeAccountId String?
   stripeOnboarded Boolean @default(false)
+  payoutMethod    String  @default("PAYONEER") // PAYONEER or STRIPE
+  payoneerPayeeId String?
 
   creators         Creator[]
   orderAssignments OrderAssignment[]
@@ -189,6 +193,7 @@ model Brand {
   logo        String?
 
   orders              Order[]
+  credits             BrandCredit[]
   agencyBrands        AgencyBrand[]
   accountManagerBrand AccountManagerBrand[]
   internalNotes       InternalNote[]
@@ -242,8 +247,11 @@ model Order {
   status      OrderStatus @default(DRAFT)
   maxCreators Int         @default(1)
 
-  stripePaymentId String?
-  paymentStatus   PaymentStatus @default(PENDING)
+  stripePaymentId          String?
+  stripeCheckoutSessionId  String?
+  paymentStatus            PaymentStatus @default(PENDING)
+  creditApplied            Float         @default(0)
+  amountCharged            Float?
 
   agencyId     String?
   agency       Agency?           @relation(fields: [agencyId], references: [id])
@@ -330,6 +338,8 @@ model Transaction {
 
   stripePaymentId  String?
   stripeTransferId String?
+  payoneerPayoutId String?
+  payoutMethod     String  @default("PAYONEER") // PAYONEER or STRIPE
   status           PaymentStatus @default(PENDING)
 
   createdAt DateTime @default(now())
@@ -433,6 +443,22 @@ model PlatformSettings {
   platformFeeRate Float  @default(0.15)
   minOrderBudget  Float  @default(5.00)
   maxOrderBudget  Float  @default(100000)
+}
+
+// ──── Brand Credits (refund wallet) ────
+
+model BrandCredit {
+  id      String @id @default(cuid())
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  amount  Float   // positive = credit added, negative = credit used
+  reason  String  // e.g. "Order cancelled", "Credit applied to order"
+  orderId String? // related order if applicable
+
+  createdAt DateTime @default(now())
+
+  @@index([brandId])
 }
 
 // ──── Agency & Account Manager ────

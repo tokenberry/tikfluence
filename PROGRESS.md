@@ -189,6 +189,8 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 0.8.0 | 2026-03-29 | Feat: Agency brand management — search existing brands (request with admin approval) or create new brands (auto-approved), approved-only brand dropdown on order creation |
 | 1.0.0 | 2026-03-30 | Feat: TikTok OAuth Login Kit integration, fox logo PNG + favicon |
 | 1.0.1 | 2026-03-31 | Fix: Security hardening — 10 critical/high fixes: AI JSON crash, Stripe webhook crash, middleware role redirects, race conditions in order acceptance & delivery approval, verification code entropy, email URL configurability, notification polling optimization, webhook idempotency, file upload magic byte validation |
+| 1.1.0 | 2026-03-31 | Feat: Payment architecture — Stripe checkout (escrow), Payoneer creator payouts, platform credit system, admin dispute resolution |
+| 1.1.1 | 2026-04-01 | Fix: Version consistency — synced package.json/package-lock.json from 0.1.0 to 1.1.0, added APP_VERSION constant + in-app version display in Sidebar and landing page footer |
 
 ---
 
@@ -530,4 +532,27 @@ Complete payment flow implementation: Stripe for brand charges (escrow), Payonee
 
 ---
 
-*Last updated: March 31, 2026 (v1.1.0)*
+### April 1, 2026
+
+**v1.1.0 → v1.1.1 — Version Consistency & In-App Display (PR #46)**
+
+Audited version numbers across the entire project and found `package.json` and `package-lock.json` stuck at `0.1.0` since initial release, despite the project being at v1.1.0 per PROGRESS.md. Also found no in-app version display anywhere.
+
+**Changes:**
+1. **package.json**: Updated version from `0.1.0` → `1.1.0` (now `foxolog` name from main)
+2. **package-lock.json**: Updated version in both root and `packages[""]` entries
+3. **`src/lib/constants.ts`** (new): Created `APP_VERSION` constant — single source of truth for in-app version display
+4. **Sidebar footer**: Added subtle `v1.1.0` text pinned to bottom of dashboard sidebar (`text-xs text-gray-400`)
+5. **Landing page footer**: Added faded version span next to copyright text (`text-xs opacity-50`)
+
+**Versioning rule established:** Future version bumps require updating 3 places: `package.json`, `package-lock.json`, and `src/lib/constants.ts`.
+
+**Files created:** `src/lib/constants.ts`
+
+**Files modified:** `package.json`, `package-lock.json`, `src/components/layout/Sidebar.tsx`, `src/app/page.tsx`, `PROGRESS.md`
+
+**PRs merged:** #46
+
+---
+
+*Last updated: April 1, 2026 (v1.1.1)*

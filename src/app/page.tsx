@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { APP_VERSION } from "@/lib/constants"
 
 export default function HomePage() {
   return (
@@ -147,6 +148,7 @@ export default function HomePage() {
             </div>
             <p className="text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} Foxolog. All rights reserved.
+              <span className="ml-2 text-xs opacity-50">v{APP_VERSION}</span>
             </p>
           </div>
         </div>

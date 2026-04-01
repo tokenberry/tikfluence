@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { APP_VERSION } from "@/lib/constants"
 
 const roleNavLinks: Record<string, { label: string; href: string }[]> = {
   CREATOR: [
@@ -57,8 +58,8 @@ export default function Sidebar() {
   const links = roleNavLinks[session.user.role] ?? []
 
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 hidden lg:block">
-      <div className="p-6">
+    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 hidden lg:flex flex-col">
+      <div className="p-6 flex-1">
         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
           Navigation
         </h2>
@@ -80,6 +81,9 @@ export default function Sidebar() {
             )
           })}
         </nav>
+      </div>
+      <div className="px-6 py-4 border-t border-gray-100">
+        <p className="text-xs text-gray-400">v{APP_VERSION}</p>
       </div>
     </aside>
   )

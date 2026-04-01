@@ -43,6 +43,25 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(data.password, 12)
 
+    // Pre-validate creator-specific fields before creating user
+    if (data.role === "CREATOR") {
+      if (!data.tiktokUsername) {
+        return NextResponse.json(
+          { error: "TikTok username is required for creators" },
+          { status: 400 }
+        )
+      }
+      const existingCreator = await prisma.creator.findUnique({
+        where: { tiktokUsername: data.tiktokUsername },
+      })
+      if (existingCreator) {
+        return NextResponse.json(
+          { error: "TikTok username already registered" },
+          { status: 400 }
+        )
+      }
+    }
+
     // Create user with role-specific profile in a transaction
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
@@ -55,22 +74,11 @@ export async function POST(req: NextRequest) {
       })
 
       if (data.role === "CREATOR") {
-        if (!data.tiktokUsername) {
-          throw new Error("TikTok username is required for creators")
-        }
-
-        // Check if TikTok username already taken
-        const existingCreator = await tx.creator.findUnique({
-          where: { tiktokUsername: data.tiktokUsername },
-        })
-        if (existingCreator) {
-          throw new Error("TikTok username already registered")
-        }
 
         await tx.creator.create({
           data: {
             userId: newUser.id,
-            tiktokUsername: data.tiktokUsername,
+            tiktokUsername: data.tiktokUsername!,
             supportsShortVideo: data.supportsShortVideo ?? true,
             supportsLive: data.supportsLive ?? false,
           },

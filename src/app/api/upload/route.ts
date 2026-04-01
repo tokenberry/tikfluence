@@ -70,7 +70,14 @@ export async function POST(request: NextRequest) {
     // Ensure upload directory exists
     await mkdir(UPLOAD_DIR, { recursive: true })
 
-    const ext = file.name.split(".").pop() || "png"
+    // Derive extension from validated MIME type, not from user-supplied filename
+    const MIME_TO_EXT: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    }
+    const ext = MIME_TO_EXT[file.type] || "png"
     const filename = `${randomUUID()}.${ext}`
     const filepath = path.join(UPLOAD_DIR, filename)
 

@@ -30,10 +30,11 @@ function normalizeLog(value: number, max: number): number {
 
 function calculateEngagementScore(engagementRate: number): number {
   // Engagement rate typically 1-20% for TikTok
-  // 5%+ is considered excellent
+  // Smooth curve: 0% → 0, 2% → 30, 5% → 65, 10% → 100
+  if (engagementRate <= 0) return 0
   if (engagementRate >= 10) return 100
-  if (engagementRate >= 5) return 70 + (engagementRate - 5) * 6
-  if (engagementRate >= 2) return 30 + (engagementRate - 2) * (40 / 3)
+  if (engagementRate >= 5) return 65 + (engagementRate - 5) * 7
+  if (engagementRate >= 2) return 30 + (engagementRate - 2) * (35 / 3)
   return engagementRate * 15
 }
 

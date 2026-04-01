@@ -191,6 +191,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.0.1 | 2026-03-31 | Fix: Security hardening — 10 critical/high fixes: AI JSON crash, Stripe webhook crash, middleware role redirects, race conditions in order acceptance & delivery approval, verification code entropy, email URL configurability, notification polling optimization, webhook idempotency, file upload magic byte validation |
 | 1.1.0 | 2026-03-31 | Feat: Payment architecture — Stripe checkout (escrow), Payoneer creator payouts, platform credit system, admin dispute resolution |
 | 1.1.1 | 2026-04-01 | Fix: Version consistency — synced package.json/package-lock.json from 0.1.0 to 1.1.0, added APP_VERSION constant + in-app version display in Sidebar and landing page footer |
+| 1.2.0 | 2026-04-01 | Fix: Comprehensive audit — 15 high/medium fixes: double-payment race condition, payment math for multi-creator orders, Account Manager authorization, Navbar nav sync, ADMIN delivery review access, AI response validation + timeout, resolve-dispute multi-creator support, middleware admin API protection, register orphan user prevention, file upload extension validation, content type form validation, scoring algorithm smoothing, 5 new DB indexes |
 
 ---
 
@@ -555,4 +556,42 @@ Audited version numbers across the entire project and found `package.json` and `
 
 ---
 
-*Last updated: April 1, 2026 (v1.1.1)*
+### April 1, 2026 (Session 2)
+
+**v1.1.1 → v1.2.0 — Comprehensive Codebase Audit (15 Fixes)**
+
+Full audit of API routes, frontend, schema, and infrastructure. Targeted all HIGH and MEDIUM severity issues.
+
+**Payment & Business Logic (Critical):**
+1. **Double-payment race condition** (`approve/route.ts`): Added transaction-level re-check of `delivery.approved` before processing — prevents concurrent approval requests from issuing duplicate payouts
+2. **Payment math for multi-creator orders** (`approve/route.ts`, `review/route.ts`): Changed from `budget / maxCreators` to `budget / actualCompletedAssignments` — creators now get fair share based on how many actually delivered
+3. **Resolve-dispute null crash** (`resolve-dispute/route.ts`): Added empty assignments check, rewrote to loop through ALL assignments (not just `[0]`), creating transactions and payouts per creator
+
+**Authorization & Security (High):**
+4. **Account Manager order access** (`orders/[id]/route.ts`): Added brand assignment check — AMs can now only view orders for brands they manage via `AccountManagerBrand`
+5. **ADMIN delivery review** (`deliveries/[deliveryId]/review/route.ts`): Added `ADMIN` to allowed roles list and authorization bypass
+6. **Middleware admin API protection** (`middleware.ts`): Added explicit `/api/admin` route blocking for non-admin users at middleware level
+7. **Register orphan user prevention** (`register/route.ts`): Moved TikTok username duplicate check before user creation to avoid orphaned User records on failure
+
+**AI & Validation (High):**
+8. **AI response Zod validation** (`ai.ts`): Added Zod schemas for both `analyzeCreator` and `analyzeDelivery` responses — validates structure before DB insert
+9. **AI request timeout** (`ai.ts`): Added 30-second timeout via `Promise.race` — prevents hanging requests from blocking indefinitely
+
+**Frontend (Medium):**
+10. **Navbar/Sidebar sync** (`Navbar.tsx`): Added missing links — Creator: Tickets + Settings, Network: Settings, Admin: Agency Claims, Agency: Browse
+11. **Content type form validation** (`register/page.tsx`): Added client-side check preventing creators from registering with zero content types selected
+
+**Data & Infrastructure (Medium):**
+12. **File upload extension validation** (`upload/route.ts`): Extension now derived from validated MIME type instead of user-supplied filename — prevents `.exe` files with fake image headers
+13. **Scoring algorithm smoothing** (`scoring.ts`): Fixed discontinuous jump at 5% engagement (37.5→70 is now 30→65), smoother curve across all ranges
+14. **DB indexes** (`schema.prisma`): Added 5 indexes — `OrderAssignment.networkId`, `Delivery(orderId, approved)`, `Order(status, createdAt)`, `SupportTicket.creatorId`
+15. **Dispute ticket comment** (`dispute/route.ts`): Clarified that `creatorId` field stores the ticket opener (any role), not necessarily a Creator
+
+**Files modified:** `src/app/api/orders/[id]/approve/route.ts`, `src/app/api/orders/[id]/deliveries/[deliveryId]/review/route.ts`, `src/app/api/orders/[id]/route.ts`, `src/app/api/admin/orders/[id]/resolve-dispute/route.ts`, `src/app/api/orders/[id]/dispute/route.ts`, `src/app/api/register/route.ts`, `src/app/api/upload/route.ts`, `src/lib/ai.ts`, `src/lib/scoring.ts`, `src/lib/constants.ts`, `src/components/layout/Navbar.tsx`, `src/middleware.ts`, `src/app/(auth)/register/page.tsx`, `prisma/schema.prisma`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+**Infrastructure needed after merge:**
+- Run `prisma db push` to apply new indexes (auto-runs on Vercel build)
+
+---
+
+*Last updated: April 1, 2026 (v1.2.0)*

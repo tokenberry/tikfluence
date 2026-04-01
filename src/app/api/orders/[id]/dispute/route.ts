@@ -76,10 +76,11 @@ export async function POST(
         data: { status: "DISPUTED" },
       })
 
+      // creatorId here is the ticket opener (any user), not necessarily a Creator role
       await tx.supportTicket.create({
         data: {
           creatorId: session.user.id,
-          subject: `Dispute: Order ${order.title}`,
+          subject: `Dispute: Order "${order.title}"`,
           description: parsed.data.reason,
           priority: 2,
         },

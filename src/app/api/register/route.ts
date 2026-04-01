@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         await tx.creator.create({
           data: {
             userId: newUser.id,
-            tiktokUsername: data.tiktokUsername,
+            tiktokUsername: data.tiktokUsername!,
             supportsShortVideo: data.supportsShortVideo ?? true,
             supportsLive: data.supportsLive ?? false,
           },

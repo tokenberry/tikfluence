@@ -266,6 +266,7 @@ model Order {
   expiresAt    DateTime?
 
   @@index([status])
+  @@index([status, createdAt])
   @@index([brandId])
   @@index([categoryId])
   @@index([agencyId])
@@ -287,6 +288,7 @@ model OrderAssignment {
 
   @@index([orderId])
   @@index([creatorId])
+  @@index([networkId])
 }
 
 model Delivery {
@@ -324,6 +326,7 @@ model Delivery {
   aiAnalyses      AiDeliveryAnalysis[]
 
   @@index([orderId])
+  @@index([orderId, approved])
 }
 
 model Transaction {
@@ -367,6 +370,7 @@ model SupportTicket {
   updatedAt DateTime        @updatedAt
 
   @@index([status])
+  @@index([creatorId])
 }
 
 model TicketMessage {

@@ -18,7 +18,7 @@ export async function POST(
 ) {
   try {
     const session = await auth()
-    if (!session?.user || !session.user.role || !["BRAND", "AGENCY"].includes(session.user.role)) {
+    if (!session?.user || !session.user.role || !["BRAND", "AGENCY", "ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -53,8 +53,8 @@ export async function POST(
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    // Verify authorization: brand owner or managing agency
-    let canReview = order.brand.userId === session.user.id
+    // Verify authorization: brand owner, managing agency, or admin
+    let canReview = order.brand.userId === session.user.id || session.user.role === "ADMIN"
     if (!canReview && session.user.role === "AGENCY") {
       const agency = await prisma.agency.findUnique({ where: { userId: session.user.id } })
       if (agency) {
@@ -105,8 +105,12 @@ export async function POST(
       })
       const feeRate = settings?.platformFeeRate ?? 0.15
 
-      // Calculate per-creator share: budget / maxCreators
-      const perCreatorBudget = order.budget / order.maxCreators
+      // Calculate per-creator share based on actual completed assignments
+      const completedCount = order.assignments.filter(
+        (a) => a.completedAt !== null
+      ).length
+      const activeAssignments = Math.max(completedCount + 1, 1)
+      const perCreatorBudget = order.budget / activeAssignments
       const platformFee = perCreatorBudget * feeRate
       const creatorPayout = perCreatorBudget - platformFee
 

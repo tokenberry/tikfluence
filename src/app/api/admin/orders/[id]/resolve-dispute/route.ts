@@ -77,69 +77,90 @@ export async function POST(
     const feeRate = settings?.platformFeeRate ?? 0.15
 
     if (resolution === "release_to_creator") {
-      const perCreatorBudget = order.budget / order.maxCreators
+      if (order.assignments.length === 0) {
+        return NextResponse.json(
+          { error: "No creators assigned to this order" },
+          { status: 400 }
+        )
+      }
+
+      // Pay each assigned creator their share
+      const assignmentCount = order.assignments.length
+      const perCreatorBudget = order.budget / assignmentCount
       const platformFee = perCreatorBudget * feeRate
       const creatorPayout = perCreatorBudget - platformFee
-      const assignment = order.assignments[0]
 
-      const txRecord = await prisma.$transaction(async (tx) => {
+      const txRecords = await prisma.$transaction(async (tx) => {
         await tx.order.update({
           where: { id: orderId },
           data: { status: "COMPLETED", paymentStatus: "HELD" },
         })
 
-        const transaction = await tx.transaction.create({
-          data: {
-            orderId,
-            amount: perCreatorBudget,
-            platformFee,
-            creatorPayout,
-            stripePaymentId: order.stripePaymentId,
-            payoutMethod: "PAYONEER",
-            status: "PENDING",
-          },
-        })
+        const transactions = []
+        for (const assignment of order.assignments) {
+          const transaction = await tx.transaction.create({
+            data: {
+              orderId,
+              amount: perCreatorBudget,
+              platformFee,
+              creatorPayout,
+              stripePaymentId: order.stripePaymentId,
+              payoutMethod: "PAYONEER",
+              status: "PENDING",
+            },
+          })
+          transactions.push({ transaction, assignment })
+        }
 
-        return transaction
+        return transactions
       })
 
-      // Attempt Payoneer payout
-      const payeeId =
-        assignment?.creator?.payoneerPayeeId ??
-        assignment?.network?.payoneerPayeeId
-      if (payeeId) {
-        try {
-          const result = await createPayout({
-            payeeId,
-            amount: creatorPayout,
-            description: `Dispute resolved — payout for "${order.title}"`,
-            paymentId: txRecord.id,
-          })
-          if (result.payoutId) {
-            await prisma.transaction.update({
-              where: { id: txRecord.id },
-              data: { payoneerPayoutId: result.payoutId, status: "RELEASED" },
+      // Attempt Payoneer payouts for each creator (non-blocking)
+      for (const { transaction, assignment } of txRecords) {
+        const payeeId =
+          assignment.creator?.payoneerPayeeId ??
+          assignment.network?.payoneerPayeeId
+        if (payeeId) {
+          try {
+            const result = await createPayout({
+              payeeId,
+              amount: creatorPayout,
+              description: `Dispute resolved — payout for "${order.title}"`,
+              paymentId: transaction.id,
             })
-            await prisma.order.update({
-              where: { id: orderId },
-              data: { paymentStatus: "RELEASED" },
-            })
+            if (result.payoutId) {
+              await prisma.transaction.update({
+                where: { id: transaction.id },
+                data: { payoneerPayoutId: result.payoutId, status: "RELEASED" },
+              })
+            }
+          } catch (err) {
+            console.error("Payoneer payout failed on dispute resolution:", err)
           }
-        } catch (err) {
-          console.error("Payoneer payout failed on dispute resolution:", err)
+        }
+
+        // Notify each creator
+        const assignee = assignment.creator ?? assignment.network
+        if (assignee?.user) {
+          createNotification(
+            assignee.user.id,
+            "dispute_resolved",
+            "Dispute resolved in your favor",
+            `The dispute for "${order.title}" has been resolved. Payout: $${creatorPayout.toFixed(2)}${notes ? `. Note: ${notes}` : ""}`,
+            assignment.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
+          )
         }
       }
 
-      // Notify creator
-      const assignee = assignment?.creator ?? assignment?.network
-      if (assignee?.user) {
-        createNotification(
-          assignee.user.id,
-          "dispute_resolved",
-          "Dispute resolved in your favor",
-          `The dispute for "${order.title}" has been resolved. Payout: $${creatorPayout.toFixed(2)}${notes ? `. Note: ${notes}` : ""}`,
-          assignment?.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
-        )
+      // Update order payment status if any payouts succeeded
+      const releasedCount = await prisma.transaction.count({
+        where: { orderId, status: "RELEASED" },
+      })
+      if (releasedCount > 0) {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { paymentStatus: "RELEASED" },
+        })
       }
 
       // Notify brand
@@ -147,11 +168,11 @@ export async function POST(
         order.brand.userId,
         "dispute_resolved",
         "Dispute resolved",
-        `The dispute for "${order.title}" has been resolved. Payment released to creator.${notes ? ` Note: ${notes}` : ""}`,
+        `The dispute for "${order.title}" has been resolved. Payment released to creator(s).${notes ? ` Note: ${notes}` : ""}`,
         `/brand/orders/${orderId}`
       )
 
-      return NextResponse.json({ message: "Dispute resolved — payment released to creator" })
+      return NextResponse.json({ message: "Dispute resolved — payment released to creator(s)" })
     }
 
     // resolution === "credit_to_brand"
@@ -180,16 +201,17 @@ export async function POST(
       `/brand/orders/${orderId}`
     )
 
-    const assignment = order.assignments[0]
-    const assignee = assignment?.creator ?? assignment?.network
-    if (assignee?.user) {
-      createNotification(
-        assignee.user.id,
-        "dispute_resolved",
-        "Dispute resolved",
-        `The dispute for "${order.title}" has been resolved. Payment returned to brand.${notes ? ` Note: ${notes}` : ""}`,
-        assignment?.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
-      )
+    for (const assignment of order.assignments) {
+      const assignee = assignment.creator ?? assignment.network
+      if (assignee?.user) {
+        createNotification(
+          assignee.user.id,
+          "dispute_resolved",
+          "Dispute resolved",
+          `The dispute for "${order.title}" has been resolved. Payment returned to brand.${notes ? ` Note: ${notes}` : ""}`,
+          assignment.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
+        )
+      }
     }
 
     return NextResponse.json({ message: "Dispute resolved — credit issued to brand" })

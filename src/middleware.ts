@@ -31,6 +31,13 @@ export default auth((req) => {
     return NextResponse.next()
   }
 
+  // Block admin API routes for non-admin users at middleware level
+  if (pathname.startsWith("/api/admin")) {
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+  }
+
   // API routes with /api prefix that aren't auth - check in route handlers
   if (pathname.startsWith("/api/")) {
     return NextResponse.next()

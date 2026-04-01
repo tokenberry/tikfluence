@@ -57,9 +57,19 @@ export async function GET(
       (a) => a.creator?.user?.id === userId || a.network?.user?.id === userId
     )
 
-    if (!isBrandOwner && !isAssigned && role !== "ADMIN" && role !== "ACCOUNT_MANAGER") {
-      // Check if user is an agency managing this brand
-      if (role === "AGENCY") {
+    if (!isBrandOwner && !isAssigned && role !== "ADMIN") {
+      if (role === "ACCOUNT_MANAGER") {
+        // Account managers can only view orders for their assigned brands
+        const am = await prisma.accountManager.findUnique({ where: { userId } })
+        const manages = am
+          ? await prisma.accountManagerBrand.findFirst({
+              where: { accountManagerId: am.id, brandId: order.brand.id },
+            })
+          : null
+        if (!manages) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        }
+      } else if (role === "AGENCY") {
         const agency = await prisma.agency.findUnique({ where: { userId } })
         const manages = agency
           ? await prisma.agencyBrand.findFirst({

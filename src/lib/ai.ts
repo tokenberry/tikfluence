@@ -1,5 +1,30 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { prisma } from "./prisma"
+import { z } from "zod"
+
+const AI_TIMEOUT_MS = 30_000
+
+const creatorAnalysisSchema = z.object({
+  summary: z.string(),
+  strengths: z.array(z.string()),
+  weaknesses: z.array(z.string()),
+  bestContentTypes: z.array(z.string()),
+  audienceInsights: z.string().nullable(),
+  contentStyle: z.string().nullable(),
+  recommendedCpm: z.number().nullable(),
+})
+
+const deliveryAnalysisSchema = z.object({
+  performanceSummary: z.string(),
+  performanceScore: z.number().min(0).max(100),
+  metricsBreakdown: z.string(),
+  briefAlignment: z.string(),
+  audienceEngagement: z.string(),
+  strengths: z.array(z.string()),
+  improvements: z.array(z.string()),
+  whatsNext: z.array(z.string()),
+  recommendedNextOrder: z.string().nullable(),
+})
 
 function getAnthropicClient() {
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -73,20 +98,29 @@ Respond ONLY with the JSON object, no additional text.`
 
   const anthropic = getAnthropicClient()
 
-  const response = await anthropic.messages.create({
+  const responsePromise = anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 1024,
     messages: [{ role: "user", content: prompt }],
   })
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("AI request timed out")), AI_TIMEOUT_MS)
+  )
+  const response = await Promise.race([responsePromise, timeout])
 
   const text = response.content[0].type === "text" ? response.content[0].text : ""
 
   let parsed: CreatorAnalysisResult
   try {
-    parsed = JSON.parse(text) as CreatorAnalysisResult
-  } catch {
+    const json = JSON.parse(text)
+    parsed = creatorAnalysisSchema.parse(json)
+  } catch (err) {
     console.error("Failed to parse AI creator analysis response:", text.slice(0, 200))
-    throw new Error("AI returned invalid JSON for creator analysis")
+    throw new Error(
+      err instanceof z.ZodError
+        ? `AI response validation failed: ${err.issues.map((i) => i.message).join(", ")}`
+        : "AI returned invalid JSON for creator analysis"
+    )
   }
 
   // Store in database
@@ -211,20 +245,29 @@ Respond ONLY with the JSON object, no additional text.`
 
   const anthropic = getAnthropicClient()
 
-  const response = await anthropic.messages.create({
+  const responsePromise2 = anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 1500,
     messages: [{ role: "user", content: prompt }],
   })
+  const timeout2 = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("AI request timed out")), AI_TIMEOUT_MS)
+  )
+  const response = await Promise.race([responsePromise2, timeout2])
 
   const text = response.content[0].type === "text" ? response.content[0].text : ""
 
   let parsed: DeliveryAnalysisResult
   try {
-    parsed = JSON.parse(text) as DeliveryAnalysisResult
-  } catch {
+    const json = JSON.parse(text)
+    parsed = deliveryAnalysisSchema.parse(json)
+  } catch (err) {
     console.error("Failed to parse AI delivery analysis response:", text.slice(0, 200))
-    throw new Error("AI returned invalid JSON for delivery analysis")
+    throw new Error(
+      err instanceof z.ZodError
+        ? `AI response validation failed: ${err.issues.map((i) => i.message).join(", ")}`
+        : "AI returned invalid JSON for delivery analysis"
+    )
   }
 
   // Store in database

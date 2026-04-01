@@ -39,6 +39,10 @@ export default function RegisterPage() {
       setError("TikTok username is required for creators")
       return
     }
+    if (role === "CREATOR" && !supportsShortVideo && !supportsLive) {
+      setError("Please select at least one content type")
+      return
+    }
     if (role === "NETWORK" && !companyName.trim()) {
       setError("Company name is required for networks")
       return

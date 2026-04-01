@@ -9,12 +9,15 @@ const roleNavLinks: Record<string, { label: string; href: string }[]> = {
   CREATOR: [
     { label: "Orders", href: "/creator/orders" },
     { label: "Earnings", href: "/creator/earnings" },
+    { label: "Tickets", href: "/creator/tickets" },
     { label: "Profile", href: "/creator/profile" },
+    { label: "Settings", href: "/creator/settings" },
   ],
   NETWORK: [
     { label: "Creators", href: "/network/creators" },
     { label: "Orders", href: "/network/orders" },
     { label: "Earnings", href: "/network/earnings" },
+    { label: "Settings", href: "/network/settings" },
   ],
   BRAND: [
     { label: "Browse", href: "/brand/browse" },
@@ -26,10 +29,12 @@ const roleNavLinks: Record<string, { label: string; href: string }[]> = {
     { label: "Orders", href: "/admin/orders" },
     { label: "Transactions", href: "/admin/transactions" },
     { label: "Tickets", href: "/admin/tickets" },
+    { label: "Agency Claims", href: "/admin/agency-brands" },
     { label: "Settings", href: "/admin/settings" },
   ],
   AGENCY: [
     { label: "Brands", href: "/agency/brands" },
+    { label: "Browse", href: "/agency/browse" },
     { label: "Creators", href: "/agency/creators" },
     { label: "Orders", href: "/agency/orders" },
     { label: "Earnings", href: "/agency/earnings" },

@@ -92,27 +92,36 @@ export async function POST(
     }
 
     if (approved) {
-      // Update delivery as approved
-      await prisma.delivery.update({
-        where: { id: latestDelivery.id },
-        data: { approved: true, reviewedAt: new Date() },
-      })
-
-      // Get platform fee settings
-      const settings = await prisma.platformSettings.findUnique({
-        where: { id: "default" },
-      })
-      const feeRate = settings?.platformFeeRate ?? 0.15
-
-      // Calculate per-creator share: budget / maxCreators
-      const perCreatorBudget = order.budget / order.maxCreators
-      const platformFee = perCreatorBudget * feeRate
-      const creatorPayout = perCreatorBudget - platformFee
-
-      const assignment = order.assignments[0]
-
-      // Create transaction first, then attempt Payoneer payout
+      // Re-check delivery inside transaction to prevent double-approval
       const txRecord = await prisma.$transaction(async (tx) => {
+        const freshDelivery = await tx.delivery.findUnique({
+          where: { id: latestDelivery.id },
+          select: { approved: true },
+        })
+        if (freshDelivery?.approved !== null) {
+          throw new Error("ALREADY_REVIEWED")
+        }
+
+        await tx.delivery.update({
+          where: { id: latestDelivery.id },
+          data: { approved: true, reviewedAt: new Date() },
+        })
+
+        // Get platform fee settings
+        const settings = await tx.platformSettings.findUnique({
+          where: { id: "default" },
+        })
+        const feeRate = settings?.platformFeeRate ?? 0.15
+
+        // Calculate per-creator share based on actual completed assignments
+        const completedCount = order.assignments.filter(
+          (a) => a.completedAt !== null
+        ).length
+        const activeAssignments = Math.max(completedCount + 1, 1) // +1 for this one
+        const perCreatorBudget = order.budget / activeAssignments
+        const platformFee = perCreatorBudget * feeRate
+        const creatorPayout = perCreatorBudget - platformFee
+
         await tx.order.update({
           where: { id },
           data: {
@@ -139,7 +148,20 @@ export async function POST(
         })
 
         return transaction
+      }).catch((err) => {
+        if (err.message === "ALREADY_REVIEWED") {
+          return { error: "Delivery has already been reviewed" } as const
+        }
+        throw err
       })
+
+      if ("error" in txRecord) {
+        return NextResponse.json({ error: txRecord.error }, { status: 400 })
+      }
+
+      const assignment = order.assignments[0]
+      const perCreatorBudget = txRecord.amount
+      const creatorPayout = txRecord.creatorPayout
 
       // Attempt Payoneer payout (non-blocking)
       const payeeId =

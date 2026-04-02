@@ -101,7 +101,8 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 ### High Priority
 - [ ] **Fox logo**: Replace placeholder SVG with actual Foxolog fox logo PNG
 - [ ] **Stripe integration**: Configure Stripe keys in Vercel env vars, test payment flow
-- [ ] **TikTok API**: Configure TikTok developer keys, test creator verification
+- [x] **TikTok OAuth Verification**: OAuth-based account verification (v1.3.0) — set `AUTH_TIKTOK_ID` + `AUTH_TIKTOK_SECRET` in Vercel, add redirect URI to TikTok Developer Portal
+- [ ] **TikTok Research API**: Configure `TIKTOK_API_KEY` for bio-code verification fallback + periodic metrics refresh (requires separate Research API approval)
 - [x] **Google OAuth**: Google sign-in with PrismaAdapter, onboarding flow for new OAuth users (role selection + profile setup)
 - [x] **Email notifications**: Resend integration with 6 email triggers (welcome, order accepted, delivery submitted, approved, rejected, dispute). From `notifications@foxolog.com`
 - [x] **Database seeding**: Enhanced seed script with full demo data (3 brands, 5 creators across all tiers, 1 network, 7 orders at various statuses, deliveries, transactions, support ticket). Run with `npm run db:seed`
@@ -156,8 +157,9 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `GOOGLE_CLIENT_ID` | Configured (Google Cloud Console) |
 | `GOOGLE_CLIENT_SECRET` | Configured (Google Cloud Console) |
 | `RESEND_API_KEY` | Configured (Resend — domain verified) |
-| `TIKTOK_CLIENT_KEY` | Not set |
-| `TIKTOK_CLIENT_SECRET` | Not set |
+| `AUTH_TIKTOK_ID` | Needs configuration (TikTok Login Kit — Client Key) |
+| `AUTH_TIKTOK_SECRET` | Needs configuration (TikTok Login Kit — Client Secret) |
+| `TIKTOK_API_KEY` | Not set (Research API — separate approval needed) |
 | `ANTHROPIC_API_KEY` | Not set |
 
 ---
@@ -192,6 +194,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.1.0 | 2026-03-31 | Feat: Payment architecture — Stripe checkout (escrow), Payoneer creator payouts, platform credit system, admin dispute resolution |
 | 1.1.1 | 2026-04-01 | Fix: Version consistency — synced package.json/package-lock.json from 0.1.0 to 1.1.0, added APP_VERSION constant + in-app version display in Sidebar and landing page footer |
 | 1.2.0 | 2026-04-01 | Fix: Comprehensive audit — 15 high/medium fixes: double-payment race condition, payment math for multi-creator orders, Account Manager authorization, Navbar nav sync, ADMIN delivery review access, AI response validation + timeout, resolve-dispute multi-creator support, middleware admin API protection, register orphan user prevention, file upload extension validation, content type form validation, scoring algorithm smoothing, 5 new DB indexes |
+| 1.3.0 | 2026-04-02 | Feat: TikTok OAuth verification — creators verify account ownership by logging into TikTok (username match), replacing Research API bio-code dependency. Works with just Login Kit credentials. |
 
 ---
 
@@ -594,4 +597,42 @@ Full audit of API routes, frontend, schema, and infrastructure. Targeted all HIG
 
 ---
 
-*Last updated: April 1, 2026 (v1.2.0)*
+### April 2, 2026
+
+**v1.2.0 → v1.3.0 — TikTok OAuth Verification**
+
+TikTok app approved but only Login Kit (Client Key + Secret) — no Research API access. Refactored verification to use OAuth-based ownership confirmation instead of bio-code + Research API.
+
+**How it works:**
+1. Creator clicks "Verify with TikTok" on profile page
+2. Redirected to TikTok OAuth (Login Kit v2)
+3. TikTok returns their username after authorization
+4. System matches returned username against creator's `tiktokUsername` in DB
+5. Match = verified (sets `verificationMethod: "OAUTH"`, pulls follower/likes/video metrics)
+
+**Implementation:**
+- **`src/lib/verify-state.ts`** (new): HMAC-signed state token utility for OAuth flow (creatorId + userId + tiktokUsername, 15-min expiry). Uses Node.js built-in `crypto` — zero new dependencies.
+- **`POST /api/creators/[id]/verify-tiktok`** (new): Initiates verification — validates creator ownership, generates signed state, returns TikTok authorization URL.
+- **`GET /api/verify-tiktok/callback`** (new): Handles TikTok OAuth callback — exchanges code for access token, fetches user info, matches username, marks creator as verified, updates metrics, redirects to profile with success/error params.
+- **`VerificationBanner.tsx`** (updated): "Verify with TikTok" button as primary method (black TikTok-branded button). Reads `?verify=success|error&reason=...` query params from callback redirect. Detailed error messages for each failure mode (username mismatch shows both usernames, expired session, denied access, etc.). Bio-code method preserved as secondary fallback.
+
+**Security:**
+- State token is HMAC-SHA256 signed with NEXTAUTH_SECRET — tamper-proof
+- 15-minute expiry on state token
+- User session checked on both initiate and callback
+- UserId in state must match logged-in user (prevents CSRF)
+
+**Environment variables needed:**
+- `AUTH_TIKTOK_ID` — TikTok app Client Key
+- `AUTH_TIKTOK_SECRET` — TikTok app Client Secret
+
+**TikTok Developer Portal setup:**
+- Add redirect URI: `https://www.foxolog.com/api/verify-tiktok/callback`
+
+**Files created:** `src/lib/verify-state.ts`, `src/app/api/creators/[id]/verify-tiktok/route.ts`, `src/app/api/verify-tiktok/callback/route.ts`
+
+**Files modified:** `src/app/(dashboard)/creator/profile/VerificationBanner.tsx`, `src/lib/constants.ts`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+---
+
+*Last updated: April 2, 2026 (v1.3.0)*

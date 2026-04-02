@@ -2,16 +2,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
+import { StatusBadge, TierBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
-
-const tierConfig: Record<number, { label: string; bg: string; text: string }> = {
-  1: { label: "Bronze", bg: "bg-amber-700", text: "text-white" },
-  2: { label: "Silver", bg: "bg-gray-400", text: "text-white" },
-  3: { label: "Gold", bg: "bg-yellow-500", text: "text-white" },
-  4: { label: "Platinum", bg: "bg-cyan-400", text: "text-gray-900" },
-  5: { label: "Diamond", bg: "bg-purple-500", text: "text-white" },
-};
 
 export default async function AgencyCreatorDetailPage({
   params,
@@ -52,21 +45,6 @@ export default async function AgencyCreatorDetailPage({
     take: 10,
   });
 
-  const tier = tierConfig[creator.tier] ?? tierConfig[1];
-
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    APPROVED: "bg-green-100 text-green-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
       <div className="flex items-center gap-4">
@@ -86,11 +64,7 @@ export default async function AgencyCreatorDetailPage({
               @{creator.tiktokUsername}
             </p>
           </div>
-          <span
-            className={`rounded-full px-3 py-1 text-sm font-medium ${tier.bg} ${tier.text}`}
-          >
-            {tier.label}
-          </span>
+          <TierBadge tier={creator.tier} />
         </div>
 
         {/* Stats Grid */}
@@ -174,13 +148,7 @@ export default async function AgencyCreatorDetailPage({
                       {a.order.category.name}
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      statusColors[a.status] ?? "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {a.status.replace("_", " ")}
-                  </span>
+                  <StatusBadge status={a.status} />
                 </div>
                 <p className="mt-2 text-xs text-gray-400">
                   Accepted: {new Date(a.acceptedAt).toLocaleDateString()}

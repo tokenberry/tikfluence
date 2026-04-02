@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
+import { ORDER_STATUS_COLORS } from "@/lib/ui-constants";
 
 export const dynamic = "force-dynamic";
 
@@ -82,43 +84,6 @@ export default async function AMAnalyticsPage() {
     "CANCELLED",
   ];
 
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    APPROVED: "bg-green-100 text-green-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
-  const statusBgColors: Record<string, string> = {
-    OPEN: "bg-blue-50 text-blue-700",
-    ASSIGNED: "bg-blue-50 text-blue-700",
-    IN_PROGRESS: "bg-indigo-50 text-indigo-700",
-    DELIVERED: "bg-yellow-50 text-yellow-700",
-    REVISION: "bg-orange-50 text-orange-700",
-    APPROVED: "bg-green-50 text-green-700",
-    COMPLETED: "bg-emerald-50 text-emerald-700",
-    DISPUTED: "bg-red-50 text-red-700",
-    CANCELLED: "bg-gray-50 text-gray-700",
-  };
-
-  const typeStyles: Record<string, string> = {
-    SHORT_VIDEO: "bg-blue-100 text-blue-700",
-    LIVE: "bg-red-100 text-red-700",
-    COMBO: "bg-purple-100 text-purple-700",
-  };
-
-  const typeLabels: Record<string, string> = {
-    SHORT_VIDEO: "Short Video",
-    LIVE: "LIVE",
-    COMBO: "Combo",
-  };
-
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
       <h1 className="text-3xl font-bold text-gray-900">Portfolio Analytics</h1>
@@ -167,7 +132,7 @@ export default async function AMAnalyticsPage() {
             <div
               key={status}
               className={`rounded-lg p-4 text-center ${
-                statusBgColors[status] ?? "bg-gray-50 text-gray-700"
+                ORDER_STATUS_COLORS[status] ?? "bg-gray-100 text-gray-700"
               }`}
             >
               <p className="text-2xl font-bold">
@@ -227,23 +192,10 @@ export default async function AMAnalyticsPage() {
                       {order.category.name}
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          typeStyles[order.type] ?? "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {typeLabels[order.type] ?? order.type}
-                      </span>
+                      <OrderTypeBadge type={order.type} />
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          statusColors[order.status] ??
-                          "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {order.status.replace("_", " ")}
-                      </span>
+                      <StatusBadge status={order.status} />
                     </td>
                     <td className="px-6 py-4 text-gray-600">
                       {formatCurrency(order.budget)}

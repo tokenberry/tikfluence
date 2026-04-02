@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import AddNoteForm from "./AddNoteForm";
 
 export const dynamic = "force-dynamic";
@@ -24,31 +25,6 @@ export default async function AMClientDetailPage({
     where: { userId: session.user.id },
   });
   if (!am) redirect("/login");
-
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    APPROVED: "bg-green-100 text-green-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
-  const typeStyles: Record<string, string> = {
-    SHORT_VIDEO: "bg-blue-100 text-blue-700",
-    LIVE: "bg-red-100 text-red-700",
-    COMBO: "bg-purple-100 text-purple-700",
-  };
-
-  const typeLabels: Record<string, string> = {
-    SHORT_VIDEO: "Short Video",
-    LIVE: "LIVE",
-    COMBO: "Combo",
-  };
 
   if (type === "brand") {
     // Verify assignment
@@ -140,24 +116,10 @@ export default async function AMClientDetailPage({
                           {order.title}
                         </td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              statusColors[order.status] ??
-                              "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {order.status.replace("_", " ")}
-                          </span>
+                          <StatusBadge status={order.status} />
                         </td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              typeStyles[order.type] ??
-                              "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {typeLabels[order.type] ?? order.type}
-                          </span>
+                          <OrderTypeBadge type={order.type} />
                         </td>
                         <td className="px-6 py-4 text-gray-600">
                           {formatCurrency(order.budget)}

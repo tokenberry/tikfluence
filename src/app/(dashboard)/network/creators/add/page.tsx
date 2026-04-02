@@ -107,7 +107,7 @@ export default function AddCreatorPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={searchType === "email" ? "creator@example.com" : "@username"}
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
             />
             <button
               type="submit"

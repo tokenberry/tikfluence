@@ -2,16 +2,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
+import { TierBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
-
-const tierLabels: Record<number, { label: string; color: string }> = {
-  1: { label: "Bronze", color: "bg-amber-700 text-white" },
-  2: { label: "Silver", color: "bg-gray-400 text-white" },
-  3: { label: "Gold", color: "bg-yellow-500 text-white" },
-  4: { label: "Platinum", color: "bg-cyan-400 text-gray-900" },
-  5: { label: "Diamond", color: "bg-purple-500 text-white" },
-};
 
 export default async function NetworkCreatorsPage() {
   const session = await auth();
@@ -61,7 +54,6 @@ export default async function NetworkCreatorsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {creators.map((creator) => {
-            const tier = tierLabels[creator.tier] ?? tierLabels[1];
             return (
               <div
                 key={creator.id}
@@ -72,9 +64,7 @@ export default async function NetworkCreatorsPage() {
                     <h3 className="font-semibold text-gray-900">{creator.user.name}</h3>
                     <p className="text-sm text-gray-500">@{creator.tiktokUsername}</p>
                   </div>
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${tier.color}`}>
-                    {tier.label}
-                  </span>
+                  <TierBadge tier={creator.tier} />
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                   <div>

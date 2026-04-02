@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { StatusBadge } from "@/components/ui/Badge"
 
 interface AgencyBrand {
   id: string
@@ -9,12 +10,6 @@ interface AgencyBrand {
   notes: string | null
   agency: { id: string; companyName: string; user: { name: string; email: string } }
   brand: { id: string; companyName: string; user: { name: string; email: string } }
-}
-
-const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-700",
-  APPROVED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
 }
 
 export default function AdminAgencyBrandsPage() {
@@ -114,13 +109,7 @@ export default function AdminAgencyBrandsPage() {
                 <span className="text-xs text-gray-400">
                   {new Date(claim.addedAt).toLocaleDateString()}
                 </span>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    statusColors[claim.status] ?? "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {claim.status}
-                </span>
+                <StatusBadge status={claim.status} />
                 {claim.status === "PENDING" && (
                   <div className="flex gap-2">
                     <button

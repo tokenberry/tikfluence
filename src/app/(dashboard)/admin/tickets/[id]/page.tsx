@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
+import { TicketStatusBadge } from "@/components/ui/Badge"
 
 interface TicketMessage {
   id: string
@@ -20,13 +21,6 @@ interface Ticket {
   creator: { id: string; name: string; email: string }
   assignee: { id: string; name: string } | null
   messages: TicketMessage[]
-}
-
-const statusColors: Record<string, string> = {
-  OPEN: "bg-blue-100 text-blue-700",
-  IN_PROGRESS: "bg-yellow-100 text-yellow-700",
-  RESOLVED: "bg-green-100 text-green-700",
-  CLOSED: "bg-gray-100 text-gray-700",
 }
 
 const priorityLabels: Record<number, { label: string; color: string }> = {
@@ -143,13 +137,7 @@ export default function AdminTicketDetailPage() {
             {new Date(ticket.createdAt).toLocaleDateString()}
           </p>
         </div>
-        <span
-          className={`self-start rounded-full px-3 py-1 text-sm font-medium ${
-            statusColors[ticket.status] ?? "bg-gray-100 text-gray-700"
-          }`}
-        >
-          {ticket.status.replace("_", " ")}
-        </span>
+        <TicketStatusBadge status={ticket.status} />
       </div>
 
       {/* Description */}
@@ -166,7 +154,7 @@ export default function AdminTicketDetailPage() {
             value={ticket.status}
             onChange={(e) => handleStatusChange(e.target.value)}
             disabled={updating}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
           >
             <option value="OPEN">Open</option>
             <option value="IN_PROGRESS">In Progress</option>
@@ -180,7 +168,7 @@ export default function AdminTicketDetailPage() {
             value={ticket.priority}
             onChange={(e) => handlePriorityChange(Number(e.target.value))}
             disabled={updating}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
           >
             <option value={0}>Low</option>
             <option value={1}>Medium</option>
@@ -238,7 +226,7 @@ export default function AdminTicketDetailPage() {
               placeholder="Type your reply..."
               rows={3}
               maxLength={5000}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
             />
             <button
               type="submit"

@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { StatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
 
@@ -38,17 +39,6 @@ export default async function NetworkOrdersPage() {
     orderBy: { acceptedAt: "desc" },
   });
 
-  const statusColors: Record<string, string> = {
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    APPROVED: "bg-green-100 text-green-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <h1 className="text-3xl font-bold text-gray-900">Network Orders</h1>
@@ -67,13 +57,7 @@ export default async function NetworkOrdersPage() {
             >
               <div className="flex items-start justify-between">
                 <h3 className="font-semibold text-gray-900">{assignment.order.title}</h3>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    statusColors[assignment.status] ?? "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {assignment.status.replace("_", " ")}
-                </span>
+                <StatusBadge status={assignment.status} />
               </div>
               <p className="mt-1 text-sm text-gray-500">{assignment.order.brand.companyName}</p>
               {assignment.creator && (

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryForm from "./DeliveryForm";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
+import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
 
@@ -275,38 +276,3 @@ function InfoCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function OrderTypeBadge({ type }: { type: string }) {
-  const styles: Record<string, string> = {
-    SHORT_VIDEO: "bg-blue-100 text-blue-700",
-    LIVE: "bg-red-100 text-red-700",
-    COMBO: "bg-purple-100 text-purple-700",
-  };
-  const labels: Record<string, string> = {
-    SHORT_VIDEO: "Short Video",
-    LIVE: "LIVE Stream",
-    COMBO: "Combo",
-  };
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[type] ?? "bg-gray-100 text-gray-700"}`}>
-      {labels[type] ?? type}
-    </span>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-  return (
-    <span className={`rounded-full px-3 py-1 text-sm font-medium ${colors[status] ?? "bg-gray-100 text-gray-700"}`}>
-      {status.replace("_", " ")}
-    </span>
-  );
-}

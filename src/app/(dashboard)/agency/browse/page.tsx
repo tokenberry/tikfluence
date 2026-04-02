@@ -2,14 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { formatNumber, formatCurrency } from "@/lib/utils";
-
-const tierLabels: Record<number, { label: string; color: string }> = {
-  1: { label: "Bronze", color: "bg-amber-700 text-white" },
-  2: { label: "Silver", color: "bg-gray-400 text-white" },
-  3: { label: "Gold", color: "bg-yellow-500 text-white" },
-  4: { label: "Platinum", color: "bg-cyan-400 text-gray-900" },
-  5: { label: "Diamond", color: "bg-purple-500 text-white" },
-};
+import { TierBadge } from "@/components/ui/Badge";
 
 interface CreatorResult {
   id: string;
@@ -78,12 +71,12 @@ export default function AgencyBrowseCreatorsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name..."
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Categories</option>
           {categories.map((cat) => (
@@ -95,7 +88,7 @@ export default function AgencyBrowseCreatorsPage() {
         <select
           value={tierFilter}
           onChange={(e) => setTierFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Tiers</option>
           <option value="1">Bronze</option>
@@ -107,7 +100,7 @@ export default function AgencyBrowseCreatorsPage() {
         <select
           value={contentFilter}
           onChange={(e) => setContentFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Content Types</option>
           <option value="video">Short Video</option>
@@ -123,7 +116,6 @@ export default function AgencyBrowseCreatorsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {creators.map((creator) => {
-            const tier = tierLabels[creator.tier] ?? tierLabels[1];
             return (
               <a
                 key={creator.id}
@@ -138,9 +130,7 @@ export default function AgencyBrowseCreatorsPage() {
                     <h3 className="font-semibold text-gray-900">{creator.user.name}</h3>
                     <p className="text-sm text-gray-500">@{creator.tiktokUsername}</p>
                   </div>
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${tier.color}`}>
-                    {tier.label}
-                  </span>
+                  <TierBadge tier={creator.tier} />
                 </div>
 
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center">

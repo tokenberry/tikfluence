@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import AdminOrderActions from "./AdminOrderActions";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
+import { StatusBadge, OrderTypeBadge, PaymentStatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
 
@@ -51,18 +52,6 @@ export default async function AdminOrderDetailPage({
     ? statusSteps.indexOf("DELIVERED")
     : statusSteps.indexOf(order.status);
 
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
   const isOverdue = order.expiresAt && new Date(order.expiresAt) < new Date() &&
     !["COMPLETED", "CANCELLED"].includes(order.status);
 
@@ -85,13 +74,7 @@ export default async function AdminOrderDetailPage({
             {order.category.name} &middot; Created {new Date(order.createdAt).toLocaleDateString()}
           </p>
         </div>
-        <span
-          className={`rounded-full px-3 py-1 text-sm font-medium ${
-            statusColors[order.status] ?? "bg-gray-100 text-gray-700"
-          }`}
-        >
-          {order.status.replace("_", " ")}
-        </span>
+        <StatusBadge status={order.status} />
       </div>
 
       {/* Admin Actions */}
@@ -223,13 +206,7 @@ export default async function AdminOrderDetailPage({
                   </p>
                 </div>
                 <div className="text-right">
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      statusColors[assignment.status] ?? "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {assignment.status.replace("_", " ")}
-                  </span>
+                  <StatusBadge status={assignment.status} />
                   <p className="mt-1 text-xs text-gray-400">
                     Accepted: {new Date(assignment.acceptedAt).toLocaleDateString()}
                   </p>
@@ -284,21 +261,7 @@ export default async function AdminOrderDetailPage({
                       </a>
                     ))}
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      delivery.approved === true
-                        ? "bg-green-100 text-green-700"
-                        : delivery.approved === false
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {delivery.approved === true
-                      ? "Approved"
-                      : delivery.approved === false
-                      ? "Rejected"
-                      : "Pending Review"}
-                  </span>
+                  <StatusBadge status={delivery.approved === true ? "APPROVED" : delivery.approved === false ? "REJECTED" : "PENDING_REVIEW"} />
                 </div>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
                   {delivery.deliveryType === "LIVE" ? (
@@ -366,17 +329,7 @@ export default async function AdminOrderDetailPage({
                     {new Date(tx.createdAt).toLocaleString()}
                   </p>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    tx.status === "RELEASED"
-                      ? "bg-green-100 text-green-700"
-                      : tx.status === "PENDING"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {tx.status}
-                </span>
+                <PaymentStatusBadge status={tx.status} />
               </div>
             ))}
           </div>
@@ -388,23 +341,5 @@ export default async function AdminOrderDetailPage({
         <DeliveryAiInsights orderId={order.id} />
       )}
     </div>
-  );
-}
-
-function OrderTypeBadge({ type }: { type: string }) {
-  const styles: Record<string, string> = {
-    SHORT_VIDEO: "bg-blue-100 text-blue-700",
-    LIVE: "bg-red-100 text-red-700",
-    COMBO: "bg-purple-100 text-purple-700",
-  };
-  const labels: Record<string, string> = {
-    SHORT_VIDEO: "Short Video",
-    LIVE: "LIVE Stream",
-    COMBO: "Combo",
-  };
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[type] ?? "bg-gray-100 text-gray-700"}`}>
-      {labels[type] ?? type}
-    </span>
   );
 }

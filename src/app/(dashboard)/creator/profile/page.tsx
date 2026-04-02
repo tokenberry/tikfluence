@@ -6,16 +6,9 @@ import RefreshTikTokButton from "./RefreshTikTokButton";
 import AiInsights from "./AiInsights";
 import ContentTypeEditor from "./ContentTypeEditor";
 import VerificationBanner from "./VerificationBanner";
+import { TierBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
-
-const tierLabels: Record<number, { label: string; color: string }> = {
-  1: { label: "Bronze", color: "bg-amber-700 text-white" },
-  2: { label: "Silver", color: "bg-gray-400 text-white" },
-  3: { label: "Gold", color: "bg-yellow-500 text-white" },
-  4: { label: "Platinum", color: "bg-cyan-400 text-gray-900" },
-  5: { label: "Diamond", color: "bg-purple-500 text-white" },
-};
 
 export default async function CreatorProfilePage() {
   const session = await auth();
@@ -38,8 +31,6 @@ export default async function CreatorProfilePage() {
     );
   }
 
-  const tier = tierLabels[creator.tier] ?? tierLabels[1];
-
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
       {/* Header */}
@@ -49,9 +40,7 @@ export default async function CreatorProfilePage() {
           <p className="mt-1 text-gray-500">@{creator.tiktokUsername}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${tier.color}`}>
-            {tier.label}
-          </span>
+          <TierBadge tier={creator.tier} />
           <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-bold text-indigo-700">
             Score: {creator.score.toFixed(1)}
           </span>

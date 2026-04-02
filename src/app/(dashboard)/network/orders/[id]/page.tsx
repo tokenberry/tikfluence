@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
+import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
 
@@ -52,17 +53,6 @@ export default async function NetworkOrderDetailPage({
     ? statusSteps.indexOf("DELIVERED")
     : statusSteps.indexOf(order.status);
 
-  const statusColors: Record<string, string> = {
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
   const isOverdue = order.expiresAt && new Date(order.expiresAt) < new Date() &&
     !["COMPLETED", "CANCELLED"].includes(order.status);
 
@@ -83,13 +73,7 @@ export default async function NetworkOrderDetailPage({
           </div>
           <p className="mt-1 text-gray-500">{order.brand.companyName}</p>
         </div>
-        <span
-          className={`rounded-full px-3 py-1 text-sm font-medium ${
-            statusColors[order.status] ?? "bg-gray-100 text-gray-700"
-          }`}
-        >
-          {order.status.replace("_", " ")}
-        </span>
+        <StatusBadge status={order.status} />
       </div>
 
       {/* Order Info */}
@@ -206,13 +190,7 @@ export default async function NetworkOrderDetailPage({
                     @{assignment.creator?.tiktokUsername}
                   </p>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    statusColors[assignment.status] ?? "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {assignment.status.replace("_", " ")}
-                </span>
+                <StatusBadge status={assignment.status} />
               </div>
             ))}
           </div>
@@ -321,20 +299,3 @@ export default async function NetworkOrderDetailPage({
   );
 }
 
-function OrderTypeBadge({ type }: { type: string }) {
-  const styles: Record<string, string> = {
-    SHORT_VIDEO: "bg-blue-100 text-blue-700",
-    LIVE: "bg-red-100 text-red-700",
-    COMBO: "bg-purple-100 text-purple-700",
-  };
-  const labels: Record<string, string> = {
-    SHORT_VIDEO: "Short Video",
-    LIVE: "LIVE Stream",
-    COMBO: "Combo",
-  };
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[type] ?? "bg-gray-100 text-gray-700"}`}>
-      {labels[type] ?? type}
-    </span>
-  );
-}

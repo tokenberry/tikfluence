@@ -130,7 +130,7 @@ export default function RequestBrandForm() {
   }
 
   const inputClasses =
-    "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500";
+    "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]";
 
   const noResults = !loading && searched && brands.length === 0;
 

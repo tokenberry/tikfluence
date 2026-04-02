@@ -82,7 +82,7 @@ export default function CreatorSettingsPage() {
             onChange={(e) => setBio(e.target.value)}
             rows={4}
             maxLength={1000}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
             placeholder="Tell brands about yourself..."
           />
           <p className="mt-1 text-xs text-gray-400">{bio.length}/1000</p>
@@ -118,7 +118,7 @@ export default function CreatorSettingsPage() {
                 value={newLink}
                 onChange={(e) => setNewLink(e.target.value)}
                 placeholder="https://example.com"
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLink())}
               />
               <button

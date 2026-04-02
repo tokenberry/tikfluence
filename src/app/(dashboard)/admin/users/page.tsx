@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { RoleBadge } from "@/components/ui/Badge";
 
 interface UserRow {
   id: string;
@@ -61,15 +62,6 @@ export default function AdminUsersPage() {
     }
   }
 
-  const roleColors: Record<string, string> = {
-    CREATOR: "bg-purple-100 text-purple-700",
-    NETWORK: "bg-blue-100 text-blue-700",
-    BRAND: "bg-green-100 text-green-700",
-    ADMIN: "bg-red-100 text-red-700",
-    AGENCY: "bg-orange-100 text-orange-700",
-    ACCOUNT_MANAGER: "bg-cyan-100 text-cyan-700",
-  };
-
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <h1 className="text-3xl font-bold text-gray-900">Users</h1>
@@ -81,12 +73,12 @@ export default function AdminUsersPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name or email..."
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Roles</option>
           <option value="CREATOR">Creator</option>
@@ -123,9 +115,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
                     <td className="px-6 py-4 text-gray-600">{user.email}</td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${(user.role && roleColors[user.role]) ?? "bg-gray-100 text-gray-700"}`}>
-                        {user.role ?? "NONE"}
-                      </span>
+                      <RoleBadge role={user.role ?? "NONE"} />
                     </td>
                     <td className="px-6 py-4">
                       <span

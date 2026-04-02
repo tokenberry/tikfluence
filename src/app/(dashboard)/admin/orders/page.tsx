@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { StatusBadge } from "@/components/ui/Badge";
 
 interface OrderRow {
   id: string;
@@ -51,19 +52,6 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    APPROVED: "bg-green-100 text-green-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
       <h1 className="text-3xl font-bold text-gray-900">All Orders</h1>
@@ -111,9 +99,7 @@ export default function AdminOrdersPage() {
                     <td className="px-6 py-4 font-medium text-gray-900">{order.title}</td>
                     <td className="px-6 py-4 text-gray-600">{order.brand.companyName}</td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[order.status] ?? "bg-gray-100 text-gray-700"}`}>
-                        {order.status.replace("_", " ")}
-                      </span>
+                      <StatusBadge status={order.status} />
                     </td>
                     <td className="px-6 py-4 text-gray-600">{formatCurrency(order.budget)}</td>
                     <td className="px-6 py-4 text-gray-500">

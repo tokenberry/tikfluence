@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { TicketStatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,6 @@ export default async function AdminTicketsPage() {
     },
     orderBy: { createdAt: "desc" },
   });
-
-  const statusColors: Record<string, string> = {
-    OPEN: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-yellow-100 text-yellow-700",
-    RESOLVED: "bg-green-100 text-green-700",
-    CLOSED: "bg-gray-100 text-gray-700",
-  };
 
   const priorityLabels: Record<number, { label: string; color: string }> = {
     0: { label: "Low", color: "text-gray-500" },
@@ -73,13 +67,7 @@ export default async function AdminTicketsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            statusColors[ticket.status] ?? "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {ticket.status.replace("_", " ")}
-                        </span>
+                        <TicketStatusBadge status={ticket.status} />
                       </td>
                       <td className={`px-6 py-4 font-medium ${priority.color}`}>
                         {priority.label}

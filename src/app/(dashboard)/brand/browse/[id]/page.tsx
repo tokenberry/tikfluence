@@ -4,16 +4,9 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { formatNumber, formatCurrency } from "@/lib/utils";
 import { getLatestCreatorAnalysis } from "@/lib/ai";
+import { TierBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
-
-const tierLabels: Record<number, { label: string; color: string }> = {
-  1: { label: "Bronze", color: "bg-amber-700 text-white" },
-  2: { label: "Silver", color: "bg-gray-400 text-white" },
-  3: { label: "Gold", color: "bg-yellow-500 text-white" },
-  4: { label: "Platinum", color: "bg-cyan-400 text-gray-900" },
-  5: { label: "Diamond", color: "bg-purple-500 text-white" },
-};
 
 export default async function CreatorDetailPage({
   params,
@@ -36,7 +29,6 @@ export default async function CreatorDetailPage({
 
   if (!creator) notFound();
 
-  const tier = tierLabels[creator.tier] ?? tierLabels[1];
   const aiAnalysis = await getLatestCreatorAnalysis(creator.id);
 
   return (
@@ -59,11 +51,7 @@ export default async function CreatorDetailPage({
               <h1 className="text-2xl font-bold text-gray-900">
                 {creator.user.name}
               </h1>
-              <span
-                className={`rounded-full px-3 py-0.5 text-xs font-semibold ${tier.color}`}
-              >
-                {tier.label}
-              </span>
+              <TierBadge tier={creator.tier} />
             </div>
             <p className="text-gray-500">@{creator.tiktokUsername}</p>
             {creator.network && (

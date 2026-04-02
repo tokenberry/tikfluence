@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { PaymentStatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
 
@@ -46,14 +47,6 @@ export default async function NetworkEarningsPage() {
     .reduce((sum, t) => sum + t.creatorPayout, 0);
 
   const totalRevenue = transactions.reduce((sum, t) => sum + t.amount, 0);
-
-  const statusColors: Record<string, string> = {
-    PENDING: "bg-yellow-100 text-yellow-700",
-    HELD: "bg-blue-100 text-blue-700",
-    RELEASED: "bg-green-100 text-green-700",
-    REFUNDED: "bg-gray-100 text-gray-700",
-    FAILED: "bg-red-100 text-red-700",
-  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6">
@@ -122,9 +115,7 @@ export default async function NetworkEarningsPage() {
                     <td className="px-6 py-4 text-gray-600">{formatCurrency(tx.platformFee)}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">{formatCurrency(tx.creatorPayout)}</td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[tx.status] ?? "bg-gray-100 text-gray-700"}`}>
-                        {tx.status}
-                      </span>
+                      <PaymentStatusBadge status={tx.status} />
                     </td>
                     <td className="px-6 py-4 text-gray-500">
                       {new Date(tx.createdAt).toLocaleDateString()}

@@ -81,7 +81,7 @@ export default function AdminSettingsPage() {
             required
             value={form.platformFeeRate}
             onChange={(e) => setForm({ ...form, platformFeeRate: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
           />
         </div>
 
@@ -96,7 +96,7 @@ export default function AdminSettingsPage() {
             required
             value={form.minOrderBudget}
             onChange={(e) => setForm({ ...form, minOrderBudget: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
           />
         </div>
 
@@ -111,7 +111,7 @@ export default function AdminSettingsPage() {
             required
             value={form.maxOrderBudget}
             onChange={(e) => setForm({ ...form, maxOrderBudget: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
           />
         </div>
 

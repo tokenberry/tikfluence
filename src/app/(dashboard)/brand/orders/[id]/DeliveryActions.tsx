@@ -67,7 +67,7 @@ export default function DeliveryActions({
           onChange={(e) => setReason(e.target.value)}
           placeholder="Rejection reason..."
           rows={2}
-          className="w-48 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="w-48 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <div className="flex gap-2">
           <button

@@ -76,7 +76,7 @@ export default function BrandSettingsPage() {
             required
             value={form.companyName}
             onChange={(e) => setForm({ ...form, companyName: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
           />
         </div>
 
@@ -86,7 +86,7 @@ export default function BrandSettingsPage() {
             type="url"
             value={form.website}
             onChange={(e) => setForm({ ...form, website: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
             placeholder="https://example.com"
           />
         </div>
@@ -97,7 +97,7 @@ export default function BrandSettingsPage() {
             type="text"
             value={form.industry}
             onChange={(e) => setForm({ ...form, industry: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
             placeholder="e.g. Fashion, Tech, Food"
           />
         </div>
@@ -108,7 +108,7 @@ export default function BrandSettingsPage() {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={4}
-            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
             placeholder="Tell creators about your brand..."
           />
         </div>

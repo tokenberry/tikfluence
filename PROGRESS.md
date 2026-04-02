@@ -195,6 +195,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.1.1 | 2026-04-01 | Fix: Version consistency — synced package.json/package-lock.json from 0.1.0 to 1.1.0, added APP_VERSION constant + in-app version display in Sidebar and landing page footer |
 | 1.2.0 | 2026-04-01 | Fix: Comprehensive audit — 15 high/medium fixes: double-payment race condition, payment math for multi-creator orders, Account Manager authorization, Navbar nav sync, ADMIN delivery review access, AI response validation + timeout, resolve-dispute multi-creator support, middleware admin API protection, register orphan user prevention, file upload extension validation, content type form validation, scoring algorithm smoothing, 5 new DB indexes |
 | 1.3.0 | 2026-04-02 | Feat: TikTok OAuth verification — creators verify account ownership by logging into TikTok (username match), replacing Research API bio-code dependency. Works with just Login Kit credentials. |
+| 1.4.0 | 2026-04-02 | Feat: UI component library + design consistency — 7 reusable components (Badge, Button, Toast, ConfirmDialog, EmptyState, FormField, ui-constants), replaced inline color mappings across 30+ pages, standardized focus rings to brand orange |
 
 ---
 
@@ -635,4 +636,41 @@ TikTok app approved but only Login Kit (Client Key + Secret) — no Research API
 
 ---
 
-*Last updated: April 2, 2026 (v1.3.0)*
+**v1.3.0 → v1.4.0 — UI Component Library + Design Consistency**
+
+Comprehensive UI/UX audit identified massive code duplication (status colors, tier labels, role colors copied across 30+ pages), inconsistent focus ring colors (mix of indigo, orange-500, brand hex), and missing UX patterns (no toasts, no confirm dialogs, no empty states). Built a reusable component library and wired it across the entire app.
+
+**New Components Created (`src/components/ui/`):**
+
+1. **`Badge.tsx`** — 6 badge variants: `StatusBadge` (order status), `TierBadge` (creator tier), `RoleBadge` (user role), `OrderTypeBadge` (SHORT_VIDEO/LIVE/COMBO), `TicketStatusBadge`, `PaymentStatusBadge`. All read from shared constants.
+
+2. **`Button.tsx`** — 4 variants (primary/secondary/danger/ghost), 3 sizes (sm/md/lg), built-in loading spinner state. All use brand orange `#d4772c`.
+
+3. **`Toast.tsx`** — Toast notification system with context provider. 3 types (success/error/info), auto-dismiss after 4 seconds, slide-in animation, dismiss button. Wired into app via `ToastProvider` in `providers.tsx`.
+
+4. **`ConfirmDialog.tsx`** — Modal confirmation dialog for destructive actions. Supports danger/primary variants, async confirm handler with loading state, backdrop click to cancel.
+
+5. **`EmptyState.tsx`** — Reusable empty state component with icon, title, description, and optional action CTA. Replaces bare "No X found" text.
+
+6. **`FormField.tsx`** — 3 field types: `InputField`, `TextareaField`, `SelectField`. Consistent label styling, error message display, required asterisk. All use brand orange focus ring.
+
+**Shared Constants (`src/lib/ui-constants.ts`):**
+- `ORDER_STATUS_COLORS` + `ORDER_STATUS_LABELS` — replaces 20 inline copies
+- `TIER_LABELS` — replaces 6 inline copies
+- `ROLE_COLORS` + `ROLE_LABELS` — replaces inline copies
+- `ORDER_TYPE_COLORS` + `ORDER_TYPE_LABELS` — replaces 5 inline copies
+- `TICKET_STATUS_COLORS`, `PAYMENT_STATUS_COLORS`
+
+**Pages Updated (30+ files):**
+- Removed all inline `statusColors`, `tierLabels`, `roleColors`, `typeStyles`, `typeLabels` objects
+- Replaced inline `<span>` badges with component calls (`StatusBadge`, `TierBadge`, etc.)
+- Standardized all focus rings from `indigo-500` / `orange-500` to brand `#d4772c`
+- Added toast animation CSS to `globals.css`
+
+**Files created:** `src/lib/ui-constants.ts`, `src/components/ui/Badge.tsx`, `src/components/ui/Button.tsx`, `src/components/ui/Toast.tsx`, `src/components/ui/ConfirmDialog.tsx`, `src/components/ui/EmptyState.tsx`, `src/components/ui/FormField.tsx`
+
+**Files modified:** `src/app/providers.tsx`, `src/app/globals.css`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, + 30 dashboard page files (badge + focus ring replacements)
+
+---
+
+*Last updated: April 2, 2026 (v1.4.0)*

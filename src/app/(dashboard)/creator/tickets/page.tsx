@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { TicketStatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
 
@@ -73,22 +74,5 @@ export default async function CreatorTicketsPage() {
         </div>
       )}
     </div>
-  );
-}
-
-function TicketStatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    OPEN: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-yellow-100 text-yellow-700",
-    RESOLVED: "bg-green-100 text-green-700",
-    CLOSED: "bg-gray-100 text-gray-700",
-  };
-
-  return (
-    <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] ?? "bg-gray-100 text-gray-700"}`}
-    >
-      {status.replace("_", " ")}
-    </span>
   );
 }

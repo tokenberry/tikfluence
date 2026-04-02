@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { StatusBadge } from "@/components/ui/Badge";
 import OrderStatusFilter from "./OrderStatusFilter";
 
 export const dynamic = "force-dynamic"
@@ -41,19 +42,6 @@ export default async function BrandOrdersPage({
     orderBy: { createdAt: "desc" },
   });
 
-  const statusColors: Record<string, string> = {
-    DRAFT: "bg-gray-100 text-gray-700",
-    OPEN: "bg-blue-100 text-blue-700",
-    ASSIGNED: "bg-blue-100 text-blue-700",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
-    DELIVERED: "bg-yellow-100 text-yellow-700",
-    REVISION: "bg-orange-100 text-orange-700",
-    APPROVED: "bg-green-100 text-green-700",
-    COMPLETED: "bg-green-100 text-green-700",
-    DISPUTED: "bg-red-100 text-red-700",
-    CANCELLED: "bg-gray-100 text-gray-700",
-  };
-
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -85,13 +73,7 @@ export default async function BrandOrdersPage({
                   <h3 className="text-lg font-semibold text-gray-900">{order.title}</h3>
                   <p className="mt-1 text-sm text-gray-500">{order.category.name}</p>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    statusColors[order.status] ?? "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {order.status.replace("_", " ")}
-                </span>
+                <StatusBadge status={order.status} />
               </div>
               <div className="mt-3 flex flex-wrap gap-6 text-sm text-gray-600">
                 <span>Target: {formatNumber(order.impressionTarget)} impressions</span>

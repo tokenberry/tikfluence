@@ -112,9 +112,9 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [ ] **File storage**: Currently saves to `/uploads` locally - needs S3/Vercel Blob for production
 - [x] **Error pages**: Custom 404, 500 error pages
 - [x] **Loading states**: Skeleton loaders for dashboard pages
-- [ ] **Form validation**: Enhanced client-side validation with Zod on forms
-- [ ] **Search & filters**: Full-text search on creator browse page
-- [ ] **Pagination**: Proper pagination UI on list pages
+- [x] **Form validation**: Zod client-side validation on register + ticket forms with per-field inline errors (v1.8.0)
+- [x] **Search & filters**: Full-text search on creator browse page (already existed with name/category/tier/content type filters)
+- [x] **Pagination**: Pagination component on browse pages + admin users (v1.8.0)
 
 ### Low Priority / Future
 - [x] **Creator settings page**: Bio, portfolio links editor
@@ -199,6 +199,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.5.0 | 2026-04-03 | Feat: UX polish — replaced 31 alert() with Toast notifications, 3 confirm() with ConfirmDialog, LoadingSpinner component (7 pages), EmptyState component (6 pages), Sidebar icons (Lucide), eliminated all indigo colors → brand orange across 19 files |
 | 1.6.0 | 2026-04-03 | Feat: Mobile sidebar drawer, dashboard home pages (Creator/Brand/Network/Agency with stats + quick actions), landing page polish (Lucide icons, hover animations, subtitles) |
 | 1.7.0 | 2026-04-03 | Feat: UX navigation overhaul — post-login redirect to role dashboard, uniform sidebar nav ordering, support tickets for all roles (brand/agency/network/account-manager), simplified top navbar (single Dashboard button), Settings moved to user dropdown, agency settings page + API |
+| 1.8.0 | 2026-04-03 | Feat: Fox favicon, Pagination component (browse + admin users), eliminated all remaining indigo colors (17 occurrences → brand orange), Zod client-side validation on register + ticket forms with per-field errors, admin users API now supports AGENCY/ACCOUNT_MANAGER role filter |
 
 ---
 

@@ -6,6 +6,7 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 import { TierBadge } from "@/components/ui/Badge";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
+import Pagination from "@/components/ui/Pagination";
 import { Users } from "lucide-react";
 
 interface CreatorResult {
@@ -31,6 +32,8 @@ export default function BrowseCreatorsPage() {
   const [tierFilter, setTierFilter] = useState("");
   const [contentFilter, setContentFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
 
   const fetchCreators = useCallback(async () => {
     setLoading(true);
@@ -40,18 +43,23 @@ export default function BrowseCreatorsPage() {
       if (categoryFilter) params.set("category", categoryFilter);
       if (tierFilter) params.set("tier", tierFilter);
       if (contentFilter) params.set("contentType", contentFilter);
+      params.set("page", String(page));
+      params.set("limit", "12");
 
       const res = await fetch(`/api/creators?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setCreators(data.creators ?? []);
+        if (data.pagination) {
+          setPagination({ total: data.pagination.total, totalPages: data.pagination.totalPages });
+        }
       }
     } catch {
       // silently fail
     } finally {
       setLoading(false);
     }
-  }, [search, categoryFilter, tierFilter, contentFilter]);
+  }, [search, categoryFilter, tierFilter, contentFilter, page]);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -74,13 +82,13 @@ export default function BrowseCreatorsPage() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           placeholder="Search by name..."
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <select
           value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
+          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Categories</option>
@@ -92,7 +100,7 @@ export default function BrowseCreatorsPage() {
         </select>
         <select
           value={tierFilter}
-          onChange={(e) => setTierFilter(e.target.value)}
+          onChange={(e) => { setTierFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Tiers</option>
@@ -104,7 +112,7 @@ export default function BrowseCreatorsPage() {
         </select>
         <select
           value={contentFilter}
-          onChange={(e) => setContentFilter(e.target.value)}
+          onChange={(e) => { setContentFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Content Types</option>
@@ -151,7 +159,7 @@ export default function BrowseCreatorsPage() {
                     <p className="text-xs text-gray-500">Avg Views</p>
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-indigo-600">{creator.score.toFixed(1)}</p>
+                    <p className="text-lg font-bold text-[#d4772c]">{creator.score.toFixed(1)}</p>
                     <p className="text-xs text-gray-500">Score</p>
                   </div>
                 </div>
@@ -186,6 +194,14 @@ export default function BrowseCreatorsPage() {
           })}
         </div>
       )}
+
+      <Pagination
+        page={page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        limit={12}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

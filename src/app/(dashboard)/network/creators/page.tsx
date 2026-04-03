@@ -46,7 +46,7 @@ export default async function NetworkCreatorsPage() {
           <p className="text-gray-500">No creators in your network yet.</p>
           <a
             href="/network/creators/add"
-            className="mt-4 inline-block text-indigo-600 hover:underline"
+            className="mt-4 inline-block text-[#d4772c] hover:underline"
           >
             Add your first creator
           </a>

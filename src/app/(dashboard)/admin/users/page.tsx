@@ -5,6 +5,7 @@ import { RoleBadge } from "@/components/ui/Badge";
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
+import Pagination from "@/components/ui/Pagination";
 import { Users } from "lucide-react";
 
 interface UserRow {
@@ -23,6 +24,8 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -30,17 +33,22 @@ export default function AdminUsersPage() {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (roleFilter) params.set("role", roleFilter);
+      params.set("page", String(page));
+      params.set("limit", "20");
       const res = await fetch(`/api/admin/users?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setUsers(data.users ?? []);
+        if (data.pagination) {
+          setPagination({ total: data.pagination.total, totalPages: data.pagination.totalPages });
+        }
       }
     } catch {
       // silently fail
     } finally {
       setLoading(false);
     }
-  }, [search, roleFilter]);
+  }, [search, roleFilter, page]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchUsers, 300);
@@ -76,13 +84,13 @@ export default function AdminUsersPage() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           placeholder="Search by name or email..."
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
+          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Roles</option>
@@ -160,6 +168,14 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      <Pagination
+        page={page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        limit={20}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

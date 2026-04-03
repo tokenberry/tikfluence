@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { ticketSchema } from "@/lib/validations"
 
 function NewTicketFormInner({ basePath }: { basePath: string }) {
   const router = useRouter()
@@ -16,11 +17,25 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
   const [description, setDescription] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setSubmitting(true)
     setError("")
+    setFieldErrors({})
+
+    const result = ticketSchema.safeParse({ subject, description })
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      for (const issue of result.error.issues) {
+        const key = issue.path[0]?.toString() ?? "form"
+        if (!errors[key]) errors[key] = issue.message
+      }
+      setFieldErrors(errors)
+      return
+    }
+
+    setSubmitting(true)
 
     try {
       const res = await fetch("/api/tickets", {
@@ -84,6 +99,9 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
             placeholder="Brief summary of your issue"
             className={inputClass}
           />
+          {fieldErrors.subject && (
+            <p className="mt-1 text-xs text-red-600">{fieldErrors.subject}</p>
+          )}
         </div>
 
         <div>
@@ -102,6 +120,9 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
             placeholder="Describe your issue in detail..."
             className={inputClass}
           />
+          {fieldErrors.description && (
+            <p className="mt-1 text-xs text-red-600">{fieldErrors.description}</p>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-3">

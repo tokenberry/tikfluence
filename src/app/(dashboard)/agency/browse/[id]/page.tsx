@@ -83,7 +83,7 @@ export default async function AgencyCreatorDetailPage({
             <p className="text-xs text-gray-500">Avg Views</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
-            <p className="text-2xl font-bold text-indigo-600">
+            <p className="text-2xl font-bold text-[#d4772c]">
               {creator.score.toFixed(1)}
             </p>
             <p className="text-xs text-gray-500">Score</p>

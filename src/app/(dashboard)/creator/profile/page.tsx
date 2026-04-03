@@ -80,7 +80,7 @@ export default async function CreatorProfilePage() {
                     href={link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-600 hover:underline"
+                    className="text-[#d4772c] hover:underline"
                   >
                     {link}
                   </a>
@@ -138,7 +138,7 @@ export default async function CreatorProfilePage() {
               </span>
               <a
                 href="/api/stripe/connect"
-                className="text-sm font-medium text-indigo-600 hover:underline"
+                className="text-sm font-medium text-[#d4772c] hover:underline"
               >
                 Connect Stripe Account
               </a>

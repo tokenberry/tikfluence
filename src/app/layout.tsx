@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description:
     "Connect brands with TikTok creators. Foxolog is the marketplace where brands find the perfect TikTok influencers for their campaigns and creators monetize their content.",
   icons: {
-    icon: "/fox-logo.png",
-    apple: "/fox-logo.png",
+    icon: "/favicon.ico",
+    apple: "/apple-icon.png",
   },
 }
 

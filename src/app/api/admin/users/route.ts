@@ -6,7 +6,7 @@ import { z } from "zod"
 export const dynamic = "force-dynamic"
 
 const querySchema = z.object({
-  role: z.enum(["CREATOR", "NETWORK", "BRAND", "ADMIN"]).optional(),
+  role: z.enum(["CREATOR", "NETWORK", "BRAND", "ADMIN", "AGENCY", "ACCOUNT_MANAGER"]).optional(),
   search: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { registerSchema } from "@/lib/validations"
 
 type Role = "CREATOR" | "NETWORK" | "BRAND" | "AGENCY"
 
@@ -20,39 +21,34 @@ export default function RegisterPage() {
   const [supportsShortVideo, setSupportsShortVideo] = useState(true)
   const [supportsLive, setSupportsLive] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setFieldErrors({})
 
-    // Client-side validation
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters")
-      return
-    }
-    if (name.length < 2) {
-      setError("Name must be at least 2 characters")
-      return
-    }
-    if (role === "CREATOR" && !tiktokUsername.trim()) {
-      setError("TikTok username is required for creators")
-      return
-    }
-    if (role === "CREATOR" && !supportsShortVideo && !supportsLive) {
-      setError("Please select at least one content type")
-      return
-    }
-    if (role === "NETWORK" && !companyName.trim()) {
-      setError("Company name is required for networks")
-      return
-    }
-    if (role === "BRAND" && !companyName.trim()) {
-      setError("Company name is required for brands")
-      return
-    }
-    if (role === "AGENCY" && !companyName.trim()) {
-      setError("Company name is required for agencies")
+    const result = registerSchema.safeParse({
+      role,
+      name,
+      email,
+      password,
+      tiktokUsername,
+      supportsShortVideo,
+      supportsLive,
+      companyName,
+      industry,
+      agencyWebsite,
+    })
+
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      for (const issue of result.error.issues) {
+        const key = issue.path[0]?.toString() ?? "form"
+        if (!errors[key]) errors[key] = issue.message
+      }
+      setFieldErrors(errors)
       return
     }
 
@@ -124,6 +120,11 @@ export default function RegisterPage() {
     },
   ]
 
+  const fieldError = (field: string) =>
+    fieldErrors[field] ? (
+      <p className="mt-1 text-xs text-red-600">{fieldErrors[field]}</p>
+    ) : null
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
       <div className="text-center mb-8">
@@ -183,6 +184,7 @@ export default function RegisterPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder="Your full name"
           />
+          {fieldError("name")}
         </div>
 
         <div>
@@ -201,6 +203,7 @@ export default function RegisterPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder="you@example.com"
           />
+          {fieldError("email")}
         </div>
 
         <div>
@@ -219,6 +222,7 @@ export default function RegisterPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder="At least 8 characters"
           />
+          {fieldError("password")}
         </div>
 
         {/* Role-specific fields */}
@@ -245,6 +249,7 @@ export default function RegisterPage() {
                   placeholder="your_tiktok_handle"
                 />
               </div>
+              {fieldError("tiktokUsername")}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -274,7 +279,11 @@ export default function RegisterPage() {
                   LIVE Stream
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-400">Select at least one content type</p>
+              {fieldErrors.supportsShortVideo ? (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.supportsShortVideo}</p>
+              ) : (
+                <p className="mt-1 text-xs text-gray-400">Select at least one content type</p>
+              )}
             </div>
           </>
         )}
@@ -296,6 +305,7 @@ export default function RegisterPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
               placeholder="Your network's company name"
             />
+            {fieldError("companyName")}
           </div>
         )}
 
@@ -317,6 +327,7 @@ export default function RegisterPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder="Your brand's company name"
               />
+              {fieldError("companyName")}
             </div>
             <div>
               <label
@@ -355,6 +366,7 @@ export default function RegisterPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder="Your agency's name"
               />
+              {fieldError("companyName")}
             </div>
             <div>
               <label
@@ -371,6 +383,7 @@ export default function RegisterPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder="https://youragency.com"
               />
+              {fieldError("agencyWebsite")}
             </div>
           </>
         )}
@@ -395,7 +408,7 @@ export default function RegisterPage() {
 
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/" })}
+        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         className="w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -421,7 +434,7 @@ export default function RegisterPage() {
 
       <button
         type="button"
-        onClick={() => signIn("tiktok", { callbackUrl: "/" })}
+        onClick={() => signIn("tiktok", { callbackUrl: "/dashboard" })}
         className="mt-3 w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">

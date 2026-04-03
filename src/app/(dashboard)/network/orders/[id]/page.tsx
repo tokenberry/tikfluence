@@ -213,7 +213,7 @@ export default async function NetworkOrderDetailPage({
                       href={delivery.tiktokLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-indigo-600 hover:underline block"
+                      className="text-[#d4772c] hover:underline block"
                     >
                       {delivery.tiktokLink}
                     </a>
@@ -223,7 +223,7 @@ export default async function NetworkOrderDetailPage({
                         href={link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 hover:underline block"
+                        className="text-[#d4772c] hover:underline block"
                       >
                         {link}
                       </a>

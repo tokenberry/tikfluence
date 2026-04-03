@@ -61,7 +61,7 @@ export default async function NetworkOrdersPage() {
               </div>
               <p className="mt-1 text-sm text-gray-500">{assignment.order.brand.companyName}</p>
               {assignment.creator && (
-                <p className="mt-1 text-sm text-indigo-600">
+                <p className="mt-1 text-sm text-[#d4772c]">
                   Creator: {assignment.creator.user.name}
                 </p>
               )}

@@ -37,9 +37,9 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    if (!process.env.KIMI_API_KEY) {
+    if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: "AI analysis is not configured. Set KIMI_API_KEY." },
+        { error: "AI analysis is not configured. Set OPENAI_API_KEY." },
         { status: 503 }
       )
     }

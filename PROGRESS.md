@@ -160,7 +160,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `AUTH_TIKTOK_ID` | Needs configuration (TikTok Login Kit — Client Key) |
 | `AUTH_TIKTOK_SECRET` | Needs configuration (TikTok Login Kit — Client Secret) |
 | `TIKTOK_API_KEY` | Not set (Research API — separate approval needed) |
-| `KIMI_API_KEY` | Needs configuration (Kimi/Moonshot AI for creator analysis) |
+| `OPENAI_API_KEY` | Needs configuration (OpenAI GPT-4o-mini for creator analysis) |
 
 ---
 
@@ -200,7 +200,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.6.0 | 2026-04-03 | Feat: Mobile sidebar drawer, dashboard home pages (Creator/Brand/Network/Agency with stats + quick actions), landing page polish (Lucide icons, hover animations, subtitles) |
 | 1.7.0 | 2026-04-03 | Feat: UX navigation overhaul — post-login redirect to role dashboard, uniform sidebar nav ordering, support tickets for all roles (brand/agency/network/account-manager), simplified top navbar (single Dashboard button), Settings moved to user dropdown, agency settings page + API |
 | 1.8.0 | 2026-04-03 | Feat: Fox favicon, Pagination component (browse + admin users), eliminated all remaining indigo colors (17 occurrences → brand orange), Zod client-side validation on register + ticket forms with per-field errors, admin users API now supports AGENCY/ACCOUNT_MANAGER role filter |
-| 1.9.0 | 2026-04-03 | Feat: AI analysis moved from creator profile to brand/agency browse pages (helps order placers pick creators), switched from Anthropic to Kimi AI (Moonshot), reusable AiInsightsPanel component with run/refresh, Stripe→Payoneer on payout pages |
+| 1.9.0 | 2026-04-03 | Feat: AI analysis moved from creator profile to brand/agency browse pages (helps order placers pick creators), switched from Anthropic to OpenAI GPT-4o-mini, reusable AiInsightsPanel component with run/refresh, Stripe→Payoneer on payout pages |
 
 ---
 
@@ -358,14 +358,14 @@ Major feature release adding 3 order types (SHORT_VIDEO, LIVE, COMBO) and AI-pow
 
 **Files modified:** `prisma/schema.prisma`, `package.json`, `package-lock.json`, `src/app/api/orders/route.ts`, `src/app/api/orders/[id]/deliver/route.ts`, `src/app/api/creators/route.ts`, `src/app/(dashboard)/brand/orders/new/page.tsx`, `src/app/(dashboard)/brand/orders/[id]/page.tsx`, `src/app/(dashboard)/brand/browse/page.tsx`, `src/app/(dashboard)/brand/browse/[id]/page.tsx`, `src/app/(dashboard)/creator/orders/[id]/page.tsx`, `src/app/(dashboard)/creator/orders/[id]/DeliveryForm.tsx`, `src/app/(dashboard)/creator/profile/page.tsx`, `src/app/(dashboard)/network/orders/[id]/page.tsx`, `src/app/(dashboard)/admin/orders/[id]/page.tsx`
 
-**Dependencies added:** (none — switched to Kimi AI via plain fetch in v1.9.0)
+**Dependencies added:** (none — uses OpenAI GPT-4o-mini via plain fetch)
 
 **Environment variables needed:**
-- `KIMI_API_KEY` — Required for AI creator analysis feature (Moonshot/Kimi AI)
+- `OPENAI_API_KEY` — Required for AI creator analysis feature (OpenAI GPT-4o-mini)
 
 **Infrastructure needed after merge:**
 - Run `prisma db push` to apply schema changes (auto-runs on Vercel build)
-- Set `KIMI_API_KEY` in Vercel environment variables
+- Set `OPENAI_API_KEY` in Vercel environment variables
 
 **v0.5.0 (completed):** Agency + Account Manager roles with full dashboards
 **v0.6.0 (completed):** Post-delivery AI analysis + "What's Next" suggestions

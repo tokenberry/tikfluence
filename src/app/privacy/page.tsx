@@ -37,7 +37,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3 font-medium">Payment Information:</p>
             <ul className="mt-1 list-inside list-disc space-y-1">
-              <li>Stripe Connect account details for payouts (processed by Stripe, not stored by us)</li>
+              <li>Payoneer account details for payouts (processed by Payoneer, not stored by us)</li>
               <li>Transaction history and payout records</li>
             </ul>
             <p className="mt-3 font-medium">Usage Information:</p>

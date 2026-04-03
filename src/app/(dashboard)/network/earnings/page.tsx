@@ -71,18 +71,18 @@ export default async function NetworkEarningsPage() {
         </div>
       </div>
 
-      {/* Stripe Connect */}
+      {/* Payoneer Connect */}
       {!network.stripeOnboarded && (
         <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-6">
-          <h2 className="text-lg font-semibold text-yellow-800">Connect Your Stripe Account</h2>
+          <h2 className="text-lg font-semibold text-yellow-800">Set Up Payouts</h2>
           <p className="mt-1 text-sm text-yellow-700">
-            Connect a Stripe account to manage payouts for your network.
+            Connect your Payoneer account to manage payouts for your network.
           </p>
           <a
-            href="/api/stripe/connect"
+            href="/api/payouts/onboard"
             className="mt-3 inline-block rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
           >
-            Connect Stripe
+            Connect Payoneer
           </a>
         </div>
       )}

@@ -85,7 +85,7 @@ export default async function NetworkCreatorsPage() {
                     Score: {creator.score.toFixed(1)}
                   </span>
                   <span className={`text-xs ${creator.stripeOnboarded ? "text-green-600" : "text-gray-400"}`}>
-                    {creator.stripeOnboarded ? "Stripe Connected" : "No Stripe"}
+                    {creator.stripeOnboarded ? "Payoneer Connected" : "No Payoneer"}
                   </span>
                 </div>
               </div>

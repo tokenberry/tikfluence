@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk"
 import { prisma } from "./prisma"
 import { z } from "zod"
 
@@ -26,12 +25,46 @@ const deliveryAnalysisSchema = z.object({
   recommendedNextOrder: z.string().nullable(),
 })
 
-function getAnthropicClient() {
-  const apiKey = process.env.ANTHROPIC_API_KEY
+function getKimiApiKey(): string {
+  const apiKey = process.env.KIMI_API_KEY
   if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY is not configured")
+    throw new Error("KIMI_API_KEY is not configured")
   }
-  return new Anthropic({ apiKey })
+  return apiKey
+}
+
+async function callKimiAI(prompt: string, maxTokens: number): Promise<string> {
+  const apiKey = getKimiApiKey()
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS)
+
+  try {
+    const response = await fetch("https://api.moonshot.cn/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "moonshot-v1-8k",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: maxTokens,
+        temperature: 0.7,
+      }),
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`Kimi AI request failed (${response.status}): ${errorText}`)
+    }
+
+    const data = await response.json()
+    return data.choices?.[0]?.message?.content ?? ""
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 interface CreatorData {
@@ -63,7 +96,7 @@ interface CreatorAnalysisResult {
 }
 
 export async function analyzeCreator(creatorData: CreatorData): Promise<CreatorAnalysisResult> {
-  const prompt = `You are a TikTok influencer marketing analyst for Foxolog, a professional influencer marketplace. Analyze this creator's profile and metrics to provide actionable insights.
+  const prompt = `You are a TikTok influencer marketing analyst for Foxolog, a professional influencer marketplace. Analyze this creator's profile and metrics to provide actionable insights for brands looking to hire them.
 
 Creator Profile:
 - TikTok Username: @${creatorData.tiktokUsername}
@@ -96,23 +129,14 @@ Be honest and specific. Base your analysis on the metrics provided. If engagemen
 
 Respond ONLY with the JSON object, no additional text.`
 
-  const anthropic = getAnthropicClient()
-
-  const responsePromise = anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: prompt }],
-  })
-  const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("AI request timed out")), AI_TIMEOUT_MS)
-  )
-  const response = await Promise.race([responsePromise, timeout])
-
-  const text = response.content[0].type === "text" ? response.content[0].text : ""
+  const text = await callKimiAI(prompt, 1024)
 
   let parsed: CreatorAnalysisResult
   try {
-    const json = JSON.parse(text)
+    // Extract JSON from response (handle markdown code blocks)
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    const jsonText = jsonMatch ? jsonMatch[0] : text
+    const json = JSON.parse(jsonText)
     parsed = creatorAnalysisSchema.parse(json)
   } catch (err) {
     console.error("Failed to parse AI creator analysis response:", text.slice(0, 200))
@@ -230,36 +254,26 @@ Provide your analysis as JSON with this exact structure:
 {
   "performanceSummary": "2-3 sentence overall assessment of the delivery performance and ROI",
   "performanceScore": <0-100 integer rating the overall delivery quality>,
-  "metricsBreakdown": "Detailed analysis of each metric vs expectations. Was the impression target met? How do engagement rates compare to creator's average? For LIVE: was duration sufficient, were viewers engaged?",
+  "metricsBreakdown": "Detailed analysis of each metric vs expectations",
   "briefAlignment": "How well did the delivery align with the campaign brief and brand goals?",
-  "audienceEngagement": "Analysis of audience interaction quality (likes-to-views ratio, comments quality, share virality, or LIVE chat activity)",
+  "audienceEngagement": "Analysis of audience interaction quality",
   "strengths": ["what went well 1", "what went well 2", "what went well 3"],
   "improvements": ["what could be better 1", "what could be better 2"],
-  "whatsNext": ["actionable suggestion 1 for the brand's next campaign", "suggestion 2", "suggestion 3"],
-  "recommendedNextOrder": "Specific recommendation for the next campaign type and approach with this creator or similar creators"
+  "whatsNext": ["actionable suggestion 1", "suggestion 2", "suggestion 3"],
+  "recommendedNextOrder": "Specific recommendation for the next campaign"
 }
 
-Be data-driven and specific. Reference actual numbers. If impressions exceeded target, calculate by how much. If engagement is high/low relative to follower count, explain why. The "whatsNext" suggestions should be practical and actionable for the brand.
+Be data-driven and specific. Reference actual numbers.
 
 Respond ONLY with the JSON object, no additional text.`
 
-  const anthropic = getAnthropicClient()
-
-  const responsePromise2 = anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1500,
-    messages: [{ role: "user", content: prompt }],
-  })
-  const timeout2 = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("AI request timed out")), AI_TIMEOUT_MS)
-  )
-  const response = await Promise.race([responsePromise2, timeout2])
-
-  const text = response.content[0].type === "text" ? response.content[0].text : ""
+  const text = await callKimiAI(prompt, 1500)
 
   let parsed: DeliveryAnalysisResult
   try {
-    const json = JSON.parse(text)
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    const jsonText = jsonMatch ? jsonMatch[0] : text
+    const json = JSON.parse(jsonText)
     parsed = deliveryAnalysisSchema.parse(json)
   } catch (err) {
     console.error("Failed to parse AI delivery analysis response:", text.slice(0, 200))

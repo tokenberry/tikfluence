@@ -120,14 +120,14 @@ export default async function CreatorProfilePage() {
         initialLive={creator.supportsLive}
       />
 
-      {/* Stripe Connect Status */}
+      {/* Payout Settings */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">Payout Settings</h2>
         <div className="mt-3 flex items-center gap-3">
           {creator.stripeOnboarded ? (
             <>
               <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                Stripe Connected
+                Payoneer Connected
               </span>
               <p className="text-sm text-gray-500">Your payouts are active.</p>
             </>
@@ -137,10 +137,10 @@ export default async function CreatorProfilePage() {
                 Not Connected
               </span>
               <a
-                href="/api/stripe/connect"
+                href="/api/payoneer/connect"
                 className="text-sm font-medium text-[#d4772c] hover:underline"
               >
-                Connect Stripe Account
+                Connect Payoneer Account
               </a>
             </>
           )}

@@ -5,46 +5,22 @@ import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
 import NotificationBell from "./NotificationBell"
 
-const roleNavLinks: Record<string, { label: string; href: string }[]> = {
-  CREATOR: [
-    { label: "Orders", href: "/creator/orders" },
-    { label: "Earnings", href: "/creator/earnings" },
-    { label: "Tickets", href: "/creator/tickets" },
-    { label: "Profile", href: "/creator/profile" },
-    { label: "Settings", href: "/creator/settings" },
-  ],
-  NETWORK: [
-    { label: "Creators", href: "/network/creators" },
-    { label: "Orders", href: "/network/orders" },
-    { label: "Earnings", href: "/network/earnings" },
-    { label: "Settings", href: "/network/settings" },
-  ],
-  BRAND: [
-    { label: "Browse", href: "/brand/browse" },
-    { label: "Orders", href: "/brand/orders" },
-    { label: "Settings", href: "/brand/settings" },
-  ],
-  ADMIN: [
-    { label: "Users", href: "/admin/users" },
-    { label: "Orders", href: "/admin/orders" },
-    { label: "Transactions", href: "/admin/transactions" },
-    { label: "Tickets", href: "/admin/tickets" },
-    { label: "Agency Claims", href: "/admin/agency-brands" },
-    { label: "Settings", href: "/admin/settings" },
-  ],
-  AGENCY: [
-    { label: "Brands", href: "/agency/brands" },
-    { label: "Browse", href: "/agency/browse" },
-    { label: "Creators", href: "/agency/creators" },
-    { label: "Orders", href: "/agency/orders" },
-    { label: "Earnings", href: "/agency/earnings" },
-  ],
-  ACCOUNT_MANAGER: [
-    { label: "Clients", href: "/account-manager/clients" },
-    { label: "Orders", href: "/account-manager/orders" },
-    { label: "Notes", href: "/account-manager/notes" },
-    { label: "Analytics", href: "/account-manager/analytics" },
-  ],
+const roleDashboardPath: Record<string, string> = {
+  CREATOR: "/creator",
+  NETWORK: "/network",
+  BRAND: "/brand",
+  ADMIN: "/admin/users",
+  AGENCY: "/agency",
+  ACCOUNT_MANAGER: "/account-manager/clients",
+}
+
+const roleSettingsPath: Record<string, string> = {
+  CREATOR: "/creator/settings",
+  NETWORK: "/network/settings",
+  BRAND: "/brand/settings",
+  ADMIN: "/admin/settings",
+  AGENCY: "/agency/settings",
+  ACCOUNT_MANAGER: "/account-manager/settings",
 }
 
 export default function Navbar() {
@@ -52,9 +28,9 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
-  const navLinks = session?.user?.role
-    ? roleNavLinks[session.user.role] ?? []
-    : []
+  const role = session?.user?.role ?? ""
+  const dashboardHref = roleDashboardPath[role] || "/"
+  const settingsHref = roleSettingsPath[role] || "#"
 
   return (
     <nav className="bg-[#2d3436] border-b border-gray-700 sticky top-0 z-50">
@@ -66,19 +42,16 @@ export default function Navbar() {
             Foxolog
           </Link>
 
-          {/* Desktop nav links */}
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             {status === "authenticated" && (
               <>
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-sm font-medium text-gray-300 hover:text-[#d4772c] transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                <Link
+                  href={dashboardHref}
+                  className="text-sm font-medium text-gray-300 hover:text-[#d4772c] transition-colors"
+                >
+                  Dashboard
+                </Link>
 
                 {/* Notifications */}
                 <NotificationBell />
@@ -100,6 +73,13 @@ export default function Navbar() {
                       <div className="px-4 py-2 text-xs text-gray-400 border-b border-gray-600">
                         {session.user.email}
                       </div>
+                      <Link
+                        href={settingsHref}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                      >
+                        Settings
+                      </Link>
                       <button
                         onClick={() => signOut({ callbackUrl: "/" })}
                         className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
@@ -174,16 +154,20 @@ export default function Navbar() {
                   </p>
                   <p className="text-xs text-gray-400">{session.user.email}</p>
                 </div>
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block text-sm font-medium text-gray-300 hover:text-[#d4772c] py-1"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-sm font-medium text-gray-300 hover:text-[#d4772c] py-1"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href={settingsHref}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-sm font-medium text-gray-300 hover:text-[#d4772c] py-1"
+                >
+                  Settings
+                </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="block w-full text-left text-sm font-medium text-red-400 hover:text-red-300 py-1 mt-2"

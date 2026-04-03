@@ -27,7 +27,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password")
       } else {
-        router.push("/")
+        router.push("/dashboard")
         router.refresh()
       }
     } catch {
@@ -109,7 +109,7 @@ export default function LoginPage() {
 
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/" })}
+        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         className="w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@ export default function LoginPage() {
 
       <button
         type="button"
-        onClick={() => signIn("tiktok", { callbackUrl: "/" })}
+        onClick={() => signIn("tiktok", { callbackUrl: "/dashboard" })}
         className="mt-3 w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">

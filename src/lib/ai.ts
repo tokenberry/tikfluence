@@ -1,7 +1,7 @@
 import { prisma } from "./prisma"
 import { z } from "zod"
 
-const AI_TIMEOUT_MS = 30_000
+const AI_TIMEOUT_MS = 60_000
 
 const creatorAnalysisSchema = z.object({
   summary: z.string(),
@@ -61,7 +61,16 @@ async function callKimiAI(prompt: string, maxTokens: number): Promise<string> {
     }
 
     const data = await response.json()
-    return data.choices?.[0]?.message?.content ?? ""
+    const content = data.choices?.[0]?.message?.content
+    if (!content) {
+      throw new Error("Kimi AI returned empty response")
+    }
+    return content
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Kimi AI request timed out after 60 seconds")
+    }
+    throw error
   } finally {
     clearTimeout(timeoutId)
   }

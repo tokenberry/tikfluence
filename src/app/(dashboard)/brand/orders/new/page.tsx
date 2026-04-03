@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 
@@ -29,6 +30,7 @@ const ORDER_TYPES: { value: OrderType; label: string; description: string; icon:
 
 export default function NewOrderPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const creatorId = searchParams.get("creatorId");
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
@@ -117,10 +119,10 @@ export default function NewOrderPage() {
         router.push(`/brand/orders/${data.id ?? data.order?.id ?? ""}`);
       } else {
         const data = await res.json();
-        alert(data.error ?? "Failed to create order.");
+        toast("error", data.error ?? "Failed to create order.");
       }
     } catch {
-      alert("An error occurred.");
+      toast("error", "An error occurred.");
     } finally {
       setLoading(false);
     }

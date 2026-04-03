@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 export default function OrderActions({
   orderId,
@@ -13,8 +15,10 @@ export default function OrderActions({
   budget: number;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [creditBalance, setCreditBalance] = useState(0);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     fetch("/api/brand/credits")
@@ -37,7 +41,7 @@ export default function OrderActions({
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Failed to start checkout");
+        toast("error", data.error || "Failed to start checkout");
         return;
       }
 
@@ -50,14 +54,14 @@ export default function OrderActions({
       // Fully covered by credit or dev mode — order is now OPEN
       router.refresh();
     } catch {
-      alert("Something went wrong");
+      toast("error", "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = async () => {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
+    setShowCancelConfirm(false);
     setLoading(true);
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -65,13 +69,14 @@ export default function OrderActions({
       });
 
       if (res.ok) {
+        toast("success", "Order cancelled.");
         router.refresh();
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to cancel order");
+        toast("error", data.error || "Failed to cancel order");
       }
     } catch {
-      alert("Something went wrong");
+      toast("error", "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -79,57 +84,79 @@ export default function OrderActions({
 
   if (status === "DRAFT") {
     return (
-      <div className="space-y-3">
-        {creditBalance > 0 && (
-          <div className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm">
-            <p className="font-medium text-green-800">
-              You have ${creditBalance.toFixed(2)} in platform credit
-            </p>
-            {creditToApply > 0 && amountToCharge > 0 && (
-              <p className="text-green-700 mt-1">
-                ${creditToApply.toFixed(2)} credit will be applied. You&apos;ll pay ${amountToCharge.toFixed(2)}.
+      <>
+        <div className="space-y-3">
+          {creditBalance > 0 && (
+            <div className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm">
+              <p className="font-medium text-green-800">
+                You have ${creditBalance.toFixed(2)} in platform credit
               </p>
-            )}
-            {amountToCharge <= 0 && (
-              <p className="text-green-700 mt-1">
-                This order is fully covered by your credit balance!
-              </p>
-            )}
+              {creditToApply > 0 && amountToCharge > 0 && (
+                <p className="text-green-700 mt-1">
+                  ${creditToApply.toFixed(2)} credit will be applied. You&apos;ll pay ${amountToCharge.toFixed(2)}.
+                </p>
+              )}
+              {amountToCharge <= 0 && (
+                <p className="text-green-700 mt-1">
+                  This order is fully covered by your credit balance!
+                </p>
+              )}
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button
+              onClick={handleCheckout}
+              disabled={loading}
+              className="rounded-md bg-[#d4772c] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#b85c1a] transition-colors disabled:opacity-50"
+            >
+              {loading
+                ? "Processing..."
+                : amountToCharge <= 0
+                  ? "Publish Order (Using Credit)"
+                  : `Pay $${amountToCharge.toFixed(2)} & Publish`}
+            </button>
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              disabled={loading}
+              className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
           </div>
-        )}
-        <div className="flex gap-3">
-          <button
-            onClick={handleCheckout}
-            disabled={loading}
-            className="rounded-md bg-[#d4772c] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#b85c1a] transition-colors disabled:opacity-50"
-          >
-            {loading
-              ? "Processing..."
-              : amountToCharge <= 0
-                ? "Publish Order (Using Credit)"
-                : `Pay $${amountToCharge.toFixed(2)} & Publish`}
-          </button>
-          <button
-            onClick={handleCancel}
-            disabled={loading}
-            className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-          >
-            Cancel
-          </button>
         </div>
-      </div>
+        <ConfirmDialog
+          open={showCancelConfirm}
+          title="Cancel Order"
+          description="Are you sure you want to cancel this order? This action cannot be undone."
+          confirmLabel="Cancel Order"
+          confirmVariant="danger"
+          onConfirm={handleCancel}
+          onCancel={() => setShowCancelConfirm(false)}
+        />
+      </>
     );
   }
 
   if (status === "OPEN" || status === "ASSIGNED" || status === "IN_PROGRESS") {
     return (
-      <button
-        onClick={handleCancel}
-        disabled={loading}
-        className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-      >
-        {loading ? "Cancelling..." : "Cancel Order"}
-      </button>
+      <>
+        <button
+          onClick={() => setShowCancelConfirm(true)}
+          disabled={loading}
+          className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+        >
+          {loading ? "Cancelling..." : "Cancel Order"}
+        </button>
+        <ConfirmDialog
+          open={showCancelConfirm}
+          title="Cancel Order"
+          description="Are you sure you want to cancel this order? This action cannot be undone."
+          confirmLabel="Cancel Order"
+          confirmVariant="danger"
+          onConfirm={handleCancel}
+          onCancel={() => setShowCancelConfirm(false)}
+        />
+      </>
     );
   }
 

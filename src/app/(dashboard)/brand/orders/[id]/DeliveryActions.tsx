@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 export default function DeliveryActions({
   deliveryId,
@@ -11,6 +12,7 @@ export default function DeliveryActions({
   orderId: string;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const [reason, setReason] = useState("");
@@ -24,12 +26,13 @@ export default function DeliveryActions({
         body: JSON.stringify({ approved: true }),
       });
       if (res.ok) {
+        toast("success", "Delivery approved.");
         router.refresh();
       } else {
-        alert("Failed to approve delivery.");
+        toast("error", "Failed to approve delivery.");
       }
     } catch {
-      alert("An error occurred.");
+      toast("error", "An error occurred.");
     } finally {
       setLoading(false);
     }
@@ -37,7 +40,7 @@ export default function DeliveryActions({
 
   async function handleReject() {
     if (!reason.trim()) {
-      alert("Please provide a rejection reason.");
+      toast("error", "Please provide a rejection reason.");
       return;
     }
     setLoading(true);
@@ -48,12 +51,13 @@ export default function DeliveryActions({
         body: JSON.stringify({ approved: false, rejectionReason: reason }),
       });
       if (res.ok) {
+        toast("info", "Delivery sent back for revision.");
         router.refresh();
       } else {
-        alert("Failed to reject delivery.");
+        toast("error", "Failed to reject delivery.");
       }
     } catch {
-      alert("An error occurred.");
+      toast("error", "An error occurred.");
     } finally {
       setLoading(false);
     }

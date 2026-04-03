@@ -165,7 +165,7 @@ export default async function AgencyOrderDetailPage({
                     isRevisionStep
                       ? "bg-orange-500 text-white ring-2 ring-orange-300"
                       : isActive
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-[#d4772c] text-white"
                       : "bg-gray-200 text-gray-500"
                   }`}
                 >

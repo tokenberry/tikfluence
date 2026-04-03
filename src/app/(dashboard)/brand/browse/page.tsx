@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { formatNumber, formatCurrency } from "@/lib/utils";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { TierBadge } from "@/components/ui/Badge";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import EmptyState from "@/components/ui/EmptyState";
+import { Users } from "lucide-react";
 
 interface CreatorResult {
   id: string;
@@ -112,9 +115,9 @@ export default function BrowseCreatorsPage() {
 
       {/* Creator Grid */}
       {loading ? (
-        <div className="py-12 text-center text-gray-500">Loading creators...</div>
+        <LoadingSpinner message="Loading creators..." />
       ) : creators.length === 0 ? (
-        <div className="py-12 text-center text-gray-500">No creators found matching your filters.</div>
+        <EmptyState title="No creators found" description="Try adjusting your search or filters" icon={<Users className="h-6 w-6" />} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {creators.map((creator) => {
@@ -125,7 +128,7 @@ export default function BrowseCreatorsPage() {
                 className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-lg font-bold text-indigo-600">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-lg font-bold text-[#d4772c]">
                     {creator.user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">

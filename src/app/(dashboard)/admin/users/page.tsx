@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { RoleBadge } from "@/components/ui/Badge";
+import { useToast } from "@/components/ui/Toast";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import EmptyState from "@/components/ui/EmptyState";
+import { Users } from "lucide-react";
 
 interface UserRow {
   id: string;
@@ -13,6 +17,7 @@ interface UserRow {
 }
 
 export default function AdminUsersPage() {
+  const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -56,7 +61,7 @@ export default function AdminUsersPage() {
         );
       }
     } catch {
-      alert("Failed to update user status.");
+      toast("error", "Failed to update user status.");
     } finally {
       setActionLoading(null);
     }
@@ -93,9 +98,9 @@ export default function AdminUsersPage() {
       {/* Table */}
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <LoadingSpinner message="Loading users..." />
         ) : users.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No users found.</div>
+          <EmptyState title="No users found" description="Try adjusting your search or filters" icon={<Users className="h-6 w-6" />} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

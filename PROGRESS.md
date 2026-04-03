@@ -196,6 +196,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.2.0 | 2026-04-01 | Fix: Comprehensive audit — 15 high/medium fixes: double-payment race condition, payment math for multi-creator orders, Account Manager authorization, Navbar nav sync, ADMIN delivery review access, AI response validation + timeout, resolve-dispute multi-creator support, middleware admin API protection, register orphan user prevention, file upload extension validation, content type form validation, scoring algorithm smoothing, 5 new DB indexes |
 | 1.3.0 | 2026-04-02 | Feat: TikTok OAuth verification — creators verify account ownership by logging into TikTok (username match), replacing Research API bio-code dependency. Works with just Login Kit credentials. |
 | 1.4.0 | 2026-04-02 | Feat: UI component library + design consistency — 7 reusable components (Badge, Button, Toast, ConfirmDialog, EmptyState, FormField, ui-constants), replaced inline color mappings across 30+ pages, standardized focus rings to brand orange |
+| 1.5.0 | 2026-04-03 | Feat: UX polish — replaced 31 alert() with Toast notifications, 3 confirm() with ConfirmDialog, LoadingSpinner component (7 pages), EmptyState component (6 pages), Sidebar icons (Lucide), eliminated all indigo colors → brand orange across 19 files |
 
 ---
 
@@ -673,4 +674,46 @@ Comprehensive UI/UX audit identified massive code duplication (status colors, ti
 
 ---
 
-*Last updated: April 2, 2026 (v1.4.0)*
+### April 3, 2026
+
+**v1.4.0 → v1.5.0 — UX Polish & Brand Consistency**
+
+Comprehensive UX improvements wiring up existing but unused UI components, eliminating browser-native dialogs, adding loading states, and standardizing brand colors.
+
+**1. Toast Notifications (31 replacements across 12 files):**
+- Replaced all `alert()` calls with `useToast()` hook across every client component
+- Files: AdminOrderActions, AdminUsers, BrandOrderActions, BrandDeliveryActions, BrandNewOrder, CreatorAcceptOrder, CreatorDeliveryForm, CreatorAiInsights, AgencyOrderActions, AgencyNewOrder
+- Success/error/info toasts with auto-dismiss and slide-in animation
+
+**2. ConfirmDialog for Destructive Actions (3 replacements across 3 files):**
+- AdminOrderActions: Force Complete + Cancel Order now show confirmation modal
+- BrandOrderActions: Cancel Order shows confirmation modal
+- AgencyOrderActions: Cancel Order shows confirmation modal
+- All use the existing ConfirmDialog component with danger variant
+
+**3. LoadingSpinner Component (new + 7 replacements):**
+- Created `src/components/ui/LoadingSpinner.tsx` — animated spinner with customizable message
+- Replaced plain "Loading..." text in: dashboard layout, admin users, admin orders, admin settings, admin agency-brands, brand settings, creator AI insights
+
+**4. EmptyState Component (6 page-level replacements):**
+- Wired existing EmptyState component into: admin orders, admin users, admin agency-brands, brand orders (with CTA), brand browse, agency browse
+- Each with contextual icon (FileText, Users, Link2), title, and description
+
+**5. Sidebar Icons (1 file, all roles):**
+- Added Lucide icons to every sidebar nav link across all 6 roles
+- Icon map: Orders→ShoppingBag, Earnings→DollarSign, Tickets→MessageCircle, Profile→User, Settings→Settings, Creators→Users, Browse→Search, Brands→Building2, Analytics→BarChart3, Transactions→CreditCard, Notes→StickyNote, Agency Claims→Link2
+
+**6. Brand Color Consistency (19 files, 0 indigo remaining):**
+- Replaced all `bg-indigo-600/hover:bg-indigo-700` CTA buttons → `bg-[#d4772c]/hover:bg-[#b8632a]`
+- Replaced all `bg-indigo-600 text-white` active filter pills → `bg-[#d4772c] text-white`
+- Replaced all `bg-indigo-100 text-indigo-600/700` avatar/score badges → `bg-orange-100 text-[#d4772c]`
+- Replaced notification bell unread indicators → orange-based
+- **Zero** `bg-indigo-` references remain in the codebase
+
+**Files created:** `src/components/ui/LoadingSpinner.tsx`
+
+**Files modified:** `src/components/layout/Sidebar.tsx`, `src/components/layout/NotificationBell.tsx`, `src/app/(dashboard)/admin/orders/[id]/AdminOrderActions.tsx`, `src/app/(dashboard)/admin/orders/page.tsx`, `src/app/(dashboard)/admin/users/page.tsx`, `src/app/(dashboard)/admin/agency-brands/page.tsx`, `src/app/(dashboard)/admin/settings/page.tsx`, `src/app/(dashboard)/admin/tickets/[id]/page.tsx`, `src/app/(dashboard)/brand/orders/[id]/OrderActions.tsx`, `src/app/(dashboard)/brand/orders/[id]/DeliveryActions.tsx`, `src/app/(dashboard)/brand/orders/new/page.tsx`, `src/app/(dashboard)/brand/orders/page.tsx`, `src/app/(dashboard)/brand/orders/OrderStatusFilter.tsx`, `src/app/(dashboard)/brand/browse/page.tsx`, `src/app/(dashboard)/brand/browse/[id]/page.tsx`, `src/app/(dashboard)/brand/settings/page.tsx`, `src/app/(dashboard)/creator/orders/AcceptOrderButton.tsx`, `src/app/(dashboard)/creator/orders/[id]/DeliveryForm.tsx`, `src/app/(dashboard)/creator/orders/[id]/page.tsx`, `src/app/(dashboard)/creator/profile/AiInsights.tsx`, `src/app/(dashboard)/creator/profile/RefreshTikTokButton.tsx`, `src/app/(dashboard)/creator/settings/page.tsx`, `src/app/(dashboard)/agency/brands/[id]/AgencyOrderActions.tsx`, `src/app/(dashboard)/agency/orders/new/page.tsx`, `src/app/(dashboard)/agency/orders/[id]/page.tsx`, `src/app/(dashboard)/agency/browse/page.tsx`, `src/app/(dashboard)/agency/browse/[id]/page.tsx`, `src/app/(dashboard)/network/creators/page.tsx`, `src/app/(dashboard)/network/creators/add/page.tsx`, `src/app/(dashboard)/network/orders/[id]/page.tsx`, `src/app/(dashboard)/network/settings/page.tsx`, `src/app/(dashboard)/layout.tsx`, `src/lib/constants.ts`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+---
+
+*Last updated: April 3, 2026 (v1.5.0)*

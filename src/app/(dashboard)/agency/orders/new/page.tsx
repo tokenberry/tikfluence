@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 
@@ -39,6 +40,7 @@ const ORDER_TYPES: { value: OrderType; label: string; description: string; icon:
 
 export default function AgencyNewOrderPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const preselectedBrandId = searchParams.get("brandId");
 
@@ -92,7 +94,7 @@ export default function AgencyNewOrderPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedBrandId) {
-      alert("Please select a brand.");
+      toast("error", "Please select a brand.");
       return;
     }
     setLoading(true);
@@ -121,10 +123,10 @@ export default function AgencyNewOrderPage() {
         router.push("/agency/orders");
       } else {
         const data = await res.json();
-        alert(data.error ?? "Failed to create order.");
+        toast("error", data.error ?? "Failed to create order.");
       }
     } catch {
-      alert("An error occurred.");
+      toast("error", "An error occurred.");
     } finally {
       setLoading(false);
     }

@@ -231,7 +231,7 @@ export default function AdminTicketDetailPage() {
             <button
               type="submit"
               disabled={sending || !newMessage.trim()}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
             >
               {sending ? "Sending..." : "Send Reply"}
             </button>

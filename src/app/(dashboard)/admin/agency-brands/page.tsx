@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { StatusBadge } from "@/components/ui/Badge"
+import LoadingSpinner from "@/components/ui/LoadingSpinner"
+import EmptyState from "@/components/ui/EmptyState"
+import { Link2 } from "lucide-react"
 
 interface AgencyBrand {
   id: string
@@ -82,11 +85,9 @@ export default function AdminAgencyBrandsPage() {
       </div>
 
       {loading ? (
-        <div className="py-12 text-center text-gray-500">Loading...</div>
+        <LoadingSpinner message="Loading claims..." />
       ) : filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-          <p className="text-gray-500">No {filter === "ALL" ? "" : filter.toLowerCase()} claims found.</p>
-        </div>
+        <EmptyState title={`No ${filter === "ALL" ? "" : filter.toLowerCase()} claims found`} description="Agency-brand claims will appear here" icon={<Link2 className="h-6 w-6" />} />
       ) : (
         <div className="space-y-3">
           {filtered.map((claim) => (

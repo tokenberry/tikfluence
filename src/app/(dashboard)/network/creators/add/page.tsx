@@ -82,7 +82,7 @@ export default function AddCreatorPage() {
               onClick={() => setSearchType("email")}
               className={`rounded-lg px-4 py-2 text-sm font-medium ${
                 searchType === "email"
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-[#d4772c] text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -93,7 +93,7 @@ export default function AddCreatorPage() {
               onClick={() => setSearchType("tiktok")}
               className={`rounded-lg px-4 py-2 text-sm font-medium ${
                 searchType === "tiktok"
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-[#d4772c] text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -112,7 +112,7 @@ export default function AddCreatorPage() {
             <button
               type="submit"
               disabled={searching}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
             >
               {searching ? "Searching..." : "Search"}
             </button>

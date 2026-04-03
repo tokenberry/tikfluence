@@ -43,7 +43,7 @@ export default async function CreatorDetailPage({
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         {/* Header */}
         <div className="flex items-start gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-2xl font-bold text-indigo-600">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-2xl font-bold text-[#d4772c]">
             {creator.user.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1">

@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import EmptyState from "@/components/ui/EmptyState";
+import { FileText } from "lucide-react";
 
 interface OrderRow {
   id: string;
@@ -63,7 +66,7 @@ export default function AdminOrdersPage() {
             onClick={() => setStatusFilter(s)}
             className={`rounded-full px-3 py-1 text-sm font-medium transition ${
               statusFilter === s
-                ? "bg-indigo-600 text-white"
+                ? "bg-[#d4772c] text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -74,9 +77,9 @@ export default function AdminOrdersPage() {
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <LoadingSpinner message="Loading orders..." />
         ) : orders.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No orders found.</div>
+          <EmptyState title="No orders found" description="Try adjusting your filters" icon={<FileText className="h-6 w-6" />} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

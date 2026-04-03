@@ -65,8 +65,9 @@ export async function POST(
     return NextResponse.json(result)
   } catch (error) {
     console.error("Error running AI analysis:", error)
+    const message = error instanceof Error ? error.message : "Failed to run AI analysis"
     return NextResponse.json(
-      { error: "Failed to run AI analysis" },
+      { error: message },
       { status: 500 }
     )
   }

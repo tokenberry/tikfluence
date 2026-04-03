@@ -25,29 +25,29 @@ const deliveryAnalysisSchema = z.object({
   recommendedNextOrder: z.string().nullable(),
 })
 
-function getKimiApiKey(): string {
-  const apiKey = process.env.KIMI_API_KEY
+function getOpenAIApiKey(): string {
+  const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
-    throw new Error("KIMI_API_KEY is not configured")
+    throw new Error("OPENAI_API_KEY is not configured")
   }
   return apiKey
 }
 
-async function callKimiAI(prompt: string, maxTokens: number): Promise<string> {
-  const apiKey = getKimiApiKey()
+async function callAI(prompt: string, maxTokens: number): Promise<string> {
+  const apiKey = getOpenAIApiKey()
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS)
 
   try {
-    const response = await fetch("https://api.moonshot.cn/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "moonshot-v1-8k",
+        model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         max_tokens: maxTokens,
         temperature: 0.7,
@@ -57,18 +57,18 @@ async function callKimiAI(prompt: string, maxTokens: number): Promise<string> {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "Unknown error")
-      throw new Error(`Kimi AI request failed (${response.status}): ${errorText}`)
+      throw new Error(`OpenAI request failed (${response.status}): ${errorText}`)
     }
 
     const data = await response.json()
     const content = data.choices?.[0]?.message?.content
     if (!content) {
-      throw new Error("Kimi AI returned empty response")
+      throw new Error("OpenAI returned empty response")
     }
     return content
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("Kimi AI request timed out after 60 seconds")
+      throw new Error("OpenAI request timed out after 60 seconds")
     }
     throw error
   } finally {
@@ -138,7 +138,7 @@ Be honest and specific. Base your analysis on the metrics provided. If engagemen
 
 Respond ONLY with the JSON object, no additional text.`
 
-  const text = await callKimiAI(prompt, 1024)
+  const text = await callAI(prompt, 1024)
 
   let parsed: CreatorAnalysisResult
   try {
@@ -276,7 +276,7 @@ Be data-driven and specific. Reference actual numbers.
 
 Respond ONLY with the JSON object, no additional text.`
 
-  const text = await callKimiAI(prompt, 1500)
+  const text = await callAI(prompt, 1500)
 
   let parsed: DeliveryAnalysisResult
   try {

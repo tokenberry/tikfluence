@@ -31,14 +31,15 @@ export async function POST(
       return NextResponse.json({ error: "Creator not found" }, { status: 404 })
     }
 
-    // Only the creator themselves or an admin can trigger analysis
-    if (session.user.role !== "ADMIN" && creator.user.id !== session.user.id) {
+    // Brands, agencies, admins, and the creator themselves can trigger analysis
+    const allowedRoles = ["ADMIN", "BRAND", "AGENCY"]
+    if (!allowedRoles.includes(session.user.role ?? "") && creator.user.id !== session.user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.KIMI_API_KEY) {
       return NextResponse.json(
-        { error: "AI analysis is not configured. Set ANTHROPIC_API_KEY." },
+        { error: "AI analysis is not configured. Set KIMI_API_KEY." },
         { status: 503 }
       )
     }

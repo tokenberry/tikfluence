@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
 import RefreshTikTokButton from "./RefreshTikTokButton";
-import AiInsights from "./AiInsights";
 import ContentTypeEditor from "./ContentTypeEditor";
 import VerificationBanner from "./VerificationBanner";
 import { TierBadge } from "@/components/ui/Badge";
@@ -109,9 +108,6 @@ export default async function CreatorProfilePage() {
           )}
         </div>
       </div>
-
-      {/* AI Insights */}
-      <AiInsights creatorId={creator.id} />
 
       {/* Content Type Support */}
       <ContentTypeEditor

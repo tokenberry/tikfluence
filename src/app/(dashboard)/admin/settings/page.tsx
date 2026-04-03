@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -55,7 +56,7 @@ export default function AdminSettingsPage() {
   }
 
   if (fetching) {
-    return <div className="p-8 text-center text-gray-500">Loading...</div>;
+    return <LoadingSpinner message="Loading settings..." />;
   }
 
   return (
@@ -128,7 +129,7 @@ export default function AdminSettingsPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="w-full rounded-lg bg-[#d4772c] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
         >
           {loading ? "Saving..." : "Save Settings"}
         </button>

@@ -4,6 +4,39 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { APP_VERSION } from "@/lib/constants"
+import {
+  ShoppingBag,
+  DollarSign,
+  MessageCircle,
+  User,
+  Settings,
+  Users,
+  Search,
+  Building2,
+  BarChart3,
+  FileText,
+  Link2,
+  CreditCard,
+  StickyNote,
+  type LucideIcon,
+} from "lucide-react"
+
+const iconMap: Record<string, LucideIcon> = {
+  Orders: ShoppingBag,
+  Earnings: DollarSign,
+  Tickets: MessageCircle,
+  Profile: User,
+  Settings: Settings,
+  Creators: Users,
+  Browse: Search,
+  Brands: Building2,
+  Analytics: BarChart3,
+  Users: Users,
+  Transactions: CreditCard,
+  "Agency Claims": Link2,
+  Clients: Building2,
+  Notes: StickyNote,
+}
 
 const roleNavLinks: Record<string, { label: string; href: string }[]> = {
   CREATOR: [
@@ -66,16 +99,18 @@ export default function Sidebar() {
         <nav className="space-y-1">
           {links.map((link) => {
             const isActive = pathname === link.href || pathname.startsWith(link.href + "/")
+            const Icon = iconMap[link.label] ?? FileText
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-[#fdf6e3] text-[#d4772c]"
                     : "text-gray-700 hover:bg-gray-50 hover:text-[#d4772c]"
                 }`}
               >
+                <Icon className="h-4 w-4 shrink-0" />
                 {link.label}
               </Link>
             )

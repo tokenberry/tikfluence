@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
+import EmptyState from "@/components/ui/EmptyState";
+import { FileText } from "lucide-react";
 import OrderStatusFilter from "./OrderStatusFilter";
 
 export const dynamic = "force-dynamic"
@@ -48,7 +50,7 @@ export default async function BrandOrdersPage({
         <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
         <a
           href="/brand/orders/new"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"
         >
           Create New Order
         </a>
@@ -57,9 +59,12 @@ export default async function BrandOrdersPage({
       <OrderStatusFilter currentStatus={status ?? "ALL"} />
 
       {orders.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-          <p className="text-gray-500">No orders found.</p>
-        </div>
+        <EmptyState
+          title="No orders found"
+          description="Create your first order to get started"
+          icon={<FileText className="h-6 w-6" />}
+          action={<a href="/brand/orders/new" className="inline-block rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]">Create New Order</a>}
+        />
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (

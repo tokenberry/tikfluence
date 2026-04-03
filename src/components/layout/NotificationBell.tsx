@@ -152,12 +152,12 @@ export default function NotificationBell() {
                   key={n.id}
                   onClick={() => handleClick(n)}
                   className={`block w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                    !n.read ? "bg-indigo-50/50" : ""
+                    !n.read ? "bg-orange-50/50" : ""
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     {!n.read && (
-                      <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500" />
+                      <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-[#d4772c]" />
                     )}
                     <div className={!n.read ? "" : "ml-4"}>
                       <p className="text-sm font-medium text-gray-900">{n.title}</p>

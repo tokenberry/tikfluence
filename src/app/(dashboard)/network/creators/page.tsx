@@ -35,7 +35,7 @@ export default async function NetworkCreatorsPage() {
         <h1 className="text-3xl font-bold text-gray-900">Network Creators</h1>
         <a
           href="/network/creators/add"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"
         >
           Add Creator
         </a>
@@ -81,7 +81,7 @@ export default async function NetworkCreatorsPage() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
-                  <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                  <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-[#d4772c]">
                     Score: {creator.score.toFixed(1)}
                   </span>
                   <span className={`text-xs ${creator.stripeOnboarded ? "text-green-600" : "text-gray-400"}`}>

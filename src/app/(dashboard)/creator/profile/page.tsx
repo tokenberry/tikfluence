@@ -41,7 +41,7 @@ export default async function CreatorProfilePage() {
         </div>
         <div className="flex items-center gap-3">
           <TierBadge tier={creator.tier} />
-          <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-bold text-indigo-700">
+          <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-bold text-[#d4772c]">
             Score: {creator.score.toFixed(1)}
           </span>
         </div>

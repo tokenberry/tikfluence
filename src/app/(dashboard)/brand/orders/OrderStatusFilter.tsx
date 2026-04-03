@@ -17,7 +17,7 @@ export default function OrderStatusFilter({ currentStatus }: { currentStatus: st
           }
           className={`rounded-full px-3 py-1 text-sm font-medium transition ${
             currentStatus === s
-              ? "bg-indigo-600 text-white"
+              ? "bg-[#d4772c] text-white"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >

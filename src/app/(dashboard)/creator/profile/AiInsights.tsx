@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/Toast";
 
 interface Analysis {
   summary: string;
@@ -14,6 +15,7 @@ interface Analysis {
 }
 
 export default function AiInsights({ creatorId }: { creatorId: string }) {
+  const { toast } = useToast();
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -37,10 +39,10 @@ export default function AiInsights({ creatorId }: { creatorId: string }) {
         setAnalysis({ ...data, createdAt: new Date().toISOString() });
       } else {
         const err = await res.json();
-        alert(err.error ?? "Failed to run AI analysis.");
+        toast("error", err.error ?? "Failed to run AI analysis.");
       }
     } catch {
-      alert("An error occurred.");
+      toast("error", "An error occurred.");
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,10 @@ export default function AiInsights({ creatorId }: { creatorId: string }) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">AI Insights</h2>
-        <p className="mt-2 text-sm text-gray-400">Loading...</p>
+        <div className="mt-3 flex items-center gap-2 text-gray-400">
+          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+          <span className="text-sm">Loading insights...</span>
+        </div>
       </div>
     );
   }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 export default function AcceptOrderButton({
   orderId,
@@ -12,6 +13,7 @@ export default function AcceptOrderButton({
 }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   async function handleAccept() {
     setLoading(true);
@@ -22,13 +24,14 @@ export default function AcceptOrderButton({
         body: JSON.stringify({ creatorId }),
       });
       if (res.ok) {
+        toast("success", "Order accepted!");
         router.refresh();
       } else {
         const data = await res.json().catch(() => null);
-        alert(data?.error || "Failed to accept order.");
+        toast("error", data?.error || "Failed to accept order.");
       }
     } catch {
-      alert("An error occurred.");
+      toast("error", "An error occurred.");
     } finally {
       setLoading(false);
     }

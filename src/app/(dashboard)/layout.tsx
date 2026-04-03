@@ -1,7 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { useSession } from "next-auth/react"
-import Sidebar from "@/components/layout/Sidebar"
+import Sidebar, { MobileSidebar } from "@/components/layout/Sidebar"
+import { Menu } from "lucide-react"
 
 export default function DashboardLayout({
   children,
@@ -9,6 +11,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const { status } = useSession()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   if (status === "loading") {
     return (
@@ -28,7 +31,21 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 p-6 bg-gray-50">{children}</main>
+      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <main className="flex-1 bg-gray-50">
+        {/* Mobile header with menu button */}
+        <div className="sticky top-16 z-30 flex items-center gap-3 border-b border-gray-200 bg-gray-50 px-4 py-3 lg:hidden">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="rounded-md border border-gray-300 p-2 text-gray-500 hover:bg-white hover:text-gray-700"
+            aria-label="Open navigation"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <span className="text-sm font-medium text-gray-500">Menu</span>
+        </div>
+        <div className="p-4 sm:p-6">{children}</div>
+      </main>
     </div>
   )
 }

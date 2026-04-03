@@ -5,7 +5,7 @@ import TicketsList from "@/components/tickets/TicketsList"
 
 export const dynamic = "force-dynamic"
 
-export default async function CreatorTicketsPage() {
+export default async function BrandTicketsPage() {
   const session = await auth()
   if (!session?.user) redirect("/login")
 
@@ -15,5 +15,5 @@ export default async function CreatorTicketsPage() {
     orderBy: { createdAt: "desc" },
   })
 
-  return <TicketsList tickets={tickets} basePath="/creator/tickets" />
+  return <TicketsList tickets={tickets} basePath="/brand/tickets" />
 }

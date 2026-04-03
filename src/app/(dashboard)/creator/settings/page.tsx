@@ -98,7 +98,7 @@ export default function CreatorSettingsPage() {
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 truncate text-sm text-indigo-600 hover:underline"
+                  className="flex-1 truncate text-sm text-[#d4772c] hover:underline"
                 >
                   {link}
                 </a>

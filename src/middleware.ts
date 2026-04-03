@@ -25,8 +25,24 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin))
   }
 
+  // Redirect authenticated users from landing page to their dashboard
+  if (user && user.role && pathname === "/") {
+    const roleDashboard: Record<string, string> = {
+      CREATOR: "/creator",
+      NETWORK: "/network",
+      BRAND: "/brand",
+      ADMIN: "/admin/users",
+      AGENCY: "/agency",
+      ACCOUNT_MANAGER: "/account-manager/clients",
+    }
+    const dest = roleDashboard[user.role] || "/"
+    if (dest !== "/") {
+      return NextResponse.redirect(new URL(dest, req.nextUrl.origin))
+    }
+  }
+
   // Public routes - no auth required
-  const publicRoutes = ["/", "/login", "/register", "/api/auth", "/terms", "/privacy"]
+  const publicRoutes = ["/", "/login", "/register", "/api/auth", "/terms", "/privacy", "/dashboard"]
   if (publicRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.next()
   }
@@ -55,11 +71,11 @@ export default auth((req) => {
   // Users with a role cannot access onboarding
   if (pathname === "/onboarding") {
     const dashboardMap: Record<string, string> = {
-      CREATOR: "/creator/orders",
-      NETWORK: "/network/creators",
-      BRAND: "/brand/orders",
+      CREATOR: "/creator",
+      NETWORK: "/network",
+      BRAND: "/brand",
       ADMIN: "/admin/users",
-      AGENCY: "/agency/brands",
+      AGENCY: "/agency",
       ACCOUNT_MANAGER: "/account-manager/clients",
     }
     return NextResponse.redirect(

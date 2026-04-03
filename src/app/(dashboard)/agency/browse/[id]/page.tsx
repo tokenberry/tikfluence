@@ -177,10 +177,16 @@ export default async function AgencyCreatorDetailPage({
         />
 
         {/* CTA */}
-        <div className="mt-8 border-t border-gray-100 pt-6">
+        <div className="mt-8 border-t border-gray-100 pt-6 flex items-center gap-3">
+          <Link
+            href={`/agency/orders/new?creatorId=${creator.id}`}
+            className="inline-block rounded-md bg-[#d4772c] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#b85c1a] transition-colors"
+          >
+            Create Order for this Creator
+          </Link>
           <Link
             href="/agency/browse"
-            className="inline-block rounded-md bg-[#d4772c] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#b85c1a] transition-colors"
+            className="inline-block rounded-md border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Back to Browse
           </Link>

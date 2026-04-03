@@ -197,6 +197,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.3.0 | 2026-04-02 | Feat: TikTok OAuth verification — creators verify account ownership by logging into TikTok (username match), replacing Research API bio-code dependency. Works with just Login Kit credentials. |
 | 1.4.0 | 2026-04-02 | Feat: UI component library + design consistency — 7 reusable components (Badge, Button, Toast, ConfirmDialog, EmptyState, FormField, ui-constants), replaced inline color mappings across 30+ pages, standardized focus rings to brand orange |
 | 1.5.0 | 2026-04-03 | Feat: UX polish — replaced 31 alert() with Toast notifications, 3 confirm() with ConfirmDialog, LoadingSpinner component (7 pages), EmptyState component (6 pages), Sidebar icons (Lucide), eliminated all indigo colors → brand orange across 19 files |
+| 1.6.0 | 2026-04-03 | Feat: Mobile sidebar drawer, dashboard home pages (Creator/Brand/Network/Agency with stats + quick actions), landing page polish (Lucide icons, hover animations, subtitles) |
 
 ---
 
@@ -716,4 +717,34 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 3, 2026 (v1.5.0)*
+**v1.5.0 → v1.6.0 — Mobile Navigation, Dashboard Home Pages, Landing Page Polish**
+
+**1. Mobile Sidebar Drawer:**
+- Extracted `SidebarNav` shared component and `MobileSidebar` slide-out drawer from Sidebar
+- Dashboard layout now shows a sticky "Menu" button on mobile (`lg:hidden`) that opens the sidebar as an overlay drawer
+- Backdrop click + link click both close the drawer
+- Smooth `translate-x` CSS transition
+
+**2. Dashboard Home Pages (4 new pages):**
+- **Creator** (`/creator`): Active orders, completed orders, total earnings, available orders + quick actions (View Orders, Browse Available, My Profile, Submit Ticket)
+- **Brand** (`/brand`): Active campaigns, completed, total spent, credit balance, pending reviews + quick actions (Create Order, Browse Creators, Settings)
+- **Network** (`/network`): Total creators, active orders, completed orders, network earnings + quick actions
+- **Agency** (`/agency`): Managed brands, active orders, completed orders, total earnings + quick actions
+- All use `Promise.all` for parallel data fetching, Lucide icons, responsive stat card grids
+- Added "Dashboard" link to Sidebar for Creator, Brand, Network, Agency roles
+
+**3. Landing Page Polish:**
+- Replaced numbered step badges with Lucide icons (UserPlus, FileText, Banknote) in "How It Works"
+- Added Lucide icons (Sparkles, Shield, Users, BarChart3) to "Why Foxolog?" feature cards
+- Added hover animations: cards lift with shadow, icons invert colors on hover
+- Added subtitles under section headings for better hierarchy
+- Added arrow icon to primary CTA buttons
+- Extracted steps/features into typed arrays for cleaner JSX
+
+**Files created:** `src/app/(dashboard)/creator/page.tsx`, `src/app/(dashboard)/brand/page.tsx`, `src/app/(dashboard)/network/page.tsx`, `src/app/(dashboard)/agency/page.tsx`
+
+**Files modified:** `src/components/layout/Sidebar.tsx`, `src/app/(dashboard)/layout.tsx`, `src/app/page.tsx`, `src/lib/constants.ts`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+---
+
+*Last updated: April 3, 2026 (v1.6.0)*

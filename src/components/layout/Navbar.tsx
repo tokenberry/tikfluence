@@ -38,7 +38,7 @@ export default function Navbar() {
   if (pathname === "/" && status !== "authenticated") return null
 
   return (
-    <nav className="bg-[#2d3436] border-b border-gray-700 sticky top-0 z-50">
+    <nav className="bg-[#0a0a0a] border-b border-white/5 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
@@ -74,20 +74,20 @@ export default function Navbar() {
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#2d3436] rounded-md shadow-lg border border-gray-600 py-1 z-50">
-                      <div className="px-4 py-2 text-xs text-gray-400 border-b border-gray-600">
+                    <div className="absolute right-0 mt-2 w-48 bg-[#141414] rounded-md shadow-lg border border-white/10 py-1 z-50">
+                      <div className="px-4 py-2 text-xs text-white/40 border-b border-white/10">
                         {session.user.email}
                       </div>
                       <Link
                         href={settingsHref}
                         onClick={() => setUserMenuOpen(false)}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        className="block w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
                       >
                         Settings
                       </Link>
                       <button
                         onClick={() => signOut({ callbackUrl: "/" })}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        className="w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
                       >
                         Sign out
                       </button>
@@ -118,7 +118,7 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 rounded-md text-gray-300 hover:bg-gray-700"
+            className="md:hidden p-2 rounded-md text-white/60 hover:bg-white/5"
             aria-label="Toggle menu"
           >
             <svg
@@ -149,27 +149,27 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-700 bg-[#2d3436]">
+        <div className="md:hidden border-t border-white/5 bg-[#0a0a0a]">
           <div className="px-4 py-3 space-y-2">
             {status === "authenticated" && (
               <>
-                <div className="pb-2 mb-2 border-b border-gray-600">
+                <div className="pb-2 mb-2 border-b border-white/10">
                   <p className="text-sm font-medium text-white">
                     {session.user.name}
                   </p>
-                  <p className="text-xs text-gray-400">{session.user.email}</p>
+                  <p className="text-xs text-white/40">{session.user.email}</p>
                 </div>
                 <Link
                   href={dashboardHref}
                   onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-gray-300 hover:text-[#d4772c] py-1"
+                  className="block text-sm font-medium text-white/60 hover:text-[#d4772c] py-1"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href={settingsHref}
                   onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-gray-300 hover:text-[#d4772c] py-1"
+                  className="block text-sm font-medium text-white/60 hover:text-[#d4772c] py-1"
                 >
                   Settings
                 </Link>
@@ -187,14 +187,14 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-gray-300 hover:text-[#d4772c] py-1"
+                  className="block text-sm font-medium text-white/60 hover:text-white py-1"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-[#d4772c] hover:text-[#c86b1e] py-1"
+                  className="block text-sm font-medium text-[#d4772c] hover:text-[#e8883a] py-1"
                 >
                   Register
                 </Link>

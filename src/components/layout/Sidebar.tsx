@@ -97,7 +97,7 @@ function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
   return (
     <>
       <div className="p-6 flex-1">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        <h2 className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-4">
           Navigation
         </h2>
         <nav className="space-y-1">
@@ -114,8 +114,8 @@ function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
                 onClick={onLinkClick}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-[#fdf6e3] text-[#d4772c]"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-[#d4772c]"
+                    ? "bg-[#d4772c]/15 text-[#d4772c]"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -125,8 +125,8 @@ function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
           })}
         </nav>
       </div>
-      <div className="px-6 py-4 border-t border-gray-100">
-        <p className="text-xs text-gray-400">v{APP_VERSION}</p>
+      <div className="px-6 py-4 border-t border-white/10">
+        <p className="text-xs text-white/25">v{APP_VERSION}</p>
       </div>
     </>
   )
@@ -134,7 +134,7 @@ function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 min-h-screen bg-white border-r border-gray-200 hidden lg:flex flex-col">
+    <aside className="w-64 min-h-screen bg-[#0a0a0a] border-r border-white/5 hidden lg:flex flex-col">
       <SidebarNav />
     </aside>
   )
@@ -152,21 +152,21 @@ export function MobileSidebar({
       {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
           onClick={onClose}
         />
       )}
       {/* Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-200 ease-in-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0a0a0a] border-r border-white/5 flex flex-col transform transition-transform duration-200 ease-in-out lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
-          <span className="text-sm font-bold text-gray-900">Menu</span>
+          <span className="text-sm font-bold text-white">Menu</span>
           <button
             onClick={onClose}
-            className="rounded p-1 text-gray-400 hover:text-gray-600"
+            className="rounded p-1 text-white/40 hover:text-white/70"
           >
             <X className="h-5 w-5" />
           </button>

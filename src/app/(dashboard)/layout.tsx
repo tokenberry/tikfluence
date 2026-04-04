@@ -34,15 +34,15 @@ export default function DashboardLayout({
       <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <main className="flex-1 bg-gray-50">
         {/* Mobile header with menu button */}
-        <div className="sticky top-16 z-30 flex items-center gap-3 border-b border-gray-200 bg-gray-50 px-4 py-3 lg:hidden">
+        <div className="sticky top-16 z-30 flex items-center gap-3 border-b border-white/5 bg-[#0a0a0a] px-4 py-3 lg:hidden">
           <button
             onClick={() => setMobileOpen(true)}
-            className="rounded-md border border-gray-300 p-2 text-gray-500 hover:bg-white hover:text-gray-700"
+            className="rounded-md border border-white/10 p-2 text-white/50 hover:bg-white/5 hover:text-white/80"
             aria-label="Open navigation"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="text-sm font-medium text-gray-500">Menu</span>
+          <span className="text-sm font-medium text-white/50">Menu</span>
         </div>
         <div className="p-4 sm:p-6">{children}</div>
       </main>

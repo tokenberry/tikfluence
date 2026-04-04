@@ -27,8 +27,8 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [x] Login page (email/password, error handling)
 - [x] Register page (role selector: Creator/Network/Brand, role-specific fields)
 - [x] Registration API route (`/api/register`)
-- [x] Navbar (dark charcoal theme, role-based nav links, mobile menu, user dropdown)
-- [x] Sidebar (role-based links, active state highlighting)
+- [x] Navbar (dark #0a0a0a theme, role-based nav links, mobile menu, user dropdown)
+- [x] Sidebar (dark #0a0a0a theme, role-based links, orange glow active states)
 - [x] Dashboard layout (sidebar + main content)
 
 ### API Routes (48+ routes)
@@ -122,7 +122,7 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 - [ ] **TikTok auto-refresh**: Cron job to refresh creator metrics every 7 days
 - [ ] **Order expiration**: Auto-expire orders past deadline (deadlines now stored and displayed, but no auto-expiry cron yet)
 - [ ] **Analytics charts**: Visual charts on admin analytics page
-- [ ] **Dark mode**: Theme toggle
+- [x] **Dark mode**: Dark landing page + dark chrome dashboard theme (sidebar, navbar, mobile header)
 - [ ] **Mobile optimization**: Responsive improvements on dashboard pages
 - [ ] **Rate limiting**: API rate limiting for production
 - [ ] **Testing**: Unit tests, integration tests
@@ -201,6 +201,8 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.7.0 | 2026-04-03 | Feat: UX navigation overhaul — post-login redirect to role dashboard, uniform sidebar nav ordering, support tickets for all roles (brand/agency/network/account-manager), simplified top navbar (single Dashboard button), Settings moved to user dropdown, agency settings page + API |
 | 1.8.0 | 2026-04-03 | Feat: Fox favicon, Pagination component (browse + admin users), eliminated all remaining indigo colors (17 occurrences → brand orange), Zod client-side validation on register + ticket forms with per-field errors, admin users API now supports AGENCY/ACCOUNT_MANAGER role filter |
 | 1.9.0 | 2026-04-03 | Feat: AI analysis moved from creator profile to brand/agency browse pages (helps order placers pick creators), switched from Anthropic to OpenAI GPT-4o-mini, reusable AiInsightsPanel component with run/refresh, Stripe→Payoneer on payout pages |
+| 1.9.1 | 2026-04-04 | Feat: Landing page redesign — dark + glowy (#0a0a0a) theme with Framer Motion scroll animations, gradient text, animated stat counters, interactive glow cards with cursor-following radial gradient, social proof bar, brand/creator split section. Full rebrand Tikfluence → Foxolog across all pages. |
+| 1.9.2 | 2026-04-04 | Feat: Dark chrome dashboard theme — sidebar, navbar, and mobile header updated to #0a0a0a with orange glow active states, matching the landing page aesthetic. Content areas remain light for readability. |
 
 ---
 

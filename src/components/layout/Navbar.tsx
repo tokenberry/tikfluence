@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
 import NotificationBell from "./NotificationBell"
@@ -24,6 +25,7 @@ const roleSettingsPath: Record<string, string> = {
 }
 
 export default function Navbar() {
+  const pathname = usePathname()
   const { data: session, status } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -31,6 +33,9 @@ export default function Navbar() {
   const role = session?.user?.role ?? ""
   const dashboardHref = roleDashboardPath[role] || "/"
   const settingsHref = roleSettingsPath[role] || "#"
+
+  // Landing page has its own header
+  if (pathname === "/" && status !== "authenticated") return null
 
   return (
     <nav className="bg-[#2d3436] border-b border-gray-700 sticky top-0 z-50">

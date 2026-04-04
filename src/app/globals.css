@@ -136,3 +136,60 @@
 .animate-in.slide-in-from-right {
   animation: slide-in-from-right 0.2s ease-out;
 }
+
+/* ── Landing Page Utilities ────────────────────────────────────────── */
+
+.landing-grid {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #d4772c 0%, #f0a050 50%, #d4772c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glow-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    300px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(212, 119, 44, 0.12),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.glow-card:hover {
+  border-color: rgba(212, 119, 44, 0.3);
+  box-shadow: 0 0 40px rgba(212, 119, 44, 0.08);
+}
+
+.glow-card:hover::before {
+  opacity: 1;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 119, 44, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(212, 119, 44, 0.4); }
+}

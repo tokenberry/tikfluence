@@ -224,14 +224,14 @@ export default function HomePage() {
         <section className="border-y border-white/5 py-10">
           <div className="mx-auto max-w-5xl px-4 text-center">
             <p className="text-sm text-white/30 uppercase tracking-widest mb-6">
-              Trusted by creators &amp; brands across the MENA region
+              Trusted by creators &amp; brands worldwide
             </p>
             <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
               {[
                 { icon: ShieldCheck, label: "Stripe Secured" },
                 { icon: Brain, label: "AI-Powered" },
                 { icon: BadgeCheck, label: "TikTok Verified" },
-                { icon: Sparkles, label: "MENA Focused" },
+                { icon: Sparkles, label: "Global Reach" },
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}

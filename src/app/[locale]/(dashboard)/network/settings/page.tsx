@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 
 export default function NetworkSettingsPage() {
+  const t = useTranslations("network")
   const [companyName, setCompanyName] = useState("")
   const [website, setWebsite] = useState("")
   const [description, setDescription] = useState("")
@@ -34,13 +36,13 @@ export default function NetworkSettingsPage() {
         body: JSON.stringify({ companyName, website, description }),
       })
       if (res.ok) {
-        setMessage("Settings saved successfully.")
+        setMessage(t("settings_saved"))
       } else {
         const data = await res.json()
-        setMessage(data.error ?? "Failed to save settings.")
+        setMessage(data.error ?? t("settings_save_error"))
       }
     } catch {
-      setMessage("Failed to save settings.")
+      setMessage(t("settings_save_error"))
     } finally {
       setSaving(false)
     }
@@ -59,11 +61,11 @@ export default function NetworkSettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6">
-      <h1 className="text-2xl font-bold text-gray-900">Network Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{t("settings_title")}</h1>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Company Name *</label>
+          <label className="block text-sm font-medium text-gray-700">{t("settings_company_label")}</label>
           <input
             type="text"
             value={companyName}
@@ -74,23 +76,23 @@ export default function NetworkSettingsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Website</label>
+          <label className="block text-sm font-medium text-gray-700">{t("settings_website_label")}</label>
           <input
             type="url"
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
-            placeholder="https://example.com"
+            placeholder={t("settings_website_placeholder")}
             className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <label className="block text-sm font-medium text-gray-700">{t("settings_description_label")}</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
-            placeholder="Tell brands about your network..."
+            placeholder={t("settings_description_placeholder")}
             className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
           />
         </div>
@@ -101,7 +103,7 @@ export default function NetworkSettingsPage() {
             disabled={saving || !companyName}
             className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save Settings"}
+            {saving ? "Saving..." : t("settings_save")}
           </button>
           {message && (
             <p className={`text-sm ${message.includes("success") ? "text-green-600" : "text-red-600"}`}>

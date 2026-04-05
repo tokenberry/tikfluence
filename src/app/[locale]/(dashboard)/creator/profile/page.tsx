@@ -6,12 +6,15 @@ import RefreshTikTokButton from "./RefreshTikTokButton";
 import ContentTypeEditor from "./ContentTypeEditor";
 import VerificationBanner from "./VerificationBanner";
 import { TierBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
 export default async function CreatorProfilePage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  const t = await getTranslations("creator");
 
   const creator = await prisma.creator.findUnique({
     where: { userId: session.user.id },
@@ -24,8 +27,8 @@ export default async function CreatorProfilePage() {
   if (!creator) {
     return (
       <div className="p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Creator Profile Not Found</h1>
-        <p className="mt-2 text-gray-600">Please complete your onboarding first.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t("profile_not_found")}</h1>
+        <p className="mt-2 text-gray-600">{t("profile_not_found_desc")}</p>
       </div>
     );
   }
@@ -41,7 +44,7 @@ export default async function CreatorProfilePage() {
         <div className="flex items-center gap-3">
           <TierBadge tier={creator.tier} />
           <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-bold text-[#d4772c]">
-            Score: {creator.score.toFixed(1)}
+            {t("profile_score", { score: creator.score.toFixed(1) })}
           </span>
         </div>
       </div>
@@ -58,20 +61,20 @@ export default async function CreatorProfilePage() {
 
       {/* TikTok Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Followers" value={formatNumber(creator.followerCount)} />
-        <StatCard label="Avg Views" value={formatNumber(creator.avgViews)} />
-        <StatCard label="Engagement Rate" value={`${creator.engagementRate.toFixed(2)}%`} />
-        <StatCard label="Total Likes" value={formatNumber(creator.totalLikes)} />
+        <StatCard label={t("profile_followers")} value={formatNumber(creator.followerCount)} />
+        <StatCard label={t("profile_avg_views")} value={formatNumber(creator.avgViews)} />
+        <StatCard label={t("profile_engagement")} value={`${creator.engagementRate.toFixed(2)}%`} />
+        <StatCard label={t("profile_total_likes")} value={formatNumber(creator.totalLikes)} />
       </div>
 
       {/* Bio & Portfolio */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">About</h2>
-        <p className="mt-2 text-gray-600">{creator.bio || "No bio set."}</p>
+        <h2 className="text-lg font-semibold text-gray-900">{t("profile_about")}</h2>
+        <p className="mt-2 text-gray-600">{creator.bio || t("profile_no_bio")}</p>
 
         {creator.portfolioLinks.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700">Portfolio Links</h3>
+            <h3 className="text-sm font-medium text-gray-700">{t("profile_portfolio")}</h3>
             <ul className="mt-2 space-y-1">
               {creator.portfolioLinks.map((link, i) => (
                 <li key={i}>
@@ -92,7 +95,7 @@ export default async function CreatorProfilePage() {
 
       {/* Categories */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Categories</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t("profile_categories")}</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {creator.categories.length > 0 ? (
             creator.categories.map(({ category }) => (
@@ -104,7 +107,7 @@ export default async function CreatorProfilePage() {
               </span>
             ))
           ) : (
-            <p className="text-gray-500">No categories selected.</p>
+            <p className="text-gray-500">{t("profile_no_categories")}</p>
           )}
         </div>
       </div>
@@ -118,25 +121,25 @@ export default async function CreatorProfilePage() {
 
       {/* Payout Settings */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Payout Settings</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t("profile_payout_title")}</h2>
         <div className="mt-3 flex items-center gap-3">
           {creator.stripeOnboarded ? (
             <>
               <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                Payoneer Connected
+                {t("profile_payoneer_connected")}
               </span>
-              <p className="text-sm text-gray-500">Your payouts are active.</p>
+              <p className="text-sm text-gray-500">{t("profile_payouts_active")}</p>
             </>
           ) : (
             <>
               <span className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
-                Not Connected
+                {t("profile_not_connected")}
               </span>
               <a
                 href="/api/payoneer/connect"
                 className="text-sm font-medium text-[#d4772c] hover:underline"
               >
-                Connect Payoneer Account
+                {t("profile_connect_payoneer")}
               </a>
             </>
           )}
@@ -148,7 +151,7 @@ export default async function CreatorProfilePage() {
         <RefreshTikTokButton creatorId={creator.id} />
         {creator.metricsUpdatedAt && (
           <p className="text-sm text-gray-500">
-            Last updated: {new Date(creator.metricsUpdatedAt).toLocaleDateString()}
+            {t("profile_last_updated", { date: new Date(creator.metricsUpdatedAt).toLocaleDateString() })}
           </p>
         )}
       </div>

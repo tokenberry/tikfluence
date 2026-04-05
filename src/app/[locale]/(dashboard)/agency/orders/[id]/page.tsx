@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import AgencyOrderActions from "../../brands/[id]/AgencyOrderActions";
-import DeliveryActions from "@/app/(dashboard)/brand/orders/[id]/DeliveryActions";
+import DeliveryActions from "@/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";

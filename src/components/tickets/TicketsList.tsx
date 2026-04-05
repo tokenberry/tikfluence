@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { TicketStatusBadge } from "@/components/ui/Badge"
+import { getTranslations } from "next-intl/server"
 
 interface Ticket {
   id: string
@@ -9,33 +10,35 @@ interface Ticket {
   _count: { messages: number }
 }
 
-export default function TicketsList({
+export default async function TicketsList({
   tickets,
   basePath,
 }: {
   tickets: Ticket[]
   basePath: string
 }) {
+  const t = await getTranslations("tickets")
+
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("heading")}</h1>
         <Link
           href={`${basePath}/new`}
           className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"
         >
-          New Ticket
+          {t("new_button")}
         </Link>
       </div>
 
       {tickets.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center shadow-sm">
-          <p className="text-gray-500">You have no support tickets yet.</p>
+          <p className="text-gray-500">{t("empty")}</p>
           <Link
             href={`${basePath}/new`}
             className="mt-4 inline-block rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"
           >
-            Create Your First Ticket
+            {t("create_first")}
           </Link>
         </div>
       ) : (

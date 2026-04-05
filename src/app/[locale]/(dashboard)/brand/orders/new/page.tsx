@@ -4,31 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
+import { useTranslations } from "next-intl";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 
-const ORDER_TYPES: { value: OrderType; label: string; description: string; icon: string }[] = [
-  {
-    value: "SHORT_VIDEO",
-    label: "Short Video",
-    description: "Standard TikTok video ads with flexible brand placement",
-    icon: "🎬",
-  },
-  {
-    value: "LIVE",
-    label: "LIVE Stream",
-    description: "Sponsored live streams with product placement",
-    icon: "🔴",
-  },
-  {
-    value: "COMBO",
-    label: "Combo",
-    description: "Both LIVE stream + Short Video in one campaign",
-    icon: "⚡",
-  },
-];
-
 export default function NewOrderPage() {
+  const t = useTranslations("brand");
   const router = useRouter();
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -54,6 +35,27 @@ export default function NewOrderPage() {
     maxCreators: "1",
     deadline: "",
   });
+
+  const ORDER_TYPES: { value: OrderType; label: string; description: string; icon: string }[] = [
+    {
+      value: "SHORT_VIDEO",
+      label: t("new_order_type_video"),
+      description: t("new_order_type_video_desc"),
+      icon: "🎬",
+    },
+    {
+      value: "LIVE",
+      label: t("new_order_type_live"),
+      description: t("new_order_type_live_desc"),
+      icon: "🔴",
+    },
+    {
+      value: "COMBO",
+      label: t("new_order_type_combo"),
+      description: t("new_order_type_combo_desc"),
+      icon: "⚡",
+    },
+  ];
 
   useEffect(() => {
     fetch("/api/categories")
@@ -119,7 +121,7 @@ export default function NewOrderPage() {
         router.push(`/brand/orders/${data.id ?? data.order?.id ?? ""}`);
       } else {
         const data = await res.json();
-        toast("error", data.error ?? "Failed to create order.");
+        toast("error", data.error ?? t("new_order_error"));
       }
     } catch {
       toast("error", "An error occurred.");
@@ -135,9 +137,9 @@ export default function NewOrderPage() {
     <div className="mx-auto max-w-2xl space-y-6 p-6">
       <div className="flex items-center gap-4">
         <a href="/brand/orders" className="text-gray-500 hover:text-gray-700">
-          &larr; Back
+          &larr; {t("new_order_back")}
         </a>
-        <h1 className="text-3xl font-bold text-gray-900">Create New Order</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("new_order_title")}</h1>
       </div>
 
       <form
@@ -146,42 +148,42 @@ export default function NewOrderPage() {
       >
         {/* Order Type Selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Order Type *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t("new_order_type_label")}</label>
           {creatorSupport && (
             <p className="text-xs text-gray-500 mb-2">
               Creating order for <span className="font-medium text-gray-700">{creatorSupport.name}</span> —
               supports {[
-                creatorSupport.supportsShortVideo && "Short Video",
-                creatorSupport.supportsLive && "LIVE Stream",
+                creatorSupport.supportsShortVideo && t("new_order_type_video"),
+                creatorSupport.supportsLive && t("new_order_type_live"),
               ].filter(Boolean).join(" & ") || "no content types"}
             </p>
           )}
           <div className="grid grid-cols-3 gap-3">
-            {ORDER_TYPES.map((t) => {
+            {ORDER_TYPES.map((type) => {
               const isLocked = creatorSupport
-                ? (t.value === "LIVE" && !creatorSupport.supportsLive) ||
-                  (t.value === "SHORT_VIDEO" && !creatorSupport.supportsShortVideo) ||
-                  (t.value === "COMBO" && (!creatorSupport.supportsLive || !creatorSupport.supportsShortVideo))
+                ? (type.value === "LIVE" && !creatorSupport.supportsLive) ||
+                  (type.value === "SHORT_VIDEO" && !creatorSupport.supportsShortVideo) ||
+                  (type.value === "COMBO" && (!creatorSupport.supportsLive || !creatorSupport.supportsShortVideo))
                 : false;
 
               return (
                 <button
-                  key={t.value}
+                  key={type.value}
                   type="button"
                   disabled={isLocked}
-                  onClick={() => !isLocked && setOrderType(t.value)}
+                  onClick={() => !isLocked && setOrderType(type.value)}
                   className={`rounded-lg border-2 p-3 text-left transition-all ${
                     isLocked
                       ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
-                      : orderType === t.value
+                      : orderType === type.value
                       ? "border-orange-500 bg-orange-50 ring-1 ring-orange-500"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="text-xl mb-1">{t.icon}</div>
-                  <div className="text-sm font-semibold text-gray-900">{t.label}</div>
+                  <div className="text-xl mb-1">{type.icon}</div>
+                  <div className="text-sm font-semibold text-gray-900">{type.label}</div>
                   <div className="text-xs text-gray-500 mt-0.5">
-                    {isLocked ? "Creator doesn\u0027t support this type" : t.description}
+                    {isLocked ? "Creator doesn\u0027t support this type" : type.description}
                   </div>
                 </button>
               );
@@ -195,10 +197,9 @@ export default function NewOrderPage() {
             <div className="flex items-start gap-2">
               <span className="text-amber-600 text-lg">&#9888;</span>
               <div>
-                <p className="text-sm font-medium text-amber-800">LIVE Stream Content Restrictions</p>
+                <p className="text-sm font-medium text-amber-800">{t("new_order_live_warning_title")}</p>
                 <p className="text-xs text-amber-700 mt-1">
-                  LIVE streams must use <strong>product placement</strong> or <strong>sponsored gameplay</strong>.
-                  Direct brand logos, explicit mentions, or traditional ad formats may result in stream bans or restrictions from TikTok.
+                  {t("new_order_live_warning")}
                 </p>
               </div>
             </div>
@@ -206,49 +207,49 @@ export default function NewOrderPage() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Title *</label>
+          <label className="block text-sm font-medium text-gray-700">{t("new_order_field_title")}</label>
           <input
             type="text"
             required
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             className={inputClasses}
-            placeholder="Campaign title"
+            placeholder={t("new_order_field_title_placeholder")}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Description *</label>
+          <label className="block text-sm font-medium text-gray-700">{t("new_order_field_desc")}</label>
           <textarea
             required
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={3}
             className={inputClasses}
-            placeholder="Describe the campaign..."
+            placeholder={t("new_order_field_desc_placeholder")}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Brief</label>
+          <label className="block text-sm font-medium text-gray-700">{t("new_order_field_brief")}</label>
           <textarea
             value={form.brief}
             onChange={(e) => setForm({ ...form, brief: e.target.value })}
             rows={4}
             className={inputClasses}
-            placeholder="Detailed creator brief, talking points, requirements..."
+            placeholder={t("new_order_field_brief_placeholder")}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Category *</label>
+          <label className="block text-sm font-medium text-gray-700">{t("new_order_field_category")}</label>
           <select
             required
             value={form.categoryId}
             onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
             className={inputClasses}
           >
-            <option value="">Select a category</option>
+            <option value="">{t("new_order_field_category_placeholder")}</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
@@ -267,7 +268,7 @@ export default function NewOrderPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Impression Target *
+                    {t("new_order_field_impressions")}
                   </label>
                   <input
                     type="number"
@@ -276,11 +277,11 @@ export default function NewOrderPage() {
                     value={form.impressionTarget}
                     onChange={(e) => setForm({ ...form, impressionTarget: e.target.value })}
                     className={inputClasses}
-                    placeholder="e.g. 100000"
+                    placeholder={t("new_order_field_impressions_placeholder")}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Budget (USD) *</label>
+                  <label className="block text-sm font-medium text-gray-700">{t("new_order_field_budget")}</label>
                   <input
                     type="number"
                     required
@@ -289,7 +290,7 @@ export default function NewOrderPage() {
                     value={form.budget}
                     onChange={(e) => setForm({ ...form, budget: e.target.value })}
                     className={inputClasses}
-                    placeholder="e.g. 500"
+                    placeholder={t("new_order_field_budget_placeholder")}
                   />
                 </div>
               </div>
@@ -298,9 +299,7 @@ export default function NewOrderPage() {
             {/* CPM Preview */}
             <div className="rounded-lg bg-blue-50 p-4">
               <p className="text-sm text-blue-700">
-                Calculated CPM Rate:{" "}
-                <span className="font-bold">{cpmRate > 0 ? formatCurrency(cpmRate) : "--"}</span>
-                <span className="ml-1 text-blue-500">per 1,000 impressions</span>
+                {t("new_order_cpm_preview", { rate: cpmRate > 0 ? formatCurrency(cpmRate) : "--" })}
               </p>
             </div>
           </>
@@ -315,7 +314,7 @@ export default function NewOrderPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Flat Fee per Stream (USD) *
+                  {t("new_order_field_flat_fee")}
                 </label>
                 <input
                   type="number"
@@ -325,12 +324,12 @@ export default function NewOrderPage() {
                   value={form.liveFlatFee}
                   onChange={(e) => setForm({ ...form, liveFlatFee: e.target.value })}
                   className={inputClasses}
-                  placeholder="e.g. 200"
+                  placeholder={t("new_order_field_flat_fee_placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Min Duration (minutes)
+                  {t("new_order_field_min_duration")}
                 </label>
                 <input
                   type="number"
@@ -338,20 +337,20 @@ export default function NewOrderPage() {
                   value={form.liveMinDuration}
                   onChange={(e) => setForm({ ...form, liveMinDuration: e.target.value })}
                   className={inputClasses}
-                  placeholder="e.g. 60"
+                  placeholder={t("new_order_field_min_duration_placeholder")}
                 />
               </div>
             </div>
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700">
-                Content Guidelines for LIVE
+                {t("new_order_field_guidelines")}
               </label>
               <textarea
                 value={form.liveGuidelines}
                 onChange={(e) => setForm({ ...form, liveGuidelines: e.target.value })}
                 rows={3}
                 className={inputClasses}
-                placeholder="Describe how the product should be featured during the stream (e.g., product placement on desk, gameplay with sponsored items...)"
+                placeholder={t("new_order_field_guidelines_placeholder")}
               />
             </div>
 
@@ -380,7 +379,7 @@ export default function NewOrderPage() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Max Creators *</label>
+          <label className="block text-sm font-medium text-gray-700">{t("new_order_field_max_creators")}</label>
           <input
             type="number"
             required
@@ -392,12 +391,12 @@ export default function NewOrderPage() {
             placeholder="1"
           />
           <p className="mt-1 text-xs text-gray-400">
-            How many creators can claim this order (budget is split between them)
+            {t("new_order_field_max_creators_hint")}
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Deadline *</label>
+          <label className="block text-sm font-medium text-gray-700">{t("new_order_field_deadline")}</label>
           <input
             type="date"
             required
@@ -406,7 +405,7 @@ export default function NewOrderPage() {
             onChange={(e) => setForm({ ...form, deadline: e.target.value })}
             className={inputClasses}
           />
-          <p className="mt-1 text-xs text-gray-400">The latest date the creator must deliver by</p>
+          <p className="mt-1 text-xs text-gray-400">{t("new_order_field_deadline_hint")}</p>
         </div>
 
         <button
@@ -414,7 +413,7 @@ export default function NewOrderPage() {
           disabled={loading}
           className="w-full rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-50"
         >
-          {loading ? "Creating..." : "Create Order"}
+          {loading ? t("new_order_submit_loading") : t("new_order_submit")}
         </button>
       </form>
     </div>

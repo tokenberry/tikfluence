@@ -3,12 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
 import { TierBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
 export default async function NetworkCreatorsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  const t = await getTranslations("network");
 
   const network = await prisma.creatorNetwork.findUnique({
     where: { userId: session.user.id },
@@ -32,23 +35,23 @@ export default async function NetworkCreatorsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Network Creators</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("creators_title")}</h1>
         <a
           href="/network/creators/add"
           className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"
         >
-          Add Creator
+          {t("creators_add")}
         </a>
       </div>
 
       {creators.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-          <p className="text-gray-500">No creators in your network yet.</p>
+          <p className="text-gray-500">{t("creators_empty")}</p>
           <a
             href="/network/creators/add"
             className="mt-4 inline-block text-[#d4772c] hover:underline"
           >
-            Add your first creator
+            {t("creators_add_first")}
           </a>
         </div>
       ) : (

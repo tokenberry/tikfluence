@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 import {
   Building2,
   ShoppingBag,
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic";
 export default async function AgencyDashboardPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "AGENCY") redirect("/login");
+
+  const t = await getTranslations("agency");
 
   const agency = await prisma.agency.findUnique({
     where: { userId: session.user.id },
@@ -46,25 +49,25 @@ export default async function AgencyDashboardPage() {
 
   const stats = [
     {
-      label: "Managed Brands",
+      label: t("stat_brands"),
       value: managedBrands,
       icon: Building2,
       formatted: String(managedBrands),
     },
     {
-      label: "Active Orders",
+      label: t("stat_active"),
       value: activeOrders,
       icon: ShoppingBag,
       formatted: String(activeOrders),
     },
     {
-      label: "Completed Orders",
+      label: t("stat_completed"),
       value: completedOrders,
       icon: CheckCircle,
       formatted: String(completedOrders),
     },
     {
-      label: "Total Earnings",
+      label: t("stat_earnings"),
       value: totalEarnings,
       icon: DollarSign,
       formatted: formatCurrency(totalEarnings),
@@ -72,15 +75,15 @@ export default async function AgencyDashboardPage() {
   ];
 
   const quickActions = [
-    { label: "View Brands", href: "/agency/brands" },
-    { label: "Create Order", href: "/agency/orders/new" },
-    { label: "Browse Creators", href: "/agency/browse" },
+    { label: t("quick_action_brands"), href: "/agency/brands" },
+    { label: t("quick_action_create"), href: "/agency/orders/new" },
+    { label: t("quick_action_browse"), href: "/agency/browse" },
   ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6">
       <h1 className="text-3xl font-bold text-gray-900">
-        Welcome back, {agency.companyName}
+        {t("dashboard_welcome", { name: agency.companyName })}
       </h1>
 
       {/* Stat Cards */}
@@ -110,7 +113,7 @@ export default async function AgencyDashboardPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">
-          Quick Actions
+          {t("quick_actions_title")}
         </h2>
         <div className="flex flex-wrap gap-3">
           {quickActions.map((action) => (

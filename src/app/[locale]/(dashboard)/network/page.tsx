@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 import { Users, ShoppingBag, CheckCircle, DollarSign } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function NetworkDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  const t = await getTranslations("network");
 
   const network = await prisma.creatorNetwork.findUnique({
     where: { userId: session.user.id },
@@ -78,43 +81,43 @@ export default async function NetworkDashboardPage() {
     ]);
 
   const networkEarnings = transactions.reduce(
-    (sum, t) => sum + t.creatorPayout,
+    (sum, tx) => sum + tx.creatorPayout,
     0,
   );
 
   const stats = [
     {
-      label: "Total Creators",
+      label: t("stat_creators"),
       value: totalCreators.toString(),
       icon: Users,
     },
     {
-      label: "Active Orders",
+      label: t("stat_active"),
       value: activeOrders.toString(),
       icon: ShoppingBag,
     },
     {
-      label: "Completed Orders",
+      label: t("stat_completed"),
       value: completedOrders.toString(),
       icon: CheckCircle,
     },
     {
-      label: "Network Earnings",
+      label: t("stat_earnings"),
       value: formatCurrency(networkEarnings),
       icon: DollarSign,
     },
   ];
 
   const quickActions = [
-    { label: "View Creators", href: "/network/creators" },
-    { label: "Add Creator", href: "/network/creators/add" },
-    { label: "View Orders", href: "/network/orders" },
+    { label: t("quick_action_creators"), href: "/network/creators" },
+    { label: t("quick_action_add"), href: "/network/creators/add" },
+    { label: t("quick_action_orders"), href: "/network/orders" },
   ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6">
       <h1 className="text-3xl font-bold text-gray-900">
-        Welcome back, {network.companyName}
+        {t("dashboard_welcome", { name: network.companyName })}
       </h1>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -138,7 +141,7 @@ export default async function NetworkDashboardPage() {
 
       <div>
         <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          Quick Actions
+          {t("quick_actions_title")}
         </h2>
         <div className="flex flex-wrap gap-3">
           {quickActions.map((action) => (

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { APP_VERSION } from "@/lib/constants"
 import {
   ShoppingBag,
@@ -23,72 +24,73 @@ import {
 } from "lucide-react"
 
 const iconMap: Record<string, LucideIcon> = {
-  Dashboard: LayoutDashboard,
-  Orders: ShoppingBag,
-  Earnings: DollarSign,
-  Tickets: MessageCircle,
-  Profile: User,
-  Creators: Users,
-  Browse: Search,
-  Brands: Building2,
-  Analytics: BarChart3,
-  Users: Users,
-  Transactions: CreditCard,
-  "Agency Claims": Link2,
-  Clients: Building2,
-  Notes: StickyNote,
+  dashboard: LayoutDashboard,
+  orders: ShoppingBag,
+  earnings: DollarSign,
+  tickets: MessageCircle,
+  profile: User,
+  creators: Users,
+  browse: Search,
+  brands: Building2,
+  analytics: BarChart3,
+  users: Users,
+  transactions: CreditCard,
+  agency_claims: Link2,
+  clients: Building2,
+  notes: StickyNote,
 }
 
-export const roleNavLinks: Record<string, { label: string; href: string }[]> = {
+export const roleNavLinks: Record<string, { labelKey: string; icon: string; href: string }[]> = {
   CREATOR: [
-    { label: "Dashboard", href: "/creator" },
-    { label: "Orders", href: "/creator/orders" },
-    { label: "Earnings", href: "/creator/earnings" },
-    { label: "Tickets", href: "/creator/tickets" },
-    { label: "Profile", href: "/creator/profile" },
+    { labelKey: "creator_dashboard", icon: "dashboard", href: "/creator" },
+    { labelKey: "creator_orders", icon: "orders", href: "/creator/orders" },
+    { labelKey: "creator_earnings", icon: "earnings", href: "/creator/earnings" },
+    { labelKey: "creator_tickets", icon: "tickets", href: "/creator/tickets" },
+    { labelKey: "creator_profile", icon: "profile", href: "/creator/profile" },
   ],
   NETWORK: [
-    { label: "Dashboard", href: "/network" },
-    { label: "Creators", href: "/network/creators" },
-    { label: "Orders", href: "/network/orders" },
-    { label: "Earnings", href: "/network/earnings" },
-    { label: "Tickets", href: "/network/tickets" },
+    { labelKey: "network_dashboard", icon: "dashboard", href: "/network" },
+    { labelKey: "network_creators", icon: "creators", href: "/network/creators" },
+    { labelKey: "network_orders", icon: "orders", href: "/network/orders" },
+    { labelKey: "network_earnings", icon: "earnings", href: "/network/earnings" },
+    { labelKey: "network_tickets", icon: "tickets", href: "/network/tickets" },
   ],
   BRAND: [
-    { label: "Dashboard", href: "/brand" },
-    { label: "Browse", href: "/brand/browse" },
-    { label: "Orders", href: "/brand/orders" },
-    { label: "Tickets", href: "/brand/tickets" },
+    { labelKey: "brand_dashboard", icon: "dashboard", href: "/brand" },
+    { labelKey: "brand_browse", icon: "browse", href: "/brand/browse" },
+    { labelKey: "brand_orders", icon: "orders", href: "/brand/orders" },
+    { labelKey: "brand_tickets", icon: "tickets", href: "/brand/tickets" },
   ],
   ADMIN: [
-    { label: "Users", href: "/admin/users" },
-    { label: "Orders", href: "/admin/orders" },
-    { label: "Transactions", href: "/admin/transactions" },
-    { label: "Agency Claims", href: "/admin/agency-brands" },
-    { label: "Tickets", href: "/admin/tickets" },
-    { label: "Analytics", href: "/admin/analytics" },
+    { labelKey: "admin_users", icon: "users", href: "/admin/users" },
+    { labelKey: "admin_orders", icon: "orders", href: "/admin/orders" },
+    { labelKey: "admin_transactions", icon: "transactions", href: "/admin/transactions" },
+    { labelKey: "admin_agency_claims", icon: "agency_claims", href: "/admin/agency-brands" },
+    { labelKey: "admin_tickets", icon: "tickets", href: "/admin/tickets" },
+    { labelKey: "admin_analytics", icon: "analytics", href: "/admin/analytics" },
   ],
   AGENCY: [
-    { label: "Dashboard", href: "/agency" },
-    { label: "Browse", href: "/agency/browse" },
-    { label: "Orders", href: "/agency/orders" },
-    { label: "Brands", href: "/agency/brands" },
-    { label: "Creators", href: "/agency/creators" },
-    { label: "Earnings", href: "/agency/earnings" },
-    { label: "Tickets", href: "/agency/tickets" },
+    { labelKey: "agency_dashboard", icon: "dashboard", href: "/agency" },
+    { labelKey: "agency_browse", icon: "browse", href: "/agency/browse" },
+    { labelKey: "agency_orders", icon: "orders", href: "/agency/orders" },
+    { labelKey: "agency_brands", icon: "brands", href: "/agency/brands" },
+    { labelKey: "agency_creators", icon: "creators", href: "/agency/creators" },
+    { labelKey: "agency_earnings", icon: "earnings", href: "/agency/earnings" },
+    { labelKey: "agency_tickets", icon: "tickets", href: "/agency/tickets" },
   ],
   ACCOUNT_MANAGER: [
-    { label: "Clients", href: "/account-manager/clients" },
-    { label: "Orders", href: "/account-manager/orders" },
-    { label: "Notes", href: "/account-manager/notes" },
-    { label: "Analytics", href: "/account-manager/analytics" },
-    { label: "Tickets", href: "/account-manager/tickets" },
+    { labelKey: "account_manager_clients", icon: "clients", href: "/account-manager/clients" },
+    { labelKey: "account_manager_orders", icon: "orders", href: "/account-manager/orders" },
+    { labelKey: "account_manager_notes", icon: "notes", href: "/account-manager/notes" },
+    { labelKey: "account_manager_analytics", icon: "analytics", href: "/account-manager/analytics" },
+    { labelKey: "account_manager_tickets", icon: "tickets", href: "/account-manager/tickets" },
   ],
 }
 
 function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const t = useTranslations("sidebar")
 
   if (!session?.user?.role) return null
 
@@ -98,15 +100,15 @@ function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
     <>
       <div className="p-6 flex-1">
         <h2 className="text-xs font-semibold text-white/30 uppercase tracking-wider mb-4">
-          Navigation
+          {t("menu")}
         </h2>
         <nav className="space-y-1">
           {links.map((link) => {
-            const isExactDashboard = link.label === "Dashboard"
-            const isActive = isExactDashboard
+            const isDashboard = link.icon === "dashboard"
+            const isActive = isDashboard
               ? pathname === link.href
               : pathname === link.href || pathname.startsWith(link.href + "/")
-            const Icon = iconMap[link.label] ?? FileText
+            const Icon = iconMap[link.icon] ?? FileText
             return (
               <Link
                 key={link.href}
@@ -119,7 +121,7 @@ function SidebarNav({ onLinkClick }: { onLinkClick?: () => void }) {
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
-                {link.label}
+                {t(link.labelKey)}
               </Link>
             )
           })}
@@ -147,6 +149,8 @@ export function MobileSidebar({
   open: boolean
   onClose: () => void
 }) {
+  const t = useTranslations("sidebar")
+
   return (
     <>
       {/* Backdrop */}
@@ -163,7 +167,7 @@ export function MobileSidebar({
         }`}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
-          <span className="text-sm font-bold text-white">Menu</span>
+          <span className="text-sm font-bold text-white">{t("menu")}</span>
           <button
             onClick={onClose}
             className="rounded p-1 text-white/40 hover:text-white/70"

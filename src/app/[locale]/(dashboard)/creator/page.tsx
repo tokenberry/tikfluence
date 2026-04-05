@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 import {
   ShoppingBag,
   CheckCircle,
@@ -16,6 +17,8 @@ export const dynamic = "force-dynamic";
 export default async function CreatorDashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  const t = await getTranslations("creator");
 
   const creator = await prisma.creator.findUnique({
     where: { userId: session.user.id },
@@ -57,28 +60,28 @@ export default async function CreatorDashboardPage() {
 
   const stats = [
     {
-      label: "Active Orders",
+      label: t("stat_active_orders"),
       value: formatNumber(activeOrders),
       icon: ShoppingBag,
       accent: "text-[#d4772c]",
       bg: "bg-orange-50",
     },
     {
-      label: "Completed Orders",
+      label: t("stat_completed_orders"),
       value: formatNumber(completedOrders),
       icon: CheckCircle,
       accent: "text-green-600",
       bg: "bg-green-50",
     },
     {
-      label: "Total Earnings",
+      label: t("stat_total_earnings"),
       value: formatCurrency(totalEarnings),
       icon: DollarSign,
       accent: "text-emerald-600",
       bg: "bg-emerald-50",
     },
     {
-      label: "Available Orders",
+      label: t("stat_available_orders"),
       value: formatNumber(availableOrders),
       icon: Briefcase,
       accent: "text-blue-600",
@@ -88,24 +91,24 @@ export default async function CreatorDashboardPage() {
 
   const quickActions = [
     {
-      label: "View Orders",
+      label: t("quick_action_view_orders"),
       href: "/creator/orders",
-      description: "Manage your active and past orders",
+      description: t("quick_action_view_orders_desc"),
     },
     {
-      label: "Browse Available",
+      label: t("quick_action_browse"),
       href: "/creator/orders?tab=available",
-      description: "Find new orders to work on",
+      description: t("quick_action_browse_desc"),
     },
     {
-      label: "My Profile",
+      label: t("quick_action_profile"),
       href: "/creator/profile",
-      description: "Update your creator profile",
+      description: t("quick_action_profile_desc"),
     },
     {
-      label: "Submit Ticket",
+      label: t("quick_action_ticket"),
       href: "/creator/tickets/new",
-      description: "Get help from the support team",
+      description: t("quick_action_ticket_desc"),
     },
   ];
 
@@ -114,10 +117,10 @@ export default async function CreatorDashboardPage() {
       {/* Welcome */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {session.user.name ?? "Creator"}
+          {t("dashboard_welcome", { name: session.user.name ?? "Creator" })}
         </h1>
         <p className="mt-1 text-gray-500">
-          Here&apos;s an overview of your creator activity.
+          {t("dashboard_subtitle")}
         </p>
       </div>
 
@@ -144,7 +147,7 @@ export default async function CreatorDashboardPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          Quick Actions
+          {t("quick_actions_title")}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((action) => (

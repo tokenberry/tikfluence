@@ -2,12 +2,15 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import RequestBrandForm from "./RequestBrandForm";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AgencyBrandsPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "AGENCY") redirect("/login");
+
+  const t = await getTranslations("agency");
 
   const agency = await prisma.agency.findUnique({
     where: { userId: session.user.id },
@@ -30,13 +33,13 @@ export default async function AgencyBrandsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Managed Brands</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("brands_title")}</h1>
         <RequestBrandForm />
       </div>
 
       {agencyBrands.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-          <p className="text-gray-500">No brands linked yet.</p>
+          <p className="text-gray-500">{t("brands_empty")}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">

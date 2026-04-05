@@ -4,12 +4,15 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import AcceptOrderButton from "./AcceptOrderButton";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
 export default async function CreatorOrdersPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  const t = await getTranslations("creator");
 
   const creator = await prisma.creator.findUnique({
     where: { userId: session.user.id },
@@ -52,13 +55,13 @@ export default async function CreatorOrdersPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("orders_title")}</h1>
 
       {/* My Accepted Orders */}
       <section>
-        <h2 className="mb-4 text-xl font-semibold text-gray-800">My Accepted Orders</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">{t("orders_my_accepted")}</h2>
         {myAssignments.length === 0 ? (
-          <p className="text-gray-500">You haven&apos;t accepted any orders yet.</p>
+          <p className="text-gray-500">{t("orders_no_accepted")}</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {myAssignments.map(({ order, status }) => (
@@ -86,9 +89,9 @@ export default async function CreatorOrdersPage() {
 
       {/* Available Orders */}
       <section>
-        <h2 className="mb-4 text-xl font-semibold text-gray-800">Available Orders</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">{t("orders_available_title")}</h2>
         {openOrders.length === 0 ? (
-          <p className="text-gray-500">No open orders available right now.</p>
+          <p className="text-gray-500">{t("orders_no_available")}</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {openOrders.map((order) => {
@@ -125,7 +128,7 @@ export default async function CreatorOrdersPage() {
                   </div>
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-xs text-gray-400">
-                      {order._count.assignments}/{order.maxCreators} creators
+                      {t("orders_creators_count", { current: order._count.assignments, max: order.maxCreators })}
                     </span>
                     {isLocked ? (
                       <span className="rounded-lg bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-500 cursor-not-allowed">

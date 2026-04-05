@@ -5,11 +5,13 @@ import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { registerSchema } from "@/lib/validations"
+import { useTranslations } from "next-intl"
 
 type Role = "CREATOR" | "NETWORK" | "BRAND" | "AGENCY"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const t = useTranslations("auth")
   const [role, setRole] = useState<Role>("CREATOR")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -91,33 +93,17 @@ export default function RegisterPage() {
 
       router.push("/login?registered=true")
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError(t("register_error_generic"))
     } finally {
       setLoading(false)
     }
   }
 
-  const roles: { value: Role; label: string; description: string }[] = [
-    {
-      value: "CREATOR",
-      label: "Creator",
-      description: "I create TikTok content",
-    },
-    {
-      value: "NETWORK",
-      label: "Creator Network",
-      description: "I manage multiple creators",
-    },
-    {
-      value: "BRAND",
-      label: "Brand",
-      description: "I want to promote my brand",
-    },
-    {
-      value: "AGENCY",
-      label: "Agency",
-      description: "I manage brands & creators",
-    },
+  const roles: { value: Role; labelKey: string; descKey: string }[] = [
+    { value: "CREATOR", labelKey: "register_role_creator", descKey: "register_role_creator_desc" },
+    { value: "NETWORK", labelKey: "register_role_network", descKey: "register_role_network_desc" },
+    { value: "BRAND", labelKey: "register_role_brand", descKey: "register_role_brand_desc" },
+    { value: "AGENCY", labelKey: "register_role_agency", descKey: "register_role_agency_desc" },
   ]
 
   const fieldError = (field: string) =>
@@ -128,9 +114,9 @@ export default function RegisterPage() {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Create an account</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("register_title")}</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Join Foxolog and start collaborating
+          {t("register_subtitle")}
         </p>
       </div>
 
@@ -144,7 +130,7 @@ export default function RegisterPage() {
         {/* Role selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            I am a...
+            {t("register_role_label")}
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {roles.map((r) => (
@@ -158,9 +144,9 @@ export default function RegisterPage() {
                     : "border-gray-200 text-gray-700 hover:border-gray-300"
                 }`}
               >
-                <span className="block text-sm font-medium">{r.label}</span>
+                <span className="block text-sm font-medium">{t(r.labelKey)}</span>
                 <span className="block text-xs text-gray-500 mt-0.5">
-                  {r.description}
+                  {t(r.descKey)}
                 </span>
               </button>
             ))}
@@ -173,7 +159,7 @@ export default function RegisterPage() {
             htmlFor="name"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Full Name
+            {t("register_name_label")}
           </label>
           <input
             id="name"
@@ -182,7 +168,7 @@ export default function RegisterPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="Your full name"
+            placeholder={t("register_name_placeholder")}
           />
           {fieldError("name")}
         </div>
@@ -192,7 +178,7 @@ export default function RegisterPage() {
             htmlFor="reg-email"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Email
+            {t("register_email_label")}
           </label>
           <input
             id="reg-email"
@@ -201,7 +187,7 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="you@example.com"
+            placeholder={t("register_email_placeholder")}
           />
           {fieldError("email")}
         </div>
@@ -211,7 +197,7 @@ export default function RegisterPage() {
             htmlFor="reg-password"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Password
+            {t("register_password_label")}
           </label>
           <input
             id="reg-password"
@@ -220,7 +206,7 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="At least 8 characters"
+            placeholder={t("register_password_placeholder")}
           />
           {fieldError("password")}
         </div>
@@ -233,7 +219,7 @@ export default function RegisterPage() {
                 htmlFor="tiktok"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                TikTok Username
+                {t("register_tiktok_label")}
               </label>
               <div className="flex">
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
@@ -246,14 +232,14 @@ export default function RegisterPage() {
                   value={tiktokUsername}
                   onChange={(e) => setTiktokUsername(e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-                  placeholder="your_tiktok_handle"
+                  placeholder={t("register_tiktok_placeholder")}
                 />
               </div>
               {fieldError("tiktokUsername")}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Content Types You Support
+                {t("register_content_types_label")}
               </label>
               <div className="flex gap-3">
                 <button
@@ -265,7 +251,7 @@ export default function RegisterPage() {
                       : "border-gray-200 text-gray-500 hover:border-gray-300"
                   }`}
                 >
-                  Short Video
+                  {t("register_content_type_short_video")}
                 </button>
                 <button
                   type="button"
@@ -276,13 +262,13 @@ export default function RegisterPage() {
                       : "border-gray-200 text-gray-500 hover:border-gray-300"
                   }`}
                 >
-                  LIVE Stream
+                  {t("register_content_type_live")}
                 </button>
               </div>
               {fieldErrors.supportsShortVideo ? (
                 <p className="mt-1 text-xs text-red-600">{fieldErrors.supportsShortVideo}</p>
               ) : (
-                <p className="mt-1 text-xs text-gray-400">Select at least one content type</p>
+                <p className="mt-1 text-xs text-gray-400">{t("register_content_type_hint")}</p>
               )}
             </div>
           </>
@@ -294,7 +280,7 @@ export default function RegisterPage() {
               htmlFor="company-network"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Company Name
+              {t("register_network_company_label")}
             </label>
             <input
               id="company-network"
@@ -303,7 +289,7 @@ export default function RegisterPage() {
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-              placeholder="Your network's company name"
+              placeholder={t("register_network_company_placeholder")}
             />
             {fieldError("companyName")}
           </div>
@@ -316,7 +302,7 @@ export default function RegisterPage() {
                 htmlFor="company-brand"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Company Name
+                {t("register_brand_company_label")}
               </label>
               <input
                 id="company-brand"
@@ -325,7 +311,7 @@ export default function RegisterPage() {
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-                placeholder="Your brand's company name"
+                placeholder={t("register_brand_company_placeholder")}
               />
               {fieldError("companyName")}
             </div>
@@ -334,7 +320,7 @@ export default function RegisterPage() {
                 htmlFor="industry"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Industry
+                {t("register_brand_industry_label")}
               </label>
               <input
                 id="industry"
@@ -342,7 +328,7 @@ export default function RegisterPage() {
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-                placeholder="e.g. Fashion, Tech, Food"
+                placeholder={t("register_brand_industry_placeholder")}
               />
             </div>
           </>
@@ -355,7 +341,7 @@ export default function RegisterPage() {
                 htmlFor="company-agency"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Agency Name
+                {t("register_agency_name_label")}
               </label>
               <input
                 id="company-agency"
@@ -364,7 +350,7 @@ export default function RegisterPage() {
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-                placeholder="Your agency's name"
+                placeholder={t("register_agency_name_placeholder")}
               />
               {fieldError("companyName")}
             </div>
@@ -373,7 +359,7 @@ export default function RegisterPage() {
                 htmlFor="agency-website"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Website
+                {t("register_agency_website_label")}
               </label>
               <input
                 id="agency-website"
@@ -381,7 +367,7 @@ export default function RegisterPage() {
                 value={agencyWebsite}
                 onChange={(e) => setAgencyWebsite(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-                placeholder="https://youragency.com"
+                placeholder={t("register_agency_website_placeholder")}
               />
               {fieldError("agencyWebsite")}
             </div>
@@ -393,7 +379,7 @@ export default function RegisterPage() {
           disabled={loading}
           className="w-full py-2 px-4 bg-[#d4772c] text-white text-sm font-medium rounded-md hover:bg-[#b85c1a] focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? "Creating account..." : "Create account"}
+          {loading ? t("register_submit_loading") : t("register_submit")}
         </button>
       </form>
 
@@ -402,7 +388,7 @@ export default function RegisterPage() {
           <div className="w-full border-t border-gray-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-400">or</span>
+          <span className="bg-white px-2 text-gray-400">{t("register_divider")}</span>
         </div>
       </div>
 
@@ -429,7 +415,7 @@ export default function RegisterPage() {
             fill="#EA4335"
           />
         </svg>
-        Sign up with Google
+        {t("register_google")}
       </button>
 
       <button
@@ -440,16 +426,16 @@ export default function RegisterPage() {
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
           <path d="M16.6 5.82s.51.5 0 0A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" fill="currentColor"/>
         </svg>
-        Sign up with TikTok
+        {t("register_tiktok")}
       </button>
 
       <p className="mt-6 text-center text-sm text-gray-500">
-        Already have an account?{" "}
+        {t("register_has_account")}{" "}
         <Link
           href="/login"
           className="text-[#d4772c] hover:text-[#c86b1e] font-medium"
         >
-          Sign in
+          {t("register_signin_link")}
         </Link>
       </p>
     </div>

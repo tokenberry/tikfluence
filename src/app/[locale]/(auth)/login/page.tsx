@@ -4,9 +4,11 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 export default function LoginPage() {
   const router = useRouter()
+  const t = useTranslations("auth")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -25,13 +27,13 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError("Invalid email or password")
+        setError(t("login_error_invalid"))
       } else {
         router.push("/dashboard")
         router.refresh()
       }
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError(t("login_error_generic"))
     } finally {
       setLoading(false)
     }
@@ -40,9 +42,9 @@ export default function LoginPage() {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("login_title")}</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Sign in to your Foxolog account
+          {t("login_subtitle")}
         </p>
       </div>
 
@@ -58,7 +60,7 @@ export default function LoginPage() {
             htmlFor="email"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Email
+            {t("login_email_label")}
           </label>
           <input
             id="email"
@@ -67,7 +69,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="you@example.com"
+            placeholder={t("login_email_placeholder")}
           />
         </div>
 
@@ -76,7 +78,7 @@ export default function LoginPage() {
             htmlFor="password"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Password
+            {t("login_password_label")}
           </label>
           <input
             id="password"
@@ -85,7 +87,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
-            placeholder="Enter your password"
+            placeholder={t("login_password_placeholder")}
           />
         </div>
 
@@ -94,7 +96,7 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full py-2 px-4 bg-[#d4772c] text-white text-sm font-medium rounded-md hover:bg-[#b85c1a] focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? t("login_submit_loading") : t("login_submit")}
         </button>
       </form>
 
@@ -103,7 +105,7 @@ export default function LoginPage() {
           <div className="w-full border-t border-gray-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-400">or</span>
+          <span className="bg-white px-2 text-gray-400">{t("login_divider")}</span>
         </div>
       </div>
 
@@ -130,7 +132,7 @@ export default function LoginPage() {
             fill="#EA4335"
           />
         </svg>
-        Sign in with Google
+        {t("login_google")}
       </button>
 
       <button
@@ -141,16 +143,16 @@ export default function LoginPage() {
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
           <path d="M16.6 5.82s.51.5 0 0A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" fill="currentColor"/>
         </svg>
-        Sign in with TikTok
+        {t("login_tiktok")}
       </button>
 
       <p className="mt-6 text-center text-sm text-gray-500">
-        Don&apos;t have an account?{" "}
+        {t("login_no_account")}{" "}
         <Link
           href="/register"
           className="text-[#d4772c] hover:text-[#c86b1e] font-medium"
         >
-          Register
+          {t("login_register_link")}
         </Link>
       </p>
     </div>

@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 import { FileText } from "lucide-react";
 import OrderStatusFilter from "./OrderStatusFilter";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
@@ -17,6 +18,8 @@ export default async function BrandOrdersPage({
   const { status } = await searchParams;
   const session = await auth();
   if (!session?.user) redirect("/login");
+
+  const t = await getTranslations("brand");
 
   const brand = await prisma.brand.findUnique({
     where: { userId: session.user.id },
@@ -47,12 +50,12 @@ export default async function BrandOrdersPage({
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("orders_title")}</h1>
         <a
           href="/brand/orders/new"
           className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"
         >
-          Create New Order
+          {t("orders_create")}
         </a>
       </div>
 
@@ -60,10 +63,10 @@ export default async function BrandOrdersPage({
 
       {orders.length === 0 ? (
         <EmptyState
-          title="No orders found"
-          description="Create your first order to get started"
+          title={t("orders_empty_title")}
+          description={t("orders_empty_desc")}
           icon={<FileText className="h-6 w-6" />}
-          action={<a href="/brand/orders/new" className="inline-block rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]">Create New Order</a>}
+          action={<a href="/brand/orders/new" className="inline-block rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]">{t("orders_create")}</a>}
         />
       ) : (
         <div className="space-y-4">

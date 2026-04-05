@@ -8,6 +8,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
 import { Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CreatorResult {
   id: string;
@@ -25,6 +26,8 @@ interface CreatorResult {
 }
 
 export default function BrowseCreatorsPage() {
+  const t = useTranslations("brand");
+  const tCommon = useTranslations("common");
   const [creators, setCreators] = useState<CreatorResult[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [search, setSearch] = useState("");
@@ -75,7 +78,7 @@ export default function BrowseCreatorsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Browse Creators</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("browse_title")}</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -83,7 +86,7 @@ export default function BrowseCreatorsPage() {
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Search by name..."
+          placeholder={t("browse_search")}
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <select
@@ -104,11 +107,11 @@ export default function BrowseCreatorsPage() {
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Tiers</option>
-          <option value="1">Bronze</option>
-          <option value="2">Silver</option>
-          <option value="3">Gold</option>
-          <option value="4">Platinum</option>
-          <option value="5">Diamond</option>
+          <option value="1">{tCommon("tier_bronze")}</option>
+          <option value="2">{tCommon("tier_silver")}</option>
+          <option value="3">{tCommon("tier_gold")}</option>
+          <option value="4">{tCommon("tier_platinum")}</option>
+          <option value="5">{tCommon("tier_diamond")}</option>
         </select>
         <select
           value={contentFilter}
@@ -116,8 +119,8 @@ export default function BrowseCreatorsPage() {
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
           <option value="">All Content Types</option>
-          <option value="video">Short Video</option>
-          <option value="live">LIVE Stream</option>
+          <option value="video">{tCommon("order_type_short_video")}</option>
+          <option value="live">{tCommon("order_type_live")} Stream</option>
         </select>
       </div>
 
@@ -125,7 +128,7 @@ export default function BrowseCreatorsPage() {
       {loading ? (
         <LoadingSpinner message="Loading creators..." />
       ) : creators.length === 0 ? (
-        <EmptyState title="No creators found" description="Try adjusting your search or filters" icon={<Users className="h-6 w-6" />} />
+        <EmptyState title={t("browse_empty_title")} description={t("browse_empty_desc")} icon={<Users className="h-6 w-6" />} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {creators.map((creator) => {

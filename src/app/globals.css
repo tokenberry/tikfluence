@@ -184,6 +184,41 @@
   opacity: 1;
 }
 
+/* ── RTL Support ──────────────────────────────────────────────────── */
+
+[dir="rtl"] .space-x-4 > :not(:first-child) {
+  margin-right: 1rem;
+  margin-left: 0;
+}
+
+/* Flip mobile sidebar for RTL */
+[dir="rtl"] .fixed.inset-y-0.left-0 {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .-translate-x-full {
+  --tw-translate-x: 100%;
+}
+
+[dir="rtl"] .translate-x-0 {
+  --tw-translate-x: 0;
+}
+
+/* Flip arrow transitions for RTL */
+[dir="rtl"] .group-hover\:translate-x-0\.5 {
+  --tw-translate-x: -0.125rem;
+}
+
+/* Ensure text alignment for RTL */
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }

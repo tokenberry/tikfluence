@@ -754,4 +754,44 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 5, 2026 (v1.9.4)*
+**v1.9.4 → v2.0.0 — Full Multi-Language i18n & RTL Support**
+
+**1. i18n Infrastructure (next-intl v4):**
+- Installed `next-intl` v4 with `[locale]` dynamic route segment pattern
+- All pages moved under `src/app/[locale]/` with locale-aware routing
+- Middleware (`src/middleware.ts`) detects locale from Accept-Language header, cookies, and URL prefix
+- `localePrefix: "as-needed"` — English has no prefix, others get `/ar/`, `/tr/`, `/fr/`, `/es/`
+- Language switcher component in Navbar for runtime locale switching
+- Default locale locked to user preferences via cookie persistence
+
+**2. Full Translation Files (5 languages, 660 keys each):**
+- `messages/en.json` — English (source, 18 namespaces, 660 keys)
+- `messages/ar.json` — Arabic (full translation)
+- `messages/tr.json` — Turkish (full translation)
+- `messages/fr.json` — French (full translation)
+- `messages/es.json` — Spanish (full translation)
+- Namespaces: landing, auth, nav, sidebar, notifications, common, errors, creator, brand, network, agency, admin, orders, tickets, verification, ai, browse, deck
+
+**3. All Pages Wired with Translation Hooks:**
+- 55+ page/component files wired with `useTranslations()` (client) or `getTranslations()` (server)
+- Landing page, auth (login/register/onboarding), error/not-found pages
+- All dashboard pages: creator, brand, network, agency, admin, account-manager
+- All order detail pages, browse pages, earnings pages, settings pages
+- Shared components: Navbar, Sidebar, NotificationBell, TicketsList, NewTicketForm
+- Deck (presentation) page fully translated
+
+**4. RTL Support for Arabic:**
+- `dir="rtl"` attribute set dynamically on layout based on locale
+- RTL CSS overrides in `globals.css` for sidebar positioning, text alignment, arrow transitions
+- Automatic layout flip for Arabic locale
+
+**5. Version Bump:**
+- Version bumped from 1.9.4 → 2.0.0 in `package.json`, `package-lock.json`, and `src/lib/constants.ts`
+
+**Files created:** `messages/ar.json`, `messages/tr.json`, `messages/fr.json`, `messages/es.json`, `src/components/layout/LanguageSwitcher.tsx`
+
+**Files modified:** 55+ files across `src/app/[locale]/`, `src/components/`, `messages/en.json`, `src/middleware.ts`, `src/app/globals.css`, `src/lib/constants.ts`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+---
+
+*Last updated: April 5, 2026 (v2.0.0)*

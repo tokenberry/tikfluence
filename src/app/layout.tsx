@@ -1,7 +1,5 @@
 import type { Metadata } from "next"
 import "./globals.css"
-import Providers from "@/app/providers"
-import Navbar from "@/components/layout/Navbar"
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.foxolog.com"
 const SITE_NAME = "Foxolog"
@@ -141,7 +139,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html className="h-full antialiased" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -149,10 +147,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        <Providers>
-          <Navbar />
-          <div className="flex-1">{children}</div>
-        </Providers>
+        {children}
       </body>
     </html>
   )

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 interface Notification {
   id: string;
@@ -17,6 +18,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("notifications");
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -92,12 +94,12 @@ export default function NotificationBell() {
   function timeAgo(dateStr: string) {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return t("just_now");
+    if (mins < 60) return t("minutes_ago", { count: mins });
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return t("hours_ago", { count: hours });
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return t("days_ago", { count: days });
   }
 
   return (
@@ -105,7 +107,7 @@ export default function NotificationBell() {
       <button
         onClick={() => setOpen(!open)}
         className="relative rounded-full p-1.5 text-gray-300 hover:text-white transition-colors"
-        aria-label="Notifications"
+        aria-label={t("title")}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -131,20 +133,20 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-lg">
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-            <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{t("title")}</h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
                 className="text-xs text-[#d4772c] hover:text-[#b8632a]"
               >
-                Mark all read
+                {t("mark_all_read")}
               </button>
             )}
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-gray-500">
-                No notifications yet
+                {t("no_notifications")}
               </p>
             ) : (
               notifications.map((n) => (

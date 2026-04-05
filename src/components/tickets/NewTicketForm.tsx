@@ -4,8 +4,10 @@ import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ticketSchema } from "@/lib/validations"
+import { useTranslations } from "next-intl"
 
 function NewTicketFormInner({ basePath }: { basePath: string }) {
+  const t = useTranslations("tickets")
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderTitle = searchParams.get("orderTitle")
@@ -66,10 +68,10 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
           href={basePath}
           className="text-sm text-gray-500 hover:text-gray-700"
         >
-          &larr; Back to tickets
+          &larr; {t("back_to_tickets")}
         </Link>
         <h1 className="mt-2 text-3xl font-bold text-gray-900">
-          New Support Ticket
+          {t("new_ticket_title")}
         </h1>
       </div>
 
@@ -88,7 +90,7 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
             htmlFor="subject"
             className="block text-sm font-medium text-gray-700"
           >
-            Subject
+            {t("subject_label")}
           </label>
           <input
             id="subject"
@@ -96,7 +98,7 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
             required
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Brief summary of your issue"
+            placeholder={t("subject_placeholder")}
             className={inputClass}
           />
           {fieldErrors.subject && (
@@ -109,7 +111,7 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
             htmlFor="description"
             className="block text-sm font-medium text-gray-700"
           >
-            Description
+            {t("description_label")}
           </label>
           <textarea
             id="description"
@@ -117,7 +119,7 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
             rows={6}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe your issue in detail..."
+            placeholder={t("description_placeholder")}
             className={inputClass}
           />
           {fieldErrors.description && (
@@ -130,14 +132,14 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
             href={basePath}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Cancel
+            {t("cancel")}
           </Link>
           <button
             type="submit"
             disabled={submitting}
             className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
           >
-            {submitting ? "Submitting..." : "Submit Ticket"}
+            {submitting ? t("submitting") : t("submit")}
           </button>
         </div>
       </form>

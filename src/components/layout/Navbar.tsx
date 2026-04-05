@@ -4,7 +4,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import NotificationBell from "./NotificationBell"
+import LanguageSwitcher from "./LanguageSwitcher"
 
 const roleDashboardPath: Record<string, string> = {
   CREATOR: "/creator",
@@ -29,6 +31,7 @@ export default function Navbar() {
   const { data: session, status } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const t = useTranslations("nav")
 
   const role = session?.user?.role ?? ""
   const dashboardHref = roleDashboardPath[role] || "/"
@@ -43,8 +46,8 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white">
-            <img src="/fox-logo.png" alt="Foxolog" className="h-8 w-8 rounded-full" />
-            Foxolog
+            <img src="/fox-logo.png" alt={t("app_name")} className="h-8 w-8 rounded-full" />
+            {t("app_name")}
           </Link>
 
           {/* Desktop nav */}
@@ -55,8 +58,11 @@ export default function Navbar() {
                   href={dashboardHref}
                   className="text-sm font-medium text-gray-300 hover:text-[#d4772c] transition-colors"
                 >
-                  Dashboard
+                  {t("dashboard")}
                 </Link>
+
+                {/* Language switcher */}
+                <LanguageSwitcher />
 
                 {/* Notifications */}
                 <NotificationBell />
@@ -83,13 +89,13 @@ export default function Navbar() {
                         onClick={() => setUserMenuOpen(false)}
                         className="block w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
                       >
-                        Settings
+                        {t("settings")}
                       </Link>
                       <button
                         onClick={() => signOut({ callbackUrl: "/" })}
                         className="w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
                       >
-                        Sign out
+                        {t("sign_out")}
                       </button>
                     </div>
                   )}
@@ -99,17 +105,18 @@ export default function Navbar() {
 
             {status === "unauthenticated" && (
               <div className="flex items-center gap-3">
+                <LanguageSwitcher />
                 <Link
                   href="/login"
                   className="text-sm font-medium text-gray-300 hover:text-[#d4772c]"
                 >
-                  Login
+                  {t("login")}
                 </Link>
                 <Link
                   href="/register"
                   className="text-sm font-medium text-white bg-[#d4772c] hover:bg-[#c86b1e] px-4 py-2 rounded-md transition-colors"
                 >
-                  Register
+                  {t("register")}
                 </Link>
               </div>
             )}
@@ -119,7 +126,7 @@ export default function Navbar() {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-md text-white/60 hover:bg-white/5"
-            aria-label="Toggle menu"
+            aria-label={t("toggle_menu")}
           >
             <svg
               className="w-6 h-6"
@@ -164,20 +171,20 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className="block text-sm font-medium text-white/60 hover:text-[#d4772c] py-1"
                 >
-                  Dashboard
+                  {t("dashboard")}
                 </Link>
                 <Link
                   href={settingsHref}
                   onClick={() => setMobileOpen(false)}
                   className="block text-sm font-medium text-white/60 hover:text-[#d4772c] py-1"
                 >
-                  Settings
+                  {t("settings")}
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="block w-full text-left text-sm font-medium text-red-400 hover:text-red-300 py-1 mt-2"
                 >
-                  Sign out
+                  {t("sign_out")}
                 </button>
               </>
             )}
@@ -189,14 +196,14 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className="block text-sm font-medium text-white/60 hover:text-white py-1"
                 >
-                  Login
+                  {t("login")}
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileOpen(false)}
                   className="block text-sm font-medium text-[#d4772c] hover:text-[#e8883a] py-1"
                 >
-                  Register
+                  {t("register")}
                 </Link>
               </>
             )}

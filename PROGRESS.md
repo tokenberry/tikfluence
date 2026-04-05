@@ -204,6 +204,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.9.1 | 2026-04-04 | Feat: Landing page redesign — dark + glowy (#0a0a0a) theme with Framer Motion scroll animations, gradient text, animated stat counters, interactive glow cards with cursor-following radial gradient, social proof bar, brand/creator split section. Full rebrand Tikfluence → Foxolog across all pages. |
 | 1.9.2 | 2026-04-04 | Feat: Dark chrome dashboard theme — sidebar, navbar, and mobile header updated to #0a0a0a with orange glow active states, matching the landing page aesthetic. Content areas remain light for readability. |
 | 1.9.3 | 2026-04-05 | Feat: Password-protected presentation deck at /deck — 10-slide partner/client deck with Framer Motion transitions, keyboard navigation, progress dots, session-based password gate. Slides: Cover, Problem, Insider Insight, Solution, How It Works, Market, Why Now, Features, Global Vision, CTA. |
+| 1.9.4 | 2026-04-05 | Feat: SEO & AI search optimization — comprehensive metadata (OG, Twitter Cards, 20 keywords), JSON-LD structured data (Organization + WebApplication + WebSite), dynamic OG image via ImageResponse, sitemap.ts, robots.ts, per-page metadata for login/register |
 
 ---
 
@@ -753,4 +754,4 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 5, 2026 (v1.9.3)*
+*Last updated: April 5, 2026 (v1.9.4)*

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
 import NotificationBell from "./NotificationBell"
+import LanguageSwitcher from "./LanguageSwitcher"
 
 const roleDashboardPath: Record<string, string> = {
   CREATOR: "/creator",
@@ -58,6 +59,9 @@ export default function Navbar() {
                   Dashboard
                 </Link>
 
+                {/* Language switcher */}
+                <LanguageSwitcher />
+
                 {/* Notifications */}
                 <NotificationBell />
 
@@ -99,6 +103,7 @@ export default function Navbar() {
 
             {status === "unauthenticated" && (
               <div className="flex items-center gap-3">
+                <LanguageSwitcher />
                 <Link
                   href="/login"
                   className="text-sm font-medium text-gray-300 hover:text-[#d4772c]"

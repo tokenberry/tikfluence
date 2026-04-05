@@ -2,11 +2,14 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { TicketStatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminTicketsPage() {
+  const t = await getTranslations("admin");
+  const tTickets = await getTranslations("tickets");
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/login");
 
@@ -20,19 +23,19 @@ export default async function AdminTicketsPage() {
   });
 
   const priorityLabels: Record<number, { label: string; color: string }> = {
-    0: { label: "Low", color: "text-gray-500" },
-    1: { label: "Medium", color: "text-yellow-600" },
-    2: { label: "High", color: "text-orange-600" },
-    3: { label: "Critical", color: "text-red-600" },
+    0: { label: tTickets("priority_low"), color: "text-gray-500" },
+    1: { label: tTickets("priority_medium"), color: "text-yellow-600" },
+    2: { label: tTickets("priority_high"), color: "text-orange-600" },
+    3: { label: tTickets("priority_critical"), color: "text-red-600" },
   };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Support Tickets</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("tickets_title")}</h1>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         {tickets.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No tickets yet.</div>
+          <div className="p-8 text-center text-gray-500">{t("tickets_empty")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

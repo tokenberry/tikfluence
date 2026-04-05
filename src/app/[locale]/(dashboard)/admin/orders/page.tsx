@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -30,6 +31,7 @@ const statuses = [
 ];
 
 export default function AdminOrdersPage() {
+  const t = useTranslations("admin");
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">All Orders</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("orders_title")}</h1>
 
       <div className="flex flex-wrap gap-2">
         {statuses.map((s) => (
@@ -70,7 +72,7 @@ export default function AdminOrdersPage() {
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {s || "ALL"}
+            {s || t("orders_filter_all")}
           </button>
         ))}
       </div>
@@ -79,7 +81,7 @@ export default function AdminOrdersPage() {
         {loading ? (
           <LoadingSpinner message="Loading orders..." />
         ) : orders.length === 0 ? (
-          <EmptyState title="No orders found" description="Try adjusting your filters" icon={<FileText className="h-6 w-6" />} />
+          <EmptyState title={t("orders_empty_title")} description={t("orders_empty_desc")} icon={<FileText className="h-6 w-6" />} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

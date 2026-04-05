@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { useTranslations } from "next-intl";
 
 export default function DeliveryActions({
   deliveryId,
@@ -13,6 +14,7 @@ export default function DeliveryActions({
 }) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("orders");
   const [loading, setLoading] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const [reason, setReason] = useState("");
@@ -26,7 +28,7 @@ export default function DeliveryActions({
         body: JSON.stringify({ approved: true }),
       });
       if (res.ok) {
-        toast("success", "Delivery approved.");
+        toast("success", t("delivery_approved_toast"));
         router.refresh();
       } else {
         toast("error", "Failed to approve delivery.");
@@ -40,7 +42,7 @@ export default function DeliveryActions({
 
   async function handleReject() {
     if (!reason.trim()) {
-      toast("error", "Please provide a rejection reason.");
+      toast("error", t("delivery_rejection_required"));
       return;
     }
     setLoading(true);
@@ -51,7 +53,7 @@ export default function DeliveryActions({
         body: JSON.stringify({ approved: false, rejectionReason: reason }),
       });
       if (res.ok) {
-        toast("info", "Delivery sent back for revision.");
+        toast("info", t("delivery_rejected_toast"));
         router.refresh();
       } else {
         toast("error", "Failed to reject delivery.");
@@ -69,7 +71,7 @@ export default function DeliveryActions({
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Rejection reason..."
+          placeholder={t("delivery_rejection_placeholder")}
           rows={2}
           className="w-48 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
@@ -85,7 +87,7 @@ export default function DeliveryActions({
             disabled={loading}
             className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
-            Confirm Reject
+            {t("delivery_confirm_reject")}
           </button>
         </div>
       </div>
@@ -99,14 +101,14 @@ export default function DeliveryActions({
         disabled={loading}
         className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
       >
-        Approve
+        {t("delivery_approve")}
       </button>
       <button
         onClick={() => setShowReject(true)}
         disabled={loading}
         className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
       >
-        Reject
+        {t("delivery_reject")}
       </button>
     </div>
   );

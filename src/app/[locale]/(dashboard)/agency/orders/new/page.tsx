@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
+import { useTranslations } from "next-intl";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 
@@ -39,6 +40,7 @@ const ORDER_TYPES: { value: OrderType; label: string; description: string; icon:
 ];
 
 export default function AgencyNewOrderPage() {
+  const t = useTranslations("agency");
   const router = useRouter();
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -141,7 +143,7 @@ export default function AgencyNewOrderPage() {
         <a href="/agency/orders" className="text-gray-500 hover:text-gray-700">
           &larr; Back
         </a>
-        <h1 className="text-3xl font-bold text-gray-900">Create Order for Brand</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("new_order_title")}</h1>
       </div>
 
       <form
@@ -150,14 +152,14 @@ export default function AgencyNewOrderPage() {
       >
         {/* Brand Selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Brand *</label>
+          <label className="block text-sm font-medium text-gray-700">{t("new_order_brand_label")}</label>
           <select
             required
             value={selectedBrandId}
             onChange={(e) => setSelectedBrandId(e.target.value)}
             className={inputClasses}
           >
-            <option value="">Select a brand</option>
+            <option value="">{t("new_order_brand_placeholder")}</option>
             {brands.map((ab) => (
               <option key={ab.brand.id} value={ab.brand.id}>
                 {ab.brand.companyName}

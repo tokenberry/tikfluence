@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import AdminOrderActions from "./AdminOrderActions";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
@@ -14,6 +15,8 @@ export default async function AdminOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const t = await getTranslations("orders");
+  const tAdmin = await getTranslations("admin");
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/login");
 
@@ -40,7 +43,7 @@ export default async function AdminOrderDetailPage({
   if (!order) {
     return (
       <div className="p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Order Not Found</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("order_not_found")}</h1>
       </div>
     );
   }
@@ -59,7 +62,7 @@ export default async function AdminOrderDetailPage({
     <div className="mx-auto max-w-4xl space-y-8 p-6">
       <div className="flex items-center gap-4">
         <a href="/admin/orders" className="text-gray-500 hover:text-gray-700">
-          &larr; Back to Orders
+          &larr; {t("back_to_orders")}
         </a>
       </div>
 
@@ -71,7 +74,7 @@ export default async function AdminOrderDetailPage({
             <OrderTypeBadge type={order.type} />
           </div>
           <p className="mt-1 text-sm text-gray-500">
-            {order.category.name} &middot; Created {new Date(order.createdAt).toLocaleDateString()}
+            {order.category.name} &middot; {t("created_label")} {new Date(order.createdAt).toLocaleDateString()}
           </p>
         </div>
         <StatusBadge status={order.status} />
@@ -85,15 +88,15 @@ export default async function AdminOrderDetailPage({
         {(order.type === "SHORT_VIDEO" || order.type === "COMBO") && (
           <>
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <p className="text-sm text-gray-500">Impressions</p>
+              <p className="text-sm text-gray-500">{t("impressions_label")}</p>
               <p className="mt-1 text-lg font-semibold text-gray-900">{formatNumber(order.impressionTarget)}</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <p className="text-sm text-gray-500">Budget</p>
+              <p className="text-sm text-gray-500">{t("budget_label")}</p>
               <p className="mt-1 text-lg font-semibold text-gray-900">{formatCurrency(order.budget)}</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <p className="text-sm text-gray-500">CPM Rate</p>
+              <p className="text-sm text-gray-500">{t("cpm_label")}</p>
               <p className="mt-1 text-lg font-semibold text-gray-900">{formatCurrency(order.cpmRate)}</p>
             </div>
           </>
@@ -101,48 +104,48 @@ export default async function AdminOrderDetailPage({
         {(order.type === "LIVE" || order.type === "COMBO") && (
           <>
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <p className="text-sm text-gray-500">LIVE Fee</p>
+              <p className="text-sm text-gray-500">{t("live_fee_label")}</p>
               <p className="mt-1 text-lg font-semibold text-gray-900">{formatCurrency(order.liveFlatFee ?? 0)}</p>
             </div>
             {order.liveMinDuration && (
               <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                <p className="text-sm text-gray-500">Min Duration</p>
+                <p className="text-sm text-gray-500">{t("min_duration_label")}</p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">{order.liveMinDuration} min</p>
               </div>
             )}
           </>
         )}
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Max Creators</p>
+          <p className="text-sm text-gray-500">{t("max_creators_label")}</p>
           <p className="mt-1 text-lg font-semibold text-gray-900">{order.maxCreators}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Payment</p>
+          <p className="text-sm text-gray-500">{t("payment_label")}</p>
           <p className="mt-1 text-lg font-semibold text-gray-900">{order.paymentStatus}</p>
         </div>
         <div className={`rounded-lg border p-4 shadow-sm ${isOverdue ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"}`}>
-          <p className="text-sm text-gray-500">Deadline</p>
+          <p className="text-sm text-gray-500">{t("deadline_label")}</p>
           <p className={`mt-1 text-lg font-semibold ${isOverdue ? "text-red-600" : "text-gray-900"}`}>
-            {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "None"}
+            {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : t("no_deadline")}
           </p>
-          {isOverdue && <p className="text-xs font-medium text-red-500">Overdue</p>}
+          {isOverdue && <p className="text-xs font-medium text-red-500">{t("overdue")}</p>}
         </div>
       </div>
 
       {/* Brand Info */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Brand</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t("brand_heading")}</h2>
         <p className="mt-2 text-gray-600">{order.brand.companyName}</p>
         <p className="text-sm text-gray-500">{order.brand.user.email}</p>
       </div>
 
       {/* Description */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Description</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t("description_heading")}</h2>
         <p className="mt-2 text-gray-600">{order.description}</p>
         {order.brief && (
           <>
-            <h3 className="mt-4 text-sm font-semibold text-gray-700">Brief</h3>
+            <h3 className="mt-4 text-sm font-semibold text-gray-700">{t("brief_heading")}</h3>
             <p className="mt-1 whitespace-pre-wrap text-gray-600">{order.brief}</p>
           </>
         )}
@@ -151,14 +154,14 @@ export default async function AdminOrderDetailPage({
       {/* LIVE Content Guidelines */}
       {(order.type === "LIVE" || order.type === "COMBO") && order.liveGuidelines && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-          <h3 className="text-sm font-semibold text-amber-800">LIVE Content Guidelines</h3>
+          <h3 className="text-sm font-semibold text-amber-800">{t("live_content_guidelines")}</h3>
           <p className="mt-1 text-sm text-amber-700 whitespace-pre-wrap">{order.liveGuidelines}</p>
         </div>
       )}
 
       {/* Timeline */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Order Timeline</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("order_timeline")}</h2>
         <div className="flex flex-wrap items-center justify-between gap-y-3">
           {statusSteps.map((step, i) => {
             const isActive = i <= currentIndex;
@@ -187,9 +190,9 @@ export default async function AdminOrderDetailPage({
 
       {/* Assigned Creators */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Assigned Creators</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("assigned_creators")}</h2>
         {order.assignments.length === 0 ? (
-          <p className="text-gray-500">No creators assigned yet.</p>
+          <p className="text-gray-500">{t("no_creators_assigned")}</p>
         ) : (
           <div className="space-y-3">
             {order.assignments.map((assignment) => (
@@ -224,9 +227,9 @@ export default async function AdminOrderDetailPage({
 
       {/* Deliveries */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Deliveries</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("deliveries")}</h2>
         {order.deliveries.length === 0 ? (
-          <p className="text-gray-500">No deliveries submitted yet.</p>
+          <p className="text-gray-500">{t("no_deliveries")}</p>
         ) : (
           <div className="space-y-4">
             {order.deliveries.map((delivery) => (
@@ -314,7 +317,7 @@ export default async function AdminOrderDetailPage({
       {/* Transactions */}
       {order.transactions.length > 0 && (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Transactions</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("transactions_heading")}</h2>
           <div className="space-y-3">
             {order.transactions.map((tx) => (
               <div

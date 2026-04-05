@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
@@ -15,6 +16,8 @@ export default async function NetworkOrdersPage() {
   });
 
   if (!network) redirect("/network/creators");
+
+  const t = await getTranslations("network");
 
   const assignments = await prisma.orderAssignment.findMany({
     where: {
@@ -41,11 +44,11 @@ export default async function NetworkOrdersPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Network Orders</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("orders_title")}</h1>
 
       {assignments.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-          <p className="text-gray-500">No orders associated with your network yet.</p>
+          <p className="text-gray-500">{t("orders_empty")}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

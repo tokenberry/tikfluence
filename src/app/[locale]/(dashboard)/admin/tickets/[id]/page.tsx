@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { TicketStatusBadge } from "@/components/ui/Badge"
 
 interface TicketMessage {
@@ -23,15 +24,17 @@ interface Ticket {
   messages: TicketMessage[]
 }
 
-const priorityLabels: Record<number, { label: string; color: string }> = {
-  0: { label: "Low", color: "text-gray-500" },
-  1: { label: "Medium", color: "text-yellow-600" },
-  2: { label: "High", color: "text-orange-600" },
-  3: { label: "Critical", color: "text-red-600" },
-}
-
 export default function AdminTicketDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const t = useTranslations("tickets")
+
+  const priorityLabels: Record<number, { label: string; color: string }> = {
+    0: { label: t("priority_low"), color: "text-gray-500" },
+    1: { label: t("priority_medium"), color: "text-yellow-600" },
+    2: { label: t("priority_high"), color: "text-orange-600" },
+    3: { label: t("priority_critical"), color: "text-red-600" },
+  }
+
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [loading, setLoading] = useState(true)
   const [newMessage, setNewMessage] = useState("")
@@ -133,8 +136,7 @@ export default function AdminTicketDetailPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{ticket.subject}</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Opened by {ticket.creator.name} ({ticket.creator.email}) on{" "}
-            {new Date(ticket.createdAt).toLocaleDateString()}
+            {t("opened_by", { name: ticket.creator.name, email: ticket.creator.email, date: new Date(ticket.createdAt).toLocaleDateString() })}
           </p>
         </div>
         <TicketStatusBadge status={ticket.status} />
@@ -149,7 +151,7 @@ export default function AdminTicketDetailPage() {
       {/* Admin Controls */}
       <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">{t("status_label")}</label>
           <select
             value={ticket.status}
             onChange={(e) => handleStatusChange(e.target.value)}
@@ -163,21 +165,21 @@ export default function AdminTicketDetailPage() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Priority</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">{t("priority_label")}</label>
           <select
             value={ticket.priority}
             onChange={(e) => handlePriorityChange(Number(e.target.value))}
             disabled={updating}
             className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
           >
-            <option value={0}>Low</option>
-            <option value={1}>Medium</option>
-            <option value={2}>High</option>
-            <option value={3}>Critical</option>
+            <option value={0}>{t("priority_low")}</option>
+            <option value={1}>{t("priority_medium")}</option>
+            <option value={2}>{t("priority_high")}</option>
+            <option value={3}>{t("priority_critical")}</option>
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Priority Level</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">{t("priority_label")}</label>
           <span className={`text-sm font-medium ${priority.color}`}>{priority.label}</span>
         </div>
       </div>
@@ -186,12 +188,12 @@ export default function AdminTicketDetailPage() {
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 px-6 py-3">
           <h2 className="text-sm font-semibold text-gray-700">
-            Messages ({ticket.messages.length})
+            {t("messages_heading")} ({ticket.messages.length})
           </h2>
         </div>
 
         {ticket.messages.length === 0 ? (
-          <div className="p-6 text-center text-sm text-gray-500">No messages yet.</div>
+          <div className="p-6 text-center text-sm text-gray-500">{t("no_messages")}</div>
         ) : (
           <div className="divide-y divide-gray-100 p-4 space-y-0">
             {ticket.messages.map((msg) => {
@@ -223,7 +225,7 @@ export default function AdminTicketDetailPage() {
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your reply..."
+              placeholder={t("reply_placeholder")}
               rows={3}
               maxLength={5000}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"
@@ -233,7 +235,7 @@ export default function AdminTicketDetailPage() {
               disabled={sending || !newMessage.trim()}
               className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
             >
-              {sending ? "Sending..." : "Send Reply"}
+              {sending ? t("sending") : t("send_reply")}
             </button>
           </form>
         </div>

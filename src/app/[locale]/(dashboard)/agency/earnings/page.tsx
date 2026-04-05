@@ -2,10 +2,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AgencyEarningsPage() {
+  const t = await getTranslations("agency");
   const session = await auth();
   if (!session?.user || session.user.role !== "AGENCY") redirect("/login");
 
@@ -31,24 +33,24 @@ export default async function AgencyEarningsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Agency Earnings</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("earnings_title")}</h1>
 
       {/* Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-gray-500">Total Revenue</p>
+          <p className="text-sm text-gray-500">{t("earnings_revenue")}</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">
             {formatCurrency(totalRevenue)}
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-gray-500">Platform Fees</p>
+          <p className="text-sm text-gray-500">{t("earnings_fees")}</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">
             {formatCurrency(totalPlatformFees)}
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-gray-500">Total Payouts</p>
+          <p className="text-sm text-gray-500">{t("earnings_payouts")}</p>
           <p className="mt-2 text-2xl font-bold text-[#d4772c]">
             {formatCurrency(totalPayouts)}
           </p>
@@ -58,7 +60,7 @@ export default async function AgencyEarningsPage() {
       {/* Transactions Table */}
       {transactions.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-          <p className="text-gray-500">No earnings yet.</p>
+          <p className="text-gray-500">{t("earnings_empty")}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">

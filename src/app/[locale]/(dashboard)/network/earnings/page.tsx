@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { PaymentStatusBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
@@ -16,6 +17,8 @@ export default async function NetworkEarningsPage() {
   });
 
   if (!network) redirect("/network/creators");
+
+  const t = await getTranslations("network");
 
   const creatorIds = network.creators.map((c) => c.id);
 
@@ -50,23 +53,23 @@ export default async function NetworkEarningsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Network Earnings</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("earnings_title")}</h1>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+          <p className="text-sm font-medium text-gray-500">{t("earnings_revenue")}</p>
           <p className="mt-1 text-3xl font-bold text-gray-900">{formatCurrency(totalRevenue)}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Total Payouts</p>
+          <p className="text-sm font-medium text-gray-500">{t("earnings_payouts")}</p>
           <p className="mt-1 text-3xl font-bold text-green-600">{formatCurrency(totalEarned)}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Pending</p>
+          <p className="text-sm font-medium text-gray-500">{t("earnings_pending")}</p>
           <p className="mt-1 text-3xl font-bold text-yellow-600">{formatCurrency(pendingPayout)}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Creators</p>
+          <p className="text-sm font-medium text-gray-500">{t("earnings_creators")}</p>
           <p className="mt-1 text-3xl font-bold text-gray-900">{creatorIds.length}</p>
         </div>
       </div>
@@ -74,15 +77,15 @@ export default async function NetworkEarningsPage() {
       {/* Payoneer Connect */}
       {!network.stripeOnboarded && (
         <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-6">
-          <h2 className="text-lg font-semibold text-yellow-800">Set Up Payouts</h2>
+          <h2 className="text-lg font-semibold text-yellow-800">{t("earnings_setup_title")}</h2>
           <p className="mt-1 text-sm text-yellow-700">
-            Connect your Payoneer account to manage payouts for your network.
+            {t("earnings_setup_desc")}
           </p>
           <a
             href="/api/payouts/onboard"
             className="mt-3 inline-block rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
           >
-            Connect Payoneer
+            {t("earnings_connect")}
           </a>
         </div>
       )}
@@ -90,10 +93,10 @@ export default async function NetworkEarningsPage() {
       {/* Transactions */}
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">Transaction History</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t("earnings_history")}</h2>
         </div>
         {transactions.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">No transactions yet.</div>
+          <div className="p-6 text-center text-gray-500">{t("earnings_no_transactions")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

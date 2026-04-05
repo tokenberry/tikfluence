@@ -6,6 +6,7 @@ import { formatNumber, formatCurrency } from "@/lib/utils";
 import { getLatestCreatorAnalysis } from "@/lib/ai";
 import { TierBadge } from "@/components/ui/Badge";
 import AiInsightsPanel from "@/components/ai/AiInsightsPanel";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function AgencyCreatorDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations("browse");
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -38,7 +40,7 @@ export default async function AgencyCreatorDetailPage({
         href="/agency/browse"
         className="inline-flex items-center text-sm text-gray-500 hover:text-[#d4772c]"
       >
-        &larr; Back to Browse
+        &larr; {t("back_to_browse")}
       </Link>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
@@ -75,25 +77,25 @@ export default async function AgencyCreatorDetailPage({
             <p className="text-2xl font-bold text-gray-900">
               {formatNumber(creator.followerCount)}
             </p>
-            <p className="text-xs text-gray-500">Followers</p>
+            <p className="text-xs text-gray-500">{t("followers")}</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
             <p className="text-2xl font-bold text-gray-900">
               {formatNumber(creator.avgViews)}
             </p>
-            <p className="text-xs text-gray-500">Avg Views</p>
+            <p className="text-xs text-gray-500">{t("avg_views")}</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
             <p className="text-2xl font-bold text-[#d4772c]">
               {creator.score.toFixed(1)}
             </p>
-            <p className="text-xs text-gray-500">Score</p>
+            <p className="text-xs text-gray-500">{t("score")}</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
             <p className="text-2xl font-bold text-gray-900">
               {creator.engagementRate.toFixed(1)}%
             </p>
-            <p className="text-xs text-gray-500">Engagement</p>
+            <p className="text-xs text-gray-500">{t("engagement")}</p>
           </div>
           <div className="rounded-lg bg-gray-50 p-4 text-center">
             <p className="text-2xl font-bold text-gray-900">
@@ -106,7 +108,7 @@ export default async function AgencyCreatorDetailPage({
         {/* Bio */}
         {creator.bio && (
           <div className="mt-6">
-            <h2 className="text-sm font-semibold text-gray-700">About</h2>
+            <h2 className="text-sm font-semibold text-gray-700">{t("about")}</h2>
             <p className="mt-1 text-sm text-gray-600">{creator.bio}</p>
           </div>
         )}
@@ -114,7 +116,7 @@ export default async function AgencyCreatorDetailPage({
         {/* Categories */}
         {creator.categories.length > 0 && (
           <div className="mt-6">
-            <h2 className="text-sm font-semibold text-gray-700">Categories</h2>
+            <h2 className="text-sm font-semibold text-gray-700">{t("categories")}</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               {creator.categories.map(({ category }) => (
                 <span
@@ -131,7 +133,7 @@ export default async function AgencyCreatorDetailPage({
         {/* Portfolio Links */}
         {creator.portfolioLinks.length > 0 && (
           <div className="mt-6">
-            <h2 className="text-sm font-semibold text-gray-700">Portfolio</h2>
+            <h2 className="text-sm font-semibold text-gray-700">{t("portfolio")}</h2>
             <div className="mt-2 space-y-1">
               {creator.portfolioLinks.map((link, i) => (
                 <a
@@ -150,7 +152,7 @@ export default async function AgencyCreatorDetailPage({
 
         {/* Content Types */}
         <div className="mt-6">
-          <h2 className="text-sm font-semibold text-gray-700">Supports</h2>
+          <h2 className="text-sm font-semibold text-gray-700">{t("supports")}</h2>
           <div className="mt-2 flex gap-2">
             {creator.supportsShortVideo && (
               <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">Short Video</span>
@@ -182,13 +184,13 @@ export default async function AgencyCreatorDetailPage({
             href={`/agency/orders/new?creatorId=${creator.id}`}
             className="inline-block rounded-md bg-[#d4772c] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#b85c1a] transition-colors"
           >
-            Create Order for this Creator
+            {t("create_order")}
           </Link>
           <Link
             href="/agency/browse"
             className="inline-block rounded-md border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            Back to Browse
+            {t("back_to_browse")}
           </Link>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import AddNoteForm from "./AddNoteForm";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,9 @@ export default async function AMClientDetailPage({
     where: { userId: session.user.id },
   });
   if (!am) redirect("/login");
+
+  const t = await getTranslations("orders");
+  const tAgency = await getTranslations("agency");
 
   if (type === "brand") {
     // Verify assignment
@@ -102,7 +106,7 @@ export default async function AMClientDetailPage({
                         Type
                       </th>
                       <th className="px-6 py-3 font-medium text-gray-500">
-                        Budget
+                        {t("budget_label")}
                       </th>
                       <th className="px-6 py-3 font-medium text-gray-500">
                         Date
@@ -228,7 +232,7 @@ export default async function AMClientDetailPage({
         {/* Managed Brands */}
         <div>
           <h2 className="mb-4 text-xl font-semibold text-gray-900">
-            Managed Brands
+            {tAgency("brands_title")}
           </h2>
           {agency.managedBrands.length === 0 ? (
             <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">

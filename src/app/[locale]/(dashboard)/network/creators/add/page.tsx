@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function AddCreatorPage() {
   const router = useRouter();
+  const t = useTranslations("network");
   const [searchType, setSearchType] = useState<"email" | "tiktok">("email");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Array<{
@@ -71,7 +73,7 @@ export default function AddCreatorPage() {
         <a href="/network/creators" className="text-gray-500 hover:text-gray-700">
           &larr; Back
         </a>
-        <h1 className="text-3xl font-bold text-gray-900">Add Creator</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t("creators_add")}</h1>
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">

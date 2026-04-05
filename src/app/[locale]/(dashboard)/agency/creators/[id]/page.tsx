@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
 import { StatusBadge, TierBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ export default async function AgencyCreatorDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations("browse");
   const { id } = await params;
   const session = await auth();
   if (!session?.user || session.user.role !== "AGENCY") redirect("/login");
@@ -70,25 +72,25 @@ export default async function AgencyCreatorDetailPage({
         {/* Stats Grid */}
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
           <div className="rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-500">Followers</p>
+            <p className="text-sm text-gray-500">{t("followers")}</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
               {formatNumber(creator.followerCount)}
             </p>
           </div>
           <div className="rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-500">Avg Views</p>
+            <p className="text-sm text-gray-500">{t("avg_views")}</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
               {formatNumber(creator.avgViews)}
             </p>
           </div>
           <div className="rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-500">Engagement</p>
+            <p className="text-sm text-gray-500">{t("engagement")}</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
               {creator.engagementRate.toFixed(2)}%
             </p>
           </div>
           <div className="rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-500">Score</p>
+            <p className="text-sm text-gray-500">{t("score")}</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
               {creator.score.toFixed(1)}
             </p>

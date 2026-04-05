@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ArrowRight,
@@ -30,7 +31,7 @@ const DECK_PASSWORD = "foxolog2026"
 /* ------------------------------------------------------------------ */
 /*  Password Gate                                                      */
 /* ------------------------------------------------------------------ */
-function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
+function PasswordGate({ onUnlock, t }: { onUnlock: () => void; t: (key: string) => string }) {
   const [password, setPassword] = useState("")
   const [error, setError] = useState(false)
   const [shake, setShake] = useState(false)
@@ -62,8 +63,8 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
           >
             <Lock className="w-8 h-8" style={{ color: BRAND_ORANGE }} />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Foxolog Deck</h1>
-          <p className="text-gray-400 text-sm">Enter the password to view this presentation</p>
+          <h1 className="text-2xl font-bold text-white mb-2">{t("password_title")}</h1>
+          <p className="text-gray-400 text-sm">{t("password_subtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,19 +75,19 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
               setPassword(e.target.value)
               setError(false)
             }}
-            placeholder="Password"
+            placeholder={t("password_placeholder")}
             autoFocus
             className={`w-full px-4 py-3 bg-[#141414] border rounded-xl text-white placeholder-gray-500 outline-none transition-colors ${
               error ? "border-red-500" : "border-gray-700 focus:border-[#d4772c]"
             }`}
           />
-          {error && <p className="text-red-400 text-sm">Incorrect password</p>}
+          {error && <p className="text-red-400 text-sm">{t("incorrect_password")}</p>}
           <button
             type="submit"
             className="w-full py-3 rounded-xl font-semibold text-white transition-all hover:brightness-110"
             style={{ background: BRAND_ORANGE }}
           >
-            View Presentation
+            {t("view_presentation")}
           </button>
         </form>
       </motion.div>
@@ -106,7 +107,7 @@ function SlideWrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
-function SlideCover() {
+function SlideCover({ t }: { t: (key: string) => string }) {
   return (
     <SlideWrapper>
       <motion.div
@@ -131,16 +132,15 @@ function SlideCover() {
         </h1>
 
         <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
-          The marketplace connecting <span className="text-white font-semibold">TikTok creators</span> with{" "}
-          <span className="text-white font-semibold">brands of all sizes</span>
+          {t("cover_subtitle")}
         </p>
 
         <div className="flex items-center justify-center gap-3 text-sm text-gray-500">
-          <span>Partner & Client Deck</span>
+          <span>{t("cover_type")}</span>
           <span className="w-1 h-1 rounded-full bg-gray-600" />
-          <span>2026</span>
+          <span>{t("cover_year")}</span>
           <span className="w-1 h-1 rounded-full bg-gray-600" />
-          <span>Confidential</span>
+          <span>{t("cover_confidential")}</span>
         </div>
       </motion.div>
 
@@ -153,22 +153,22 @@ function SlideCover() {
   )
 }
 
-function SlideProblem() {
+function SlideProblem({ t }: { t: (key: string) => string }) {
   const problems = [
     {
       icon: Video,
-      title: "Live Creators Leave Money on the Table",
-      desc: "Millions of live streamers rely solely on TikTok gifts. Brand partnerships could multiply their income, but there's no bridge connecting them.",
+      title: t("problem_1_title"),
+      desc: t("problem_1_desc"),
     },
     {
       icon: Target,
-      title: "Small & Mid Brands Are Shut Out",
-      desc: "TikTok's ad platform caters to enterprise brands and large agencies. SMBs — who generate 44% of US GDP — have no seat at the table.",
+      title: t("problem_2_title"),
+      desc: t("problem_2_desc"),
     },
     {
       icon: Handshake,
-      title: "No Direct Connection",
-      desc: "Creators and brands want to work together directly, but the current ecosystem forces expensive middlemen and gatekeepers between them.",
+      title: t("problem_3_title"),
+      desc: t("problem_3_desc"),
     },
   ]
 
@@ -180,11 +180,10 @@ function SlideProblem() {
         className="max-w-4xl w-full"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          The Problem
+          {t("problem_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-12">
-          A $31B market with<br />
-          <span className="text-gray-500">massive blind spots</span>
+          {t("problem_heading")}
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -212,7 +211,7 @@ function SlideProblem() {
   )
 }
 
-function SlideInsiderInsight() {
+function SlideInsiderInsight({ t }: { t: (key: string) => string }) {
   return (
     <SlideWrapper>
       <motion.div
@@ -221,10 +220,10 @@ function SlideInsiderInsight() {
         className="max-w-3xl w-full"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          The Insider Insight
+          {t("insight_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-10">
-          Built from <span style={{ color: BRAND_ORANGE }}>inside</span> TikTok
+          {t("insight_heading")}
         </h2>
 
         <div className="space-y-6">
@@ -242,11 +241,9 @@ function SlideInsiderInsight() {
                 <Eye className="w-5 h-5" style={{ color: BRAND_ORANGE }} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">2 Years of Front-Row Observation</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t("insight_1_title")}</h3>
                 <p className="text-gray-400 leading-relaxed">
-                  Working at the heart of TikTok, I watched live streaming creators and networks miss massive brand partnership
-                  opportunities — relying entirely on platform gifts for income. The few who tried brand deals failed because
-                  they lacked the tools and focus to manage partnerships alongside content creation.
+                  {t("insight_1_desc")}
                 </p>
               </div>
             </div>
@@ -266,11 +263,9 @@ function SlideInsiderInsight() {
                 <TrendingUp className="w-5 h-5" style={{ color: BRAND_ORANGE }} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white mb-2">The Gap Nobody Is Filling</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t("insight_2_title")}</h3>
                 <p className="text-gray-400 leading-relaxed">
-                  TikTok&apos;s own ad sales team only works with big brands and large agencies. Small and medium businesses
-                  are completely ignored — despite being the backbone of the economy. There is no self-serve marketplace
-                  that lets these brands work directly with creators.
+                  {t("insight_2_desc")}
                 </p>
               </div>
             </div>
@@ -281,7 +276,7 @@ function SlideInsiderInsight() {
   )
 }
 
-function SlideSolution() {
+function SlideSolution({ t }: { t: (key: string) => string }) {
   return (
     <SlideWrapper>
       <motion.div
@@ -290,14 +285,13 @@ function SlideSolution() {
         className="max-w-4xl w-full text-center"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          The Solution
+          {t("solution_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-          Foxolog
+          {t("solution_heading")}
         </h2>
         <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-          A self-serve marketplace where brands and TikTok creators find each other,
-          collaborate, and get paid — no gatekeepers needed.
+          {t("solution_subtitle")}
         </p>
 
         <div className="grid md:grid-cols-2 gap-8 text-left">
@@ -314,7 +308,7 @@ function SlideSolution() {
               >
                 B
               </span>
-              For Brands
+              {t("solution_for_brands")}
             </h3>
             <ul className="space-y-3">
               {[
@@ -344,7 +338,7 @@ function SlideSolution() {
               >
                 C
               </span>
-              For Creators
+              {t("solution_for_creators")}
             </h3>
             <ul className="space-y-3">
               {[
@@ -366,7 +360,7 @@ function SlideSolution() {
   )
 }
 
-function SlideMarket() {
+function SlideMarket({ t }: { t: (key: string) => string }) {
   const stats = [
     { value: "$31B", label: "Global influencer marketing spend (2025)", sub: "Projected $40.5B in 2026" },
     { value: "60M+", label: "Active TikTok creators worldwide", sub: "1.94B adult users globally" },
@@ -382,11 +376,10 @@ function SlideMarket() {
         className="max-w-4xl w-full"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          Market Opportunity
+          {t("market_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-12">
-          The numbers speak<br />
-          <span className="text-gray-500">for themselves</span>
+          {t("market_heading")}
         </h2>
 
         <div className="grid sm:grid-cols-2 gap-6">
@@ -424,7 +417,7 @@ function SlideMarket() {
   )
 }
 
-function SlideWhyNow() {
+function SlideWhyNow({ t }: { t: (key: string) => string }) {
   const reasons = [
     {
       icon: Brain,
@@ -451,11 +444,10 @@ function SlideWhyNow() {
         className="max-w-4xl w-full"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          Why Now
+          {t("why_now_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-12">
-          Perfect timing,<br />
-          <span className="text-gray-500">perfect storm</span>
+          {t("why_now_heading")}
         </h2>
 
         <div className="space-y-5">
@@ -485,7 +477,7 @@ function SlideWhyNow() {
   )
 }
 
-function SlideFeatures() {
+function SlideFeatures({ t }: { t: (key: string) => string }) {
   const features = [
     { icon: Brain, title: "AI Creator Scoring", desc: "GPT-4o analyzes engagement, reach, and content quality" },
     { icon: ShieldCheck, title: "Stripe Escrow", desc: "Funds held securely until delivery is approved" },
@@ -505,11 +497,10 @@ function SlideFeatures() {
         className="max-w-4xl w-full"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          Platform Features
+          {t("features_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-12">
-          Everything built,<br />
-          <span className="text-gray-500">ready to launch</span>
+          {t("features_heading")}
         </h2>
 
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -532,7 +523,7 @@ function SlideFeatures() {
   )
 }
 
-function SlideHowItWorks() {
+function SlideHowItWorks({ t }: { t: (key: string) => string }) {
   const steps = [
     { num: "01", title: "Brand Creates Order", desc: "Choose campaign type, set budget, define requirements and deadline" },
     { num: "02", title: "Creators Apply", desc: "AI-scored creators browse orders and accept matching campaigns" },
@@ -548,10 +539,10 @@ function SlideHowItWorks() {
         className="max-w-4xl w-full"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          How It Works
+          {t("how_it_works_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-12">
-          Simple for everyone
+          {t("how_it_works_heading")}
         </h2>
 
         <div className="relative">
@@ -584,7 +575,7 @@ function SlideHowItWorks() {
   )
 }
 
-function SlideGlobalVision() {
+function SlideGlobalVision({ t }: { t: (key: string) => string }) {
   const regions = [
     { name: "Middle East & Turkey", desc: "TikTok LIVE is exploding. Payoneer enables payouts where Stripe can't." },
     { name: "Southeast Asia", desc: "TikTok Shop already dominant. Creators need brand deal infrastructure." },
@@ -600,14 +591,13 @@ function SlideGlobalVision() {
         className="max-w-4xl w-full"
       >
         <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: BRAND_ORANGE }}>
-          Global Vision
+          {t("global_section")}
         </p>
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-          Built to run <span style={{ color: BRAND_ORANGE }}>anywhere</span>
+          {t("global_heading")}
         </h2>
         <p className="text-gray-400 text-lg mb-10 max-w-2xl">
-          TikTok operates in 150+ countries. Foxolog is architected for global reach from day one — with Payoneer
-          enabling payouts in regions traditional payment processors don&apos;t cover.
+          {t("global_subtitle")}
         </p>
 
         <div className="grid sm:grid-cols-2 gap-5">
@@ -632,7 +622,7 @@ function SlideGlobalVision() {
   )
 }
 
-function SlideCTA() {
+function SlideCTA({ t }: { t: (key: string) => string }) {
   return (
     <SlideWrapper>
       <motion.div
@@ -652,13 +642,11 @@ function SlideCTA() {
         </div>
 
         <h2 className="text-4xl md:text-6xl font-black text-white mb-6">
-          Let&apos;s build this<br />
-          <span style={{ color: BRAND_ORANGE }}>together</span>
+          {t("cta_heading")}
         </h2>
 
         <p className="text-xl text-gray-400 mb-10 leading-relaxed">
-          Foxolog is live, fully functional, and ready for partners.
-          Whether you&apos;re a brand looking to reach creators or a network ready to scale — let&apos;s talk.
+          {t("cta_subtitle")}
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -669,18 +657,18 @@ function SlideCTA() {
             className="px-8 py-3.5 rounded-xl font-semibold text-white transition-all hover:brightness-110 flex items-center gap-2"
             style={{ background: BRAND_ORANGE }}
           >
-            Visit Foxolog <ArrowRight className="w-4 h-4" />
+            {t("cta_visit")} <ArrowRight className="w-4 h-4" />
           </a>
           <a
             href="mailto:hello@foxolog.com"
             className="px-8 py-3.5 rounded-xl font-semibold text-white border border-gray-700 hover:border-gray-500 transition-colors"
           >
-            Get in Touch
+            {t("cta_contact")}
           </a>
         </div>
 
         <p className="mt-12 text-gray-600 text-xs">
-          www.foxolog.com &middot; Confidential &middot; 2026
+          {t("cta_footer")}
         </p>
       </motion.div>
 
@@ -738,6 +726,7 @@ const slideVariants = {
 }
 
 export default function DeckPage() {
+  const t = useTranslations("deck")
   const [unlocked, setUnlocked] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [direction, setDirection] = useState(0)
@@ -779,7 +768,7 @@ export default function DeckPage() {
   }, [goNext, goPrev])
 
   if (!unlocked) {
-    return <PasswordGate onUnlock={() => setUnlocked(true)} />
+    return <PasswordGate onUnlock={() => setUnlocked(true)} t={t} />
   }
 
   const SlideComponent = SLIDES[currentSlide]
@@ -797,7 +786,7 @@ export default function DeckPage() {
           exit="exit"
           transition={{ duration: 0.35, ease: [0.25, 0.4, 0.25, 1] }}
         >
-          <SlideComponent />
+          <SlideComponent t={t} />
         </motion.div>
       </AnimatePresence>
 
@@ -859,7 +848,7 @@ export default function DeckPage() {
           transition={{ delay: 1.5 }}
           className="fixed bottom-16 left-1/2 -translate-x-1/2 text-gray-600 text-xs"
         >
-          Use arrow keys or click to navigate
+          {t("keyboard_hint")}
         </motion.p>
       )}
     </div>

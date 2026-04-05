@@ -7,6 +7,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
 import { Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CreatorResult {
   id: string;
@@ -23,6 +24,7 @@ interface CreatorResult {
 }
 
 export default function AgencyBrowseCreatorsPage() {
+  const t = useTranslations("browse");
   const [creators, setCreators] = useState<CreatorResult[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [search, setSearch] = useState("");
@@ -73,7 +75,7 @@ export default function AgencyBrowseCreatorsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Browse Creators</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("title")}</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -81,7 +83,7 @@ export default function AgencyBrowseCreatorsPage() {
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Search by name..."
+          placeholder={t("search")}
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <select
@@ -89,7 +91,7 @@ export default function AgencyBrowseCreatorsPage() {
           onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
-          <option value="">All Categories</option>
+          <option value="">{t("all_categories")}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
@@ -101,7 +103,7 @@ export default function AgencyBrowseCreatorsPage() {
           onChange={(e) => { setTierFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
-          <option value="">All Tiers</option>
+          <option value="">{t("all_tiers")}</option>
           <option value="1">Bronze</option>
           <option value="2">Silver</option>
           <option value="3">Gold</option>
@@ -113,7 +115,7 @@ export default function AgencyBrowseCreatorsPage() {
           onChange={(e) => { setContentFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
-          <option value="">All Content Types</option>
+          <option value="">{t("all_content_types")}</option>
           <option value="video">Short Video</option>
           <option value="live">LIVE Stream</option>
         </select>
@@ -121,9 +123,9 @@ export default function AgencyBrowseCreatorsPage() {
 
       {/* Creator Grid */}
       {loading ? (
-        <LoadingSpinner message="Loading creators..." />
+        <LoadingSpinner message={t("loading")} />
       ) : creators.length === 0 ? (
-        <EmptyState title="No creators found" description="Try adjusting your search or filters" icon={<Users className="h-6 w-6" />} />
+        <EmptyState title={t("empty_title")} description={t("empty_desc")} icon={<Users className="h-6 w-6" />} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {creators.map((creator) => {
@@ -147,25 +149,25 @@ export default function AgencyBrowseCreatorsPage() {
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                   <div>
                     <p className="text-lg font-bold text-gray-900">{formatNumber(creator.followerCount)}</p>
-                    <p className="text-xs text-gray-500">Followers</p>
+                    <p className="text-xs text-gray-500">{t("followers")}</p>
                   </div>
                   <div>
                     <p className="text-lg font-bold text-gray-900">{formatNumber(creator.avgViews)}</p>
-                    <p className="text-xs text-gray-500">Avg Views</p>
+                    <p className="text-xs text-gray-500">{t("avg_views")}</p>
                   </div>
                   <div>
                     <p className="text-lg font-bold text-[#d4772c]">{creator.score.toFixed(1)}</p>
-                    <p className="text-xs text-gray-500">Score</p>
+                    <p className="text-xs text-gray-500">{t("score")}</p>
                   </div>
                 </div>
 
                 {/* Content Type Badges */}
                 <div className="mt-3 flex gap-1">
                   {creator.supportsShortVideo && (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">Video</span>
+                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">{t("badge_video")}</span>
                   )}
                   {creator.supportsLive && (
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">LIVE</span>
+                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">{t("badge_live")}</span>
                   )}
                 </div>
 

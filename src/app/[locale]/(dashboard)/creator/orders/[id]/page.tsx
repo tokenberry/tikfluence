@@ -5,6 +5,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryForm from "./DeliveryForm";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
 
@@ -37,10 +38,12 @@ export default async function CreatorOrderDetailPage({
     },
   });
 
+  const t = await getTranslations("orders");
+
   if (!order) {
     return (
       <div className="p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Order Not Found</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("order_not_found")}</h1>
       </div>
     );
   }
@@ -73,44 +76,44 @@ export default async function CreatorOrderDetailPage({
 
       {/* Order Info */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        <InfoCard label="Category" value={order.category.name} />
+        <InfoCard label={t("category_label")} value={order.category.name} />
         {(order.type === "SHORT_VIDEO" || order.type === "COMBO") && (
           <>
-            <InfoCard label="Impressions" value={formatNumber(order.impressionTarget)} />
-            <InfoCard label="Video Budget" value={formatCurrency(order.budget)} />
-            <InfoCard label="CPM Rate" value={formatCurrency(order.cpmRate)} />
+            <InfoCard label={t("impressions_label")} value={formatNumber(order.impressionTarget)} />
+            <InfoCard label={t("budget_label")} value={formatCurrency(order.budget)} />
+            <InfoCard label={t("cpm_label")} value={formatCurrency(order.cpmRate)} />
           </>
         )}
         {(order.type === "LIVE" || order.type === "COMBO") && (
           <>
-            <InfoCard label="LIVE Fee" value={formatCurrency(order.liveFlatFee ?? 0)} />
-            {order.liveMinDuration && <InfoCard label="Min Duration" value={`${order.liveMinDuration} min`} />}
+            <InfoCard label={t("live_fee_label")} value={formatCurrency(order.liveFlatFee ?? 0)} />
+            {order.liveMinDuration && <InfoCard label={t("min_duration_label")} value={`${order.liveMinDuration} min`} />}
           </>
         )}
         <div className={`rounded-lg border p-4 shadow-sm ${isOverdue ? "border-red-300 bg-red-50" : "border-gray-200 bg-white"}`}>
-          <p className="text-sm text-gray-500">Deadline</p>
+          <p className="text-sm text-gray-500">{t("deadline_label")}</p>
           <p className={`mt-1 text-lg font-semibold ${isOverdue ? "text-red-600" : "text-gray-900"}`}>
-            {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "No deadline"}
+            {order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : t("no_deadline")}
           </p>
-          {isOverdue && <p className="text-xs font-medium text-red-500">Overdue</p>}
+          {isOverdue && <p className="text-xs font-medium text-red-500">{t("overdue")}</p>}
         </div>
       </div>
 
       {/* LIVE Content Guidelines */}
       {(order.type === "LIVE" || order.type === "COMBO") && order.liveGuidelines && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-          <h3 className="text-sm font-semibold text-amber-800">LIVE Content Guidelines</h3>
+          <h3 className="text-sm font-semibold text-amber-800">{t("live_content_guidelines")}</h3>
           <p className="mt-1 text-sm text-amber-700 whitespace-pre-wrap">{order.liveGuidelines}</p>
         </div>
       )}
 
       {/* Description & Brief */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Description</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t("description_heading")}</h2>
         <p className="mt-2 text-gray-600">{order.description}</p>
         {order.brief && (
           <>
-            <h3 className="mt-4 text-sm font-semibold text-gray-700">Brief</h3>
+            <h3 className="mt-4 text-sm font-semibold text-gray-700">{t("brief_heading")}</h3>
             <p className="mt-1 whitespace-pre-wrap text-gray-600">{order.brief}</p>
           </>
         )}
@@ -118,7 +121,7 @@ export default async function CreatorOrderDetailPage({
 
       {/* Status Timeline */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Order Timeline</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("order_timeline")}</h2>
         <div className="flex flex-wrap items-center justify-between gap-y-3">
           {statusSteps.map((step, i) => {
             const isActive = i <= currentIndex;
@@ -148,7 +151,7 @@ export default async function CreatorOrderDetailPage({
       {/* Delivery Form (if assigned) */}
       {isAssigned && (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Submit Delivery</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("submit_delivery")}</h2>
           <DeliveryForm orderId={order.id} orderType={order.type} />
         </div>
       )}
@@ -156,7 +159,7 @@ export default async function CreatorOrderDetailPage({
       {/* Delivery History */}
       {order.deliveries.length > 0 && (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Delivery History</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("delivery_history")}</h2>
           <div className="space-y-4">
             {order.deliveries.map((delivery) => (
               <div
@@ -195,14 +198,14 @@ export default async function CreatorOrderDetailPage({
                     }`}
                   >
                     {delivery.approved === true
-                      ? "Approved"
+                      ? t("delivery_approved")
                       : delivery.approved === false
-                      ? "Rejected"
-                      : "Pending Review"}
+                      ? t("delivery_rejected")
+                      : t("delivery_pending")}
                   </span>
                 </div>
                 {delivery.deliveryType === "LIVE" && (
-                  <span className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">LIVE</span>
+                  <span className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">{t("delivery_type_live")}</span>
                 )}
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
                   {delivery.deliveryType === "LIVE" ? (
@@ -230,7 +233,7 @@ export default async function CreatorOrderDetailPage({
                       <a key={i} href={url} target="_blank" rel="noopener noreferrer">
                         <img
                           src={url}
-                          alt={`Screenshot ${i + 1}`}
+                          alt={t("screenshot_alt", { number: i + 1 })}
                           className="h-20 w-20 rounded-lg border border-gray-200 object-cover hover:opacity-80 transition-opacity"
                         />
                       </a>
@@ -246,7 +249,7 @@ export default async function CreatorOrderDetailPage({
                       href={`/creator/tickets/new?orderId=${order.id}&orderTitle=${encodeURIComponent(order.title)}`}
                       className="mt-2 inline-block rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700"
                     >
-                      Report Issue
+                      {t("report_issue")}
                     </a>
                   </div>
                 )}

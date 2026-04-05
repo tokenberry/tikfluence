@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatNumber } from "@/lib/utils";
 import { TierBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AgencyCreatorsPage() {
+  const t = await getTranslations("browse");
   const session = await auth();
   if (!session?.user || session.user.role !== "AGENCY") redirect("/login");
 
@@ -57,19 +59,19 @@ export default async function AgencyCreatorsPage() {
 
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-gray-500">Followers</p>
+                    <p className="text-gray-500">{t("followers")}</p>
                     <p className="font-medium text-gray-900">
                       {formatNumber(c.followerCount)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Avg Views</p>
+                    <p className="text-gray-500">{t("avg_views")}</p>
                     <p className="font-medium text-gray-900">
                       {formatNumber(c.avgViews)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Score</p>
+                    <p className="text-gray-500">{t("score")}</p>
                     <p className="font-medium text-gray-900">
                       {c.score.toFixed(1)}
                     </p>

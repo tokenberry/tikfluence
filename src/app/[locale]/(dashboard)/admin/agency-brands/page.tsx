@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { StatusBadge } from "@/components/ui/Badge"
 import LoadingSpinner from "@/components/ui/LoadingSpinner"
 import EmptyState from "@/components/ui/EmptyState"
@@ -16,6 +17,7 @@ interface AgencyBrand {
 }
 
 export default function AdminAgencyBrandsPage() {
+  const t = useTranslations("admin")
   const [claims, setClaims] = useState<AgencyBrand[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>("ALL")
@@ -55,9 +57,9 @@ export default function AdminAgencyBrandsPage() {
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Agency-Brand Claims</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("agency_brands_title")}</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Review and approve agency requests to manage brands
+            {t("agency_brands_desc")}
           </p>
         </div>
         {pendingCount > 0 && (
@@ -118,14 +120,14 @@ export default function AdminAgencyBrandsPage() {
                       disabled={updating === claim.id}
                       className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
                     >
-                      Approve
+                      {t("agency_brands_approve")}
                     </button>
                     <button
                       onClick={() => handleUpdate(claim.id, "REJECTED")}
                       disabled={updating === claim.id}
                       className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
                     >
-                      Reject
+                      {t("agency_brands_reject")}
                     </button>
                   </div>
                 )}

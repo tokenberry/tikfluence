@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import AgencyOrderActions from "./AgencyOrderActions";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function AgencyBrandDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations("agency");
   const { id } = await params;
   const session = await auth();
   if (!session?.user || session.user.role !== "AGENCY") redirect("/login");
@@ -65,7 +67,7 @@ export default async function AgencyBrandDetailPage({
             href={`/agency/orders/new?brandId=${brand.id}`}
             className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"
           >
-            Create Order for Brand
+            {t("orders_create")}
           </a>
         </div>
         <div className="mt-4 border-t border-gray-100 pt-4">

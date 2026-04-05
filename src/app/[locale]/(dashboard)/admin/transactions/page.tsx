@@ -1,12 +1,14 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { formatCurrency } from "@/lib/utils";
 import { PaymentStatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminTransactionsPage() {
+  const t = await getTranslations("admin");
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/login");
 

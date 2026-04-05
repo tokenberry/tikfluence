@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useTranslations } from "next-intl";
 
 export default function OrderActions({
   orderId,
@@ -16,6 +17,8 @@ export default function OrderActions({
 }) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useTranslations("orders");
+  const tCommon = useTranslations("common");
   const [loading, setLoading] = useState(false);
   const [creditBalance, setCreditBalance] = useState(0);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -69,7 +72,7 @@ export default function OrderActions({
       });
 
       if (res.ok) {
-        toast("success", "Order cancelled.");
+        toast("success", t("order_cancelled"));
         router.refresh();
       } else {
         const data = await res.json();
@@ -89,7 +92,7 @@ export default function OrderActions({
           {creditBalance > 0 && (
             <div className="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm">
               <p className="font-medium text-green-800">
-                You have ${creditBalance.toFixed(2)} in platform credit
+                {t("order_credit_balance", { amount: creditBalance.toFixed(2) })}
               </p>
               {creditToApply > 0 && amountToCharge > 0 && (
                 <p className="text-green-700 mt-1">
@@ -110,10 +113,10 @@ export default function OrderActions({
               className="rounded-md bg-[#d4772c] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#b85c1a] transition-colors disabled:opacity-50"
             >
               {loading
-                ? "Processing..."
+                ? tCommon("processing")
                 : amountToCharge <= 0
-                  ? "Publish Order (Using Credit)"
-                  : `Pay $${amountToCharge.toFixed(2)} & Publish`}
+                  ? t("order_publish_credit")
+                  : t("order_pay_publish", { amount: amountToCharge.toFixed(2) })}
             </button>
             <button
               onClick={() => setShowCancelConfirm(true)}
@@ -126,9 +129,9 @@ export default function OrderActions({
         </div>
         <ConfirmDialog
           open={showCancelConfirm}
-          title="Cancel Order"
-          description="Are you sure you want to cancel this order? This action cannot be undone."
-          confirmLabel="Cancel Order"
+          title={t("order_cancel")}
+          description={t("order_cancel_confirm")}
+          confirmLabel={t("order_cancel")}
           confirmVariant="danger"
           onConfirm={handleCancel}
           onCancel={() => setShowCancelConfirm(false)}
@@ -145,13 +148,13 @@ export default function OrderActions({
           disabled={loading}
           className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
         >
-          {loading ? "Cancelling..." : "Cancel Order"}
+          {loading ? tCommon("processing") : t("order_cancel")}
         </button>
         <ConfirmDialog
           open={showCancelConfirm}
-          title="Cancel Order"
-          description="Are you sure you want to cancel this order? This action cannot be undone."
-          confirmLabel="Cancel Order"
+          title={t("order_cancel")}
+          description={t("order_cancel_confirm")}
+          confirmLabel={t("order_cancel")}
           confirmVariant="danger"
           onConfirm={handleCancel}
           onCancel={() => setShowCancelConfirm(false)}

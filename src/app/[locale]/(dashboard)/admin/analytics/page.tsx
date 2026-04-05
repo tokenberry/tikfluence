@@ -1,12 +1,14 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminAnalyticsPage() {
+  const t = await getTranslations("admin");
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN") redirect("/login");
 
@@ -45,31 +47,31 @@ export default async function AdminAnalyticsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("analytics_title")}</h1>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Total Users</p>
+          <p className="text-sm font-medium text-gray-500">{t("analytics_users")}</p>
           <p className="mt-1 text-3xl font-bold text-gray-900">{totalUsers}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Total Orders</p>
+          <p className="text-sm font-medium text-gray-500">{t("analytics_orders")}</p>
           <p className="mt-1 text-3xl font-bold text-gray-900">{totalOrders}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Total Revenue</p>
+          <p className="text-sm font-medium text-gray-500">{t("analytics_revenue")}</p>
           <p className="mt-1 text-3xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Active Orders</p>
+          <p className="text-sm font-medium text-gray-500">{t("analytics_active")}</p>
           <p className="mt-1 text-3xl font-bold text-blue-600">{activeOrders}</p>
         </div>
       </div>
 
       {/* Role Breakdown */}
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Users by Role</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">{t("analytics_by_role")}</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="rounded-lg bg-purple-50 p-4 text-center">
             <p className="text-2xl font-bold text-purple-700">{roleBreakdown.CREATOR ?? 0}</p>
@@ -93,10 +95,10 @@ export default async function AdminAnalyticsPage() {
       {/* Recent Orders */}
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t("analytics_recent")}</h2>
         </div>
         {recentOrders.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">No orders yet.</div>
+          <div className="p-6 text-center text-gray-500">{t("analytics_no_orders")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

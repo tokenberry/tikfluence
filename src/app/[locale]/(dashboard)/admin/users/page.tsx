@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { RoleBadge } from "@/components/ui/Badge";
 import { useToast } from "@/components/ui/Toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -18,6 +19,7 @@ interface UserRow {
 }
 
 export default function AdminUsersPage() {
+  const t = useTranslations("admin");
   const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
@@ -77,7 +79,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Users</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("users_title")}</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
@@ -85,7 +87,7 @@ export default function AdminUsersPage() {
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Search by name or email..."
+          placeholder={t("users_search")}
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />
         <select
@@ -93,7 +95,7 @@ export default function AdminUsersPage() {
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         >
-          <option value="">All Roles</option>
+          <option value="">{t("users_filter_all")}</option>
           <option value="CREATOR">Creator</option>
           <option value="NETWORK">Network</option>
           <option value="BRAND">Brand</option>
@@ -108,18 +110,18 @@ export default function AdminUsersPage() {
         {loading ? (
           <LoadingSpinner message="Loading users..." />
         ) : users.length === 0 ? (
-          <EmptyState title="No users found" description="Try adjusting your search or filters" icon={<Users className="h-6 w-6" />} />
+          <EmptyState title={t("users_empty_title")} description={t("users_empty_desc")} icon={<Users className="h-6 w-6" />} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 font-medium text-gray-500">Name</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Email</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Role</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Status</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Created</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Actions</th>
+                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_name")}</th>
+                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_email")}</th>
+                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_role")}</th>
+                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_status")}</th>
+                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_created")}</th>
+                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -138,7 +140,7 @@ export default function AdminUsersPage() {
                             : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {user.isActive ? "Active" : "Suspended"}
+                        {user.isActive ? t("users_active") : t("users_suspended")}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500">
@@ -157,8 +159,8 @@ export default function AdminUsersPage() {
                         {actionLoading === user.id
                           ? "..."
                           : user.isActive
-                          ? "Suspend"
-                          : "Activate"}
+                          ? t("users_suspend")
+                          : t("users_activate")}
                       </button>
                     </td>
                   </tr>

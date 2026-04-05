@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function AdminSettingsPage() {
+  const t = useTranslations("admin");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [message, setMessage] = useState("");
@@ -44,12 +46,12 @@ export default function AdminSettingsPage() {
         }),
       });
       if (res.ok) {
-        setMessage("Settings saved successfully.");
+        setMessage(t("settings_saved"));
       } else {
-        setMessage("Failed to save settings.");
+        setMessage(t("settings_save_error"));
       }
     } catch {
-      setMessage("An error occurred.");
+      setMessage(t("settings_save_error"));
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Platform Settings</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("settings_title")}</h1>
 
       <form
         onSubmit={handleSubmit}
@@ -69,10 +71,10 @@ export default function AdminSettingsPage() {
       >
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Platform Fee Rate
+            {t("settings_fee_label")}
           </label>
           <p className="text-xs text-gray-500">
-            Percentage taken from each transaction (e.g. 0.15 = 15%)
+            {t("settings_fee_hint")}
           </p>
           <input
             type="number"
@@ -88,7 +90,7 @@ export default function AdminSettingsPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Minimum Order Budget (USD)
+            {t("settings_min_budget")}
           </label>
           <input
             type="number"
@@ -103,7 +105,7 @@ export default function AdminSettingsPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Maximum Order Budget (USD)
+            {t("settings_max_budget")}
           </label>
           <input
             type="number"
@@ -119,7 +121,7 @@ export default function AdminSettingsPage() {
         {message && (
           <p
             className={`text-sm ${
-              message.includes("success") ? "text-green-600" : "text-red-600"
+              message === t("settings_saved") ? "text-green-600" : "text-red-600"
             }`}
           >
             {message}
@@ -131,7 +133,7 @@ export default function AdminSettingsPage() {
           disabled={loading}
           className="w-full rounded-lg bg-[#d4772c] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
         >
-          {loading ? "Saving..." : "Save Settings"}
+          {loading ? "Saving..." : t("settings_save")}
         </button>
       </form>
     </div>

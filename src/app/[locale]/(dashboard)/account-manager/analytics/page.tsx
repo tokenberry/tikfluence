@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { ORDER_STATUS_COLORS } from "@/lib/ui-constants";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ export default async function AMAnalyticsPage() {
     where: { userId: session.user.id },
   });
   if (!am) redirect("/login");
+
+  const t = await getTranslations("orders");
 
   // Get assigned brand IDs and agency count
   const [assignedBrands, assignedAgencyCount] = await Promise.all([
@@ -164,17 +167,17 @@ export default async function AMAnalyticsPage() {
                     Title
                   </th>
                   <th className="px-6 py-3 font-medium text-gray-500">
-                    Brand
+                    {t("brand_heading")}
                   </th>
                   <th className="px-6 py-3 font-medium text-gray-500">
-                    Category
+                    {t("category_label")}
                   </th>
                   <th className="px-6 py-3 font-medium text-gray-500">Type</th>
                   <th className="px-6 py-3 font-medium text-gray-500">
                     Status
                   </th>
                   <th className="px-6 py-3 font-medium text-gray-500">
-                    Budget
+                    {t("budget_label")}
                   </th>
                   <th className="px-6 py-3 font-medium text-gray-500">Date</th>
                 </tr>

@@ -45,8 +45,10 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white">
-            <img src="/fox-logo.png" alt={t("app_name")} className="h-8 w-8 rounded-full" />
+          <Link href="/" className="flex items-center gap-2.5 text-xl font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4772c]">
+              <span className="text-sm font-bold text-white">F</span>
+            </div>
             {t("app_name")}
           </Link>
 

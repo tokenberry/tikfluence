@@ -99,7 +99,7 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 ## Not Yet Done
 
 ### High Priority
-- [ ] **Fox logo**: Replace placeholder SVG with actual Foxolog fox logo PNG
+- [x] **Fox logo**: Fox logo PNG + favicon deployed (v1.0.0, v1.8.0)
 - [ ] **Stripe integration**: Configure Stripe keys in Vercel env vars, test payment flow
 - [x] **TikTok OAuth Verification**: OAuth-based account verification (v1.3.0) — set `AUTH_TIKTOK_ID` + `AUTH_TIKTOK_SECRET` in Vercel, add redirect URI to TikTok Developer Portal
 - [ ] **TikTok Research API**: Configure `TIKTOK_API_KEY` for bio-code verification fallback + periodic metrics refresh (requires separate Research API approval)
@@ -109,7 +109,7 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 
 ### Medium Priority
 - [ ] **shadcn/ui components**: Architecture planned for reusable UI components (CreatorCard, OrderCard, etc.) - currently using inline Tailwind
-- [ ] **File storage**: Currently saves to `/uploads` locally - needs S3/Vercel Blob for production
+- [x] **File storage**: Migrated from local `/uploads` to Vercel Blob (`@vercel/blob`) for production file storage (v3.0.0)
 - [x] **Error pages**: Custom 404, 500 error pages
 - [x] **Loading states**: Skeleton loaders for dashboard pages
 - [x] **Form validation**: Zod client-side validation on register + ticket forms with per-field inline errors (v1.8.0)
@@ -119,13 +119,13 @@ TikTok Influencer Marketplace (rebranded from Tikfluence to Foxolog)
 ### Low Priority / Future
 - [x] **Creator settings page**: Bio, portfolio links editor
 - [x] **Network settings page**: Company profile editor
-- [ ] **TikTok auto-refresh**: Cron job to refresh creator metrics every 7 days
-- [ ] **Order expiration**: Auto-expire orders past deadline (deadlines now stored and displayed, but no auto-expiry cron yet)
-- [ ] **Analytics charts**: Visual charts on admin analytics page
+- [x] **TikTok auto-refresh**: Vercel Cron job refreshes stale creator metrics daily at 3 AM UTC (v3.0.0)
+- [x] **Order expiration**: Vercel Cron job auto-cancels expired OPEN/ASSIGNED orders daily at 4 AM UTC with payment refund (v3.0.0)
+- [x] **Analytics charts**: Recharts-powered admin analytics — order status pie chart, user role bar chart, order trend + revenue trend area charts (v3.0.0)
 - [x] **Dark mode**: Dark landing page + dark chrome dashboard theme (sidebar, navbar, mobile header)
-- [ ] **Mobile optimization**: Responsive improvements on dashboard pages
-- [ ] **Rate limiting**: API rate limiting for production
-- [ ] **Testing**: Unit tests, integration tests
+- [x] **Mobile optimization**: Responsive padding, headings, table scroll with min-width across all 20+ dashboard pages (v3.0.0)
+- [x] **Rate limiting**: Sliding-window rate limiter — 60 req/min API, 5 req/min auth, 10 req/min uploads, 429 responses with Retry-After (v3.0.0)
+- [x] **Testing**: Vitest + @testing-library/react setup, 21 unit tests for scoring, utils, rate-limit (v3.0.0)
 
 ### API Routes Planned but Not Built
 - [ ] `POST /api/tiktok/verify` - TikTok profile verification endpoint
@@ -161,6 +161,8 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | `AUTH_TIKTOK_SECRET` | Needs configuration (TikTok Login Kit — Client Secret) |
 | `TIKTOK_API_KEY` | Not set (Research API — separate approval needed) |
 | `OPENAI_API_KEY` | Needs configuration (OpenAI GPT-4o-mini for creator analysis) |
+| `BLOB_READ_WRITE_TOKEN` | Needs configuration (Vercel Blob — auto-set when Blob store is linked in Vercel dashboard) |
+| `CRON_SECRET` | Needs configuration (random secret for Vercel Cron job authorization) |
 
 ---
 
@@ -205,6 +207,8 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.9.2 | 2026-04-04 | Feat: Dark chrome dashboard theme — sidebar, navbar, and mobile header updated to #0a0a0a with orange glow active states, matching the landing page aesthetic. Content areas remain light for readability. |
 | 1.9.3 | 2026-04-05 | Feat: Password-protected presentation deck at /deck — 10-slide partner/client deck with Framer Motion transitions, keyboard navigation, progress dots, session-based password gate. Slides: Cover, Problem, Insider Insight, Solution, How It Works, Market, Why Now, Features, Global Vision, CTA. |
 | 1.9.4 | 2026-04-05 | Feat: SEO & AI search optimization — comprehensive metadata (OG, Twitter Cards, 20 keywords), JSON-LD structured data (Organization + WebApplication + WebSite), dynamic OG image via ImageResponse, sitemap.ts, robots.ts, per-page metadata for login/register |
+| 2.0.0 | 2026-04-05 | Feat: Full multi-language i18n with next-intl v4 — 5 languages (EN, AR, TR, FR, ES), 660 keys each, RTL support for Arabic, language switcher, 55+ pages wired |
+| 3.0.0 | 2026-04-06 | Feat: Production infrastructure — Vercel Blob file storage, Vercel Cron jobs (TikTok metrics refresh + order expiration), Recharts analytics dashboard (4 charts), mobile optimization (20+ pages), API rate limiting (sliding window), Vitest test suite (21 tests) |
 
 ---
 
@@ -794,4 +798,40 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 5, 2026 (v2.0.0)*
+**v2.0.0 → v3.0.0 — Production Infrastructure, Analytics Charts, Mobile Optimization, Rate Limiting, Testing**
+
+**1. Vercel Blob File Storage:**
+- Replaced local `fs.writeFile` to `/uploads` directory with `@vercel/blob` `put()` API
+- Upload route now returns full Vercel Blob CDN URLs
+- Added `*.public.blob.vercel-storage.com` to Next.js image remote patterns
+- Preserved magic byte validation from v1.0.1 security hardening
+
+**2. Vercel Cron Jobs (2 new scheduled tasks):**
+- `/api/cron/refresh-metrics` — daily at 3 AM UTC, batch-refreshes up to 50 creators with metrics older than 7 days
+- `/api/cron/expire-orders` — daily at 4 AM UTC, auto-cancels OPEN/ASSIGNED orders past `expiresAt`, refunds HELD payments
+- `vercel.json` with cron schedule configuration
+- `CRON_SECRET` Bearer token auth on both endpoints
+
+**3. Recharts Analytics Dashboard (4 charts):**
+- Order Status Pie Chart, User Role Bar Chart
+- Order Trend Bar Chart + Revenue Trend Area Chart (last 6 months)
+- Enhanced analytics API with monthly time-series aggregation
+
+**4. Mobile Optimization (20+ pages):**
+- Responsive padding (`p-3 sm:p-6`) across all dashboard pages
+- Responsive headings (`text-2xl sm:text-3xl`)
+- Table `min-w-[600px]` for horizontal scroll on mobile
+
+**5. API Rate Limiting:**
+- Middleware-level: 60 req/min per IP on all API routes
+- Auth routes: 5 req/min, Upload: 10 req/min per user
+- Returns HTTP 429 with `Retry-After` header
+
+**6. Testing Infrastructure:**
+- Vitest + @testing-library/react + jsdom
+- 21 tests across 3 suites (scoring, utils, rate-limit)
+- `npm run test` / `npm run test:watch`
+
+---
+
+*Last updated: April 6, 2026 (v3.0.0)*

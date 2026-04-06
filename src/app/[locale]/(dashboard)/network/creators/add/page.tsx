@@ -68,12 +68,12 @@ export default function AddCreatorPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto max-w-2xl space-y-6 p-3 sm:p-6">
       <div className="flex items-center gap-4">
         <a href="/network/creators" className="text-gray-500 hover:text-gray-700">
           &larr; Back
         </a>
-        <h1 className="text-3xl font-bold text-gray-900">{t("creators_add")}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("creators_add")}</h1>
       </div>
 
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">

@@ -42,22 +42,22 @@ export default async function CreatorEarningsPage() {
     .reduce((sum, t) => sum + t.creatorPayout, 0);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">{t("earnings_title")}</h1>
+    <div className="mx-auto max-w-4xl space-y-8 p-3 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("earnings_title")}</h1>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-gray-500">{t("earnings_total")}</p>
-          <p className="mt-1 text-3xl font-bold text-green-600">{formatCurrency(totalEarned)}</p>
+          <p className="mt-1 text-2xl sm:text-3xl font-bold text-green-600">{formatCurrency(totalEarned)}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-gray-500">{t("earnings_pending")}</p>
-          <p className="mt-1 text-3xl font-bold text-yellow-600">{formatCurrency(pendingPayout)}</p>
+          <p className="mt-1 text-2xl sm:text-3xl font-bold text-yellow-600">{formatCurrency(pendingPayout)}</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-gray-500">{t("earnings_transactions")}</p>
-          <p className="mt-1 text-3xl font-bold text-gray-900">{transactions.length}</p>
+          <p className="mt-1 text-2xl sm:text-3xl font-bold text-gray-900">{transactions.length}</p>
         </div>
       </div>
 
@@ -92,7 +92,7 @@ export default async function CreatorEarningsPage() {
           <div className="p-6 text-center text-gray-500">{t("earnings_no_transactions")}</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[600px] text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 font-medium text-gray-500">{t("earnings_table_order")}</th>

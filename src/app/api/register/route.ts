@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { sendWelcomeEmail } from "@/lib/email"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
@@ -27,6 +28,15 @@ const registerSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown"
+    const rl = rateLimit(`register:${ip}`, RATE_LIMITS.auth)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+      )
+    }
+
     const body = await req.json()
     const data = registerSchema.parse(body)
 

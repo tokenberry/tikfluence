@@ -33,9 +33,9 @@ export default async function NetworkCreatorsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
+    <div className="mx-auto max-w-5xl space-y-6 p-3 sm:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t("creators_title")}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("creators_title")}</h1>
         <a
           href="/network/creators/add"
           className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a]"

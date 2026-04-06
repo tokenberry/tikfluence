@@ -58,8 +58,8 @@ export default function AdminOrdersPage() {
   }, [fetchOrders]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">{t("orders_title")}</h1>
+    <div className="mx-auto max-w-6xl space-y-6 p-3 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("orders_title")}</h1>
 
       <div className="flex flex-wrap gap-2">
         {statuses.map((s) => (
@@ -84,7 +84,7 @@ export default function AdminOrdersPage() {
           <EmptyState title={t("orders_empty_title")} description={t("orders_empty_desc")} icon={<FileText className="h-6 w-6" />} />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[600px] text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 font-medium text-gray-500">Title</th>

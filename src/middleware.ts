@@ -26,12 +26,53 @@ function stripLocale(pathname: string): string {
   return pathname
 }
 
+// Simple in-memory rate limiter for middleware (per-instance)
+const apiHits = new Map<string, { count: number; resetAt: number }>()
+const API_RATE_LIMIT = 60
+const API_WINDOW_MS = 60 * 1000
+
+function checkApiRateLimit(ip: string): { allowed: boolean; retryAfter: number } {
+  const now = Date.now()
+  const entry = apiHits.get(ip)
+
+  if (!entry || now > entry.resetAt) {
+    apiHits.set(ip, { count: 1, resetAt: now + API_WINDOW_MS })
+    return { allowed: true, retryAfter: 0 }
+  }
+
+  entry.count++
+  if (entry.count > API_RATE_LIMIT) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
+    return { allowed: false, retryAfter }
+  }
+
+  return { allowed: true, retryAfter: 0 }
+}
+
 export default auth((req) => {
   const { pathname } = req.nextUrl
   const user = req.auth?.user
 
   // Let API routes pass through without i18n
   if (pathname.startsWith("/api/")) {
+    // Rate limit API routes (except auth)
+    if (!pathname.startsWith("/api/auth")) {
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown"
+      const { allowed, retryAfter } = checkApiRateLimit(ip)
+      if (!allowed) {
+        return new NextResponse(
+          JSON.stringify({ error: "Too many requests" }),
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "application/json",
+              "Retry-After": String(retryAfter),
+            },
+          }
+        )
+      }
+    }
+
     // Block admin API routes for non-admin users
     if (pathname.startsWith("/api/admin")) {
       if (!user || user.role !== "ADMIN") {

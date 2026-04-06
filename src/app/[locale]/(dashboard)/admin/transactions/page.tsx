@@ -20,15 +20,15 @@ export default async function AdminTransactionsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
+    <div className="mx-auto max-w-6xl space-y-6 p-3 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Transactions</h1>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         {transactions.length === 0 ? (
           <div className="p-8 text-center text-gray-500">No transactions yet.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[600px] text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 font-medium text-gray-500">Order</th>

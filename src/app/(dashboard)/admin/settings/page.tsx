@@ -59,8 +59,8 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Platform Settings</h1>
+    <div className="mx-auto max-w-2xl space-y-6 p-3 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Platform Settings</h1>
 
       <form
         onSubmit={handleSubmit}

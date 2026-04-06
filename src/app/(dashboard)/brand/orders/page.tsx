@@ -55,9 +55,9 @@ export default async function BrandOrdersPage({
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
+    <div className="mx-auto max-w-5xl space-y-6 p-3 sm:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Orders</h1>
         <a
           href="/brand/orders/new"
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"

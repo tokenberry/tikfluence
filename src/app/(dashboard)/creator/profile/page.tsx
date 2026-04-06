@@ -38,11 +38,11 @@ export default async function CreatorProfilePage() {
   const tier = tierLabels[creator.tier] ?? tierLabels[1];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 p-6">
+    <div className="mx-auto max-w-4xl space-y-8 p-3 sm:p-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{creator.user.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{creator.user.name}</h1>
           <p className="mt-1 text-gray-500">@{creator.tiktokUsername}</p>
         </div>
         <div className="flex items-center gap-3">

@@ -60,7 +60,7 @@ export default async function NetworkOrderDetailPage({
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 p-6">
+    <div className="mx-auto max-w-4xl space-y-8 p-3 sm:p-6">
       <div className="flex items-center gap-4">
         <a href="/network/orders" className="text-gray-500 hover:text-gray-700">
           &larr; Back
@@ -70,7 +70,7 @@ export default async function NetworkOrderDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{order.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{order.title}</h1>
           <p className="mt-1 text-gray-500">{order.brand.companyName}</p>
         </div>
         <span

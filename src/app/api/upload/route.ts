@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
+import { put } from "@vercel/blob"
 import { randomUUID } from "crypto"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
-const UPLOAD_DIR = path.join(process.cwd(), "uploads")
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -20,6 +19,14 @@ export async function POST(request: NextRequest) {
     const session = await auth()
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const rl = rateLimit(`upload:${session.user.id}`, RATE_LIMITS.upload)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many uploads. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+      )
     }
 
     const formData = await request.formData()
@@ -43,19 +50,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Ensure upload directory exists
-    await mkdir(UPLOAD_DIR, { recursive: true })
-
     const ext = file.name.split(".").pop() || "png"
-    const filename = `${randomUUID()}.${ext}`
-    const filepath = path.join(UPLOAD_DIR, filename)
+    const filename = `uploads/${randomUUID()}.${ext}`
 
-    const buffer = Buffer.from(await file.arrayBuffer())
-    await writeFile(filepath, buffer)
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: file.type,
+    })
 
-    const url = `/uploads/${filename}`
-
-    return NextResponse.json({ url, filename }, { status: 201 })
+    return NextResponse.json({ url: blob.url, filename: blob.pathname }, { status: 201 })
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json(

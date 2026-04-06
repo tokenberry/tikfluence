@@ -64,8 +64,8 @@ export default function BrowseCreatorsPage() {
   }, [fetchCreators]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Browse Creators</h1>
+    <div className="mx-auto max-w-6xl space-y-6 p-3 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Browse Creators</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">

@@ -50,8 +50,8 @@ export default async function NetworkOrdersPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">Network Orders</h1>
+    <div className="mx-auto max-w-5xl space-y-6 p-3 sm:p-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Network Orders</h1>
 
       {assignments.length === 0 ? (
         <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">

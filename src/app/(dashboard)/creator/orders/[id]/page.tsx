@@ -50,11 +50,11 @@ export default async function CreatorOrderDetailPage({
   const currentIndex = statusSteps.indexOf(order.status);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 p-6">
+    <div className="mx-auto max-w-4xl space-y-8 p-3 sm:p-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{order.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{order.title}</h1>
           <p className="mt-1 text-gray-500">{order.brand.companyName}</p>
         </div>
         <StatusBadge status={order.status} />

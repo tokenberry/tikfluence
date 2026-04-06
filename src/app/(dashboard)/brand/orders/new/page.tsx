@@ -60,12 +60,12 @@ export default function NewOrderPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto max-w-2xl space-y-6 p-3 sm:p-6">
       <div className="flex items-center gap-4">
         <a href="/brand/orders" className="text-gray-500 hover:text-gray-700">
           &larr; Back
         </a>
-        <h1 className="text-3xl font-bold text-gray-900">Create New Order</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Create New Order</h1>
       </div>
 
       <form

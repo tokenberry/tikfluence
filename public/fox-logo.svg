@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Body circle -->
+  <circle cx="100" cy="110" r="75" fill="#d4772c"/>
+  <!-- Tail (cream) -->
+  <ellipse cx="155" cy="145" rx="40" ry="25" fill="#f5e6b8" transform="rotate(-30 155 145)"/>
+  <!-- Tail tip (white jagged) -->
+  <path d="M175 120 L185 130 L178 128 L188 138 L180 135 L185 145 L170 135 Z" fill="white"/>
+  <!-- Head -->
+  <path d="M60 85 Q100 40 140 85 Q130 110 100 115 Q70 110 60 85 Z" fill="#d4772c"/>
+  <!-- Left ear -->
+  <path d="M65 85 L55 40 L85 70 Z" fill="#d4772c"/>
+  <!-- Left ear inner -->
+  <path d="M68 78 L60 48 L82 70 Z" fill="#f5e6b8"/>
+  <!-- Right ear -->
+  <path d="M135 85 L145 40 L115 70 Z" fill="#d4772c"/>
+  <!-- Right ear inner -->
+  <path d="M132 78 L140 48 L118 70 Z" fill="#f5e6b8"/>
+  <!-- Face darker area -->
+  <path d="M75 80 Q100 60 125 80 Q120 100 100 105 Q80 100 75 80 Z" fill="#c06820"/>
+  <!-- Nose -->
+  <ellipse cx="100" cy="95" rx="6" ry="4" fill="#2d3436"/>
+  <!-- Left eye -->
+  <circle cx="85" cy="82" r="3" fill="#2d3436"/>
+  <!-- Right eye -->
+  <circle cx="115" cy="82" r="3" fill="#2d3436"/>
+  <!-- Belly/chest (cream) -->
+  <ellipse cx="100" cy="150" rx="30" ry="25" fill="#f5e6b8"/>
+</svg>

@@ -14,6 +14,30 @@ const ALLOWED_TYPES = [
   "image/gif",
 ]
 
+// Magic byte signatures for server-side file type validation
+const MAGIC_BYTES: Record<string, number[][]> = {
+  "image/jpeg": [[0xFF, 0xD8, 0xFF]],
+  "image/png": [[0x89, 0x50, 0x4E, 0x47]],
+  "image/gif": [[0x47, 0x49, 0x46, 0x38]],
+  "image/webp": [], // checked separately: RIFF....WEBP
+}
+
+function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
+  if (mimeType === "image/webp") {
+    // RIFF at offset 0 and WEBP at offset 8
+    return (
+      buffer.length >= 12 &&
+      buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+      buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50
+    )
+  }
+  const signatures = MAGIC_BYTES[mimeType]
+  if (!signatures || signatures.length === 0) return true
+  return signatures.some((sig) =>
+    sig.every((byte, i) => buffer.length > i && buffer[i] === byte)
+  )
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
@@ -50,10 +74,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const ext = file.name.split(".").pop() || "png"
+    // Validate file content matches claimed MIME type via magic bytes
+    const buffer = Buffer.from(await file.arrayBuffer())
+    if (!validateMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: "File content does not match declared type" },
+        { status: 400 }
+      )
+    }
+
+    // Derive extension from validated MIME type, not from user-supplied filename
+    const MIME_TO_EXT: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    }
+    const ext = MIME_TO_EXT[file.type] || "png"
     const filename = `uploads/${randomUUID()}.${ext}`
 
-    const blob = await put(filename, file, {
+    const blob = await put(filename, buffer, {
       access: "public",
       contentType: file.type,
     })

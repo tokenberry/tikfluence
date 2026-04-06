@@ -1,0 +1,300 @@
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
+import { createPayout } from "@/lib/payoneer"
+import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
+import { analyzeDelivery } from "@/lib/ai"
+import { z } from "zod"
+
+const reviewSchema = z.object({
+  approved: z.boolean(),
+  rejectionReason: z.string().max(5000).optional(),
+})
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string; deliveryId: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user || !session.user.role || !["BRAND", "AGENCY", "ADMIN"].includes(session.user.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id: orderId, deliveryId } = await params
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        brand: { select: { id: true, userId: true } },
+        assignments: {
+          include: {
+            creator: {
+              select: {
+                id: true,
+                payoneerPayeeId: true,
+                user: { select: { id: true, email: true, name: true } },
+              },
+            },
+            network: {
+              select: {
+                id: true,
+                payoneerPayeeId: true,
+                user: { select: { id: true, email: true, name: true } },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    // Verify authorization: brand owner, managing agency, or admin
+    let canReview = order.brand.userId === session.user.id || session.user.role === "ADMIN"
+    if (!canReview && session.user.role === "AGENCY") {
+      const agency = await prisma.agency.findUnique({ where: { userId: session.user.id } })
+      if (agency) {
+        const link = await prisma.agencyBrand.findFirst({
+          where: { agencyId: agency.id, brandId: order.brand.id, status: "APPROVED" },
+        })
+        if (link) canReview = true
+      }
+    }
+    if (!canReview) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const delivery = await prisma.delivery.findUnique({
+      where: { id: deliveryId },
+    })
+
+    if (!delivery || delivery.orderId !== orderId) {
+      return NextResponse.json(
+        { error: "Delivery not found" },
+        { status: 404 }
+      )
+    }
+
+    if (delivery.approved !== null) {
+      return NextResponse.json(
+        { error: "Delivery has already been reviewed" },
+        { status: 400 }
+      )
+    }
+
+    const body = await request.json()
+    const parsed = reviewSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const { approved, rejectionReason } = parsed.data
+
+    if (approved) {
+      // Get platform fee settings
+      const settings = await prisma.platformSettings.findUnique({
+        where: { id: "default" },
+      })
+      const feeRate = settings?.platformFeeRate ?? 0.15
+
+      // Calculate per-creator share based on actual completed assignments
+      const completedCount = order.assignments.filter(
+        (a) => a.completedAt !== null
+      ).length
+      const activeAssignments = Math.max(completedCount + 1, 1)
+      const perCreatorBudget = order.budget / activeAssignments
+      const platformFee = perCreatorBudget * feeRate
+      const creatorPayout = perCreatorBudget - platformFee
+
+      const assignment = order.assignments[0]
+
+      const txResult = await prisma.$transaction(async (tx) => {
+        // Re-check inside transaction to prevent double-approval race condition
+        const freshDelivery = await tx.delivery.findUnique({
+          where: { id: deliveryId },
+          select: { approved: true },
+        })
+        if (freshDelivery?.approved !== null) {
+          throw new Error("ALREADY_REVIEWED")
+        }
+
+        await tx.delivery.update({
+          where: { id: deliveryId },
+          data: { approved: true, reviewedAt: new Date() },
+        })
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            status: "COMPLETED",
+            paymentStatus: "HELD",
+          },
+        })
+
+        const transaction = await tx.transaction.create({
+          data: {
+            orderId,
+            amount: perCreatorBudget,
+            platformFee,
+            creatorPayout,
+            stripePaymentId: order.stripePaymentId,
+            payoutMethod: "PAYONEER",
+            status: "PENDING",
+          },
+        })
+
+        await tx.orderAssignment.updateMany({
+          where: { orderId },
+          data: { completedAt: new Date() },
+        })
+
+        return { success: true, transactionId: transaction.id }
+      }).catch((err) => {
+        if (err.message === "ALREADY_REVIEWED") {
+          return { error: "Delivery has already been reviewed" } as const
+        }
+        throw err
+      })
+
+      if ("error" in txResult) {
+        return NextResponse.json({ error: txResult.error }, { status: 400 })
+      }
+
+      // Attempt Payoneer payout (non-blocking)
+      const payeeId =
+        assignment?.creator?.payoneerPayeeId ??
+        assignment?.network?.payoneerPayeeId
+      if (payeeId && "transactionId" in txResult) {
+        try {
+          const result = await createPayout({
+            payeeId,
+            amount: creatorPayout,
+            description: `Payout for order "${order.title}"`,
+            paymentId: txResult.transactionId,
+          })
+          if (result.payoutId) {
+            await prisma.transaction.update({
+              where: { id: txResult.transactionId },
+              data: {
+                payoneerPayoutId: result.payoutId,
+                status: "RELEASED",
+              },
+            })
+            await prisma.order.update({
+              where: { id: orderId },
+              data: { paymentStatus: "RELEASED" },
+            })
+          }
+        } catch (err) {
+          console.error("Payoneer payout failed (will retry via admin):", err)
+        }
+      }
+
+      // Notify creator/network of approval
+      const assignee = assignment?.creator ?? assignment?.network
+      if (assignee?.user) {
+        sendOrderApprovedEmail(
+          assignee.user.email,
+          assignee.user.name,
+          order.title,
+          creatorPayout
+        )
+        createNotification(
+          assignee.user.id,
+          "delivery_approved",
+          "Delivery approved!",
+          `Your delivery for "${order.title}" was approved. Payout: $${creatorPayout.toFixed(2)}`,
+          assignment?.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
+        )
+      }
+      // Trigger async AI delivery analysis (non-blocking)
+      const creatorProfile = assignment?.creator
+      if (creatorProfile) {
+        const creatorDetails = await prisma.creator.findUnique({
+          where: { id: creatorProfile.id },
+          select: { tiktokUsername: true, followerCount: true, engagementRate: true },
+        })
+        if (creatorDetails) {
+          analyzeDelivery({
+            orderId,
+            deliveryId,
+            orderTitle: order.title,
+            orderDescription: order.description,
+            orderBrief: order.brief,
+            orderType: order.type,
+            impressionTarget: order.impressionTarget,
+            budget: order.budget,
+            cpmRate: order.cpmRate,
+            liveFlatFee: order.liveFlatFee,
+            liveMinDuration: order.liveMinDuration,
+            deliveryType: delivery.deliveryType,
+            impressions: delivery.impressions,
+            views: delivery.views,
+            likes: delivery.likes,
+            comments: delivery.comments,
+            shares: delivery.shares,
+            streamDuration: delivery.streamDuration,
+            peakViewers: delivery.peakViewers,
+            avgConcurrentViewers: delivery.avgConcurrentViewers,
+            chatMessages: delivery.chatMessages,
+            giftsValue: delivery.giftsValue,
+            creatorUsername: creatorDetails.tiktokUsername,
+            creatorFollowers: creatorDetails.followerCount,
+            creatorEngagementRate: creatorDetails.engagementRate,
+          }).catch((err) => console.error("AI delivery analysis failed:", err))
+        }
+      }
+    } else {
+      await prisma.$transaction(async (tx) => {
+        await tx.delivery.update({
+          where: { id: deliveryId },
+          data: {
+            approved: false,
+            rejectionReason: rejectionReason || null,
+            reviewedAt: new Date(),
+          },
+        })
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: "REVISION" },
+        })
+      })
+
+      // Notify creator/network of rejection
+      const assignment = order.assignments[0]
+      const rejectedAssignee = assignment?.creator ?? assignment?.network
+      if (rejectedAssignee?.user) {
+        sendOrderRejectedEmail(
+          rejectedAssignee.user.email,
+          rejectedAssignee.user.name,
+          order.title,
+          rejectionReason
+        )
+        createNotification(
+          rejectedAssignee.user.id,
+          "delivery_rejected",
+          "Revision requested",
+          `The brand requested a revision for "${order.title}"${rejectionReason ? `: ${rejectionReason}` : ""}`,
+          assignment?.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
+        )
+      }
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error reviewing delivery:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}

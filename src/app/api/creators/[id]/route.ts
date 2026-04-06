@@ -10,6 +10,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { id } = await params
 
     const creator = await prisma.creator.findUnique({
@@ -45,6 +50,13 @@ export async function GET(
       return NextResponse.json({ error: "Creator not found" }, { status: 404 })
     }
 
+    // Strip email for non-owners (only the creator themselves or admin can see email)
+    const isOwner = creator.user.id === session.user.id
+    const isAdmin = session.user.role === "ADMIN" || session.user.role === "ACCOUNT_MANAGER"
+    if (!isOwner && !isAdmin) {
+      creator.user.email = ""
+    }
+
     return NextResponse.json(creator)
   } catch (error) {
     console.error("Error fetching creator:", error)
@@ -59,6 +71,8 @@ const updateSchema = z.object({
   bio: z.string().max(1000).optional(),
   portfolioLinks: z.array(z.string().url()).max(10).optional(),
   categories: z.array(z.string()).optional(),
+  supportsShortVideo: z.boolean().optional(),
+  supportsLive: z.boolean().optional(),
 })
 
 export async function PUT(
@@ -96,11 +110,13 @@ export async function PUT(
       )
     }
 
-    const { bio, portfolioLinks, categories } = parsed.data
+    const { bio, portfolioLinks, categories, supportsShortVideo, supportsLive } = parsed.data
 
     const updateData: Record<string, unknown> = {}
     if (bio !== undefined) updateData.bio = bio
     if (portfolioLinks !== undefined) updateData.portfolioLinks = portfolioLinks
+    if (supportsShortVideo !== undefined) updateData.supportsShortVideo = supportsShortVideo
+    if (supportsLive !== undefined) updateData.supportsLive = supportsLive
 
     const updated = await prisma.$transaction(async (tx) => {
       if (categories !== undefined) {

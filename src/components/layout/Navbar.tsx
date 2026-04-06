@@ -1,88 +1,103 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
+import NotificationBell from "./NotificationBell"
+import LanguageSwitcher from "./LanguageSwitcher"
 
-const roleNavLinks: Record<string, { label: string; href: string }[]> = {
-  CREATOR: [
-    { label: "Orders", href: "/orders" },
-    { label: "Earnings", href: "/earnings" },
-    { label: "Profile", href: "/profile" },
-  ],
-  NETWORK: [
-    { label: "Creators", href: "/creators" },
-    { label: "Orders", href: "/orders" },
-    { label: "Earnings", href: "/earnings" },
-  ],
-  BRAND: [
-    { label: "Browse", href: "/browse" },
-    { label: "Orders", href: "/orders" },
-    { label: "Settings", href: "/settings" },
-  ],
-  ADMIN: [
-    { label: "Users", href: "/admin/users" },
-    { label: "Orders", href: "/admin/orders" },
-    { label: "Transactions", href: "/admin/transactions" },
-    { label: "Tickets", href: "/admin/tickets" },
-    { label: "Settings", href: "/admin/settings" },
-  ],
+const roleDashboardPath: Record<string, string> = {
+  CREATOR: "/creator",
+  NETWORK: "/network",
+  BRAND: "/brand",
+  ADMIN: "/admin/users",
+  AGENCY: "/agency",
+  ACCOUNT_MANAGER: "/account-manager/clients",
+}
+
+const roleSettingsPath: Record<string, string> = {
+  CREATOR: "/creator/settings",
+  NETWORK: "/network/settings",
+  BRAND: "/brand/settings",
+  ADMIN: "/admin/settings",
+  AGENCY: "/agency/settings",
+  ACCOUNT_MANAGER: "/account-manager/settings",
 }
 
 export default function Navbar() {
+  const pathname = usePathname()
   const { data: session, status } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const t = useTranslations("nav")
 
-  const navLinks = session?.user?.role
-    ? roleNavLinks[session.user.role] ?? []
-    : []
+  const role = session?.user?.role ?? ""
+  const dashboardHref = roleDashboardPath[role] || "/"
+  const settingsHref = roleSettingsPath[role] || "#"
+
+  // Landing page has its own header
+  if (pathname === "/" && status !== "authenticated") return null
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-[#0a0a0a] border-b border-white/5 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <Link href="/" className="text-xl font-bold text-indigo-600">
-            Tikfluence
+          <Link href="/" className="flex items-center gap-2.5 text-xl font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4772c]">
+              <span className="text-sm font-bold text-white">F</span>
+            </div>
+            {t("app_name")}
           </Link>
 
-          {/* Desktop nav links */}
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             {status === "authenticated" && (
               <>
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                <Link
+                  href={dashboardHref}
+                  className="text-sm font-medium text-gray-300 hover:text-[#d4772c] transition-colors"
+                >
+                  {t("dashboard")}
+                </Link>
+
+                {/* Language switcher */}
+                <LanguageSwitcher />
+
+                {/* Notifications */}
+                <NotificationBell />
 
                 {/* User menu */}
                 <div className="relative">
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600"
+                    className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-[#d4772c]"
                   >
-                    <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-semibold">
+                    <span className="w-8 h-8 rounded-full bg-[#d4772c]/20 text-[#d4772c] flex items-center justify-center text-sm font-semibold">
                       {session.user.name?.charAt(0).toUpperCase() ?? "U"}
                     </span>
                     <span>{session.user.name}</span>
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
-                      <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+                    <div className="absolute right-0 mt-2 w-48 bg-[#141414] rounded-md shadow-lg border border-white/10 py-1 z-50">
+                      <div className="px-4 py-2 text-xs text-white/40 border-b border-white/10">
                         {session.user.email}
                       </div>
+                      <Link
+                        href={settingsHref}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
+                      >
+                        {t("settings")}
+                      </Link>
                       <button
                         onClick={() => signOut({ callbackUrl: "/" })}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
                       >
-                        Sign out
+                        {t("sign_out")}
                       </button>
                     </div>
                   )}
@@ -92,17 +107,18 @@ export default function Navbar() {
 
             {status === "unauthenticated" && (
               <div className="flex items-center gap-3">
+                <LanguageSwitcher />
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+                  className="text-sm font-medium text-gray-300 hover:text-[#d4772c]"
                 >
-                  Login
+                  {t("login")}
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-md transition-colors"
+                  className="text-sm font-medium text-white bg-[#d4772c] hover:bg-[#c86b1e] px-4 py-2 rounded-md transition-colors"
                 >
-                  Register
+                  {t("register")}
                 </Link>
               </div>
             )}
@@ -111,8 +127,8 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100"
-            aria-label="Toggle menu"
+            className="md:hidden p-2 rounded-md text-white/60 hover:bg-white/5"
+            aria-label={t("toggle_menu")}
           >
             <svg
               className="w-6 h-6"
@@ -142,31 +158,35 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
+        <div className="md:hidden border-t border-white/5 bg-[#0a0a0a]">
           <div className="px-4 py-3 space-y-2">
             {status === "authenticated" && (
               <>
-                <div className="pb-2 mb-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="pb-2 mb-2 border-b border-white/10">
+                  <p className="text-sm font-medium text-white">
                     {session.user.name}
                   </p>
-                  <p className="text-xs text-gray-500">{session.user.email}</p>
+                  <p className="text-xs text-white/40">{session.user.email}</p>
                 </div>
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block text-sm font-medium text-gray-700 hover:text-indigo-600 py-1"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-sm font-medium text-white/60 hover:text-[#d4772c] py-1"
+                >
+                  {t("dashboard")}
+                </Link>
+                <Link
+                  href={settingsHref}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-sm font-medium text-white/60 hover:text-[#d4772c] py-1"
+                >
+                  {t("settings")}
+                </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="block w-full text-left text-sm font-medium text-red-600 hover:text-red-700 py-1 mt-2"
+                  className="block w-full text-left text-sm font-medium text-red-400 hover:text-red-300 py-1 mt-2"
                 >
-                  Sign out
+                  {t("sign_out")}
                 </button>
               </>
             )}
@@ -176,16 +196,16 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-gray-700 hover:text-indigo-600 py-1"
+                  className="block text-sm font-medium text-white/60 hover:text-white py-1"
                 >
-                  Login
+                  {t("login")}
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-indigo-600 hover:text-indigo-700 py-1"
+                  className="block text-sm font-medium text-[#d4772c] hover:text-[#e8883a] py-1"
                 >
-                  Register
+                  {t("register")}
                 </Link>
               </>
             )}

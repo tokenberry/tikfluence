@@ -804,53 +804,33 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 - Replaced local `fs.writeFile` to `/uploads` directory with `@vercel/blob` `put()` API
 - Upload route now returns full Vercel Blob CDN URLs
 - Added `*.public.blob.vercel-storage.com` to Next.js image remote patterns
-- Requires `BLOB_READ_WRITE_TOKEN` env var (auto-set when Blob store linked in Vercel)
+- Preserved magic byte validation from v1.0.1 security hardening
 
 **2. Vercel Cron Jobs (2 new scheduled tasks):**
-- `/api/cron/refresh-metrics` — daily at 3 AM UTC, batch-refreshes up to 50 creators with metrics older than 7 days via TikTok API, recalculates scores/tiers
+- `/api/cron/refresh-metrics` — daily at 3 AM UTC, batch-refreshes up to 50 creators with metrics older than 7 days
 - `/api/cron/expire-orders` — daily at 4 AM UTC, auto-cancels OPEN/ASSIGNED orders past `expiresAt`, refunds HELD payments
 - `vercel.json` with cron schedule configuration
 - `CRON_SECRET` Bearer token auth on both endpoints
 
 **3. Recharts Analytics Dashboard (4 charts):**
-- **Order Status Pie Chart** — donut chart with color-coded statuses
-- **User Role Bar Chart** — bar chart with purple/blue/green/red per role
-- **Order Trend Bar Chart** — last 6 months of order volume with orange brand bars
-- **Revenue Trend Area Chart** — last 6 months of revenue + platform fees
+- Order Status Pie Chart, User Role Bar Chart
+- Order Trend Bar Chart + Revenue Trend Area Chart (last 6 months)
 - Enhanced analytics API with monthly time-series aggregation
-- All charts responsive with `ResponsiveContainer`
 
 **4. Mobile Optimization (20+ pages):**
-- Dashboard layout padding: `p-6` → `p-3 sm:p-6`
-- All 19 dashboard page.tsx files updated with responsive padding
-- Table `min-w-[600px]` + `overflow-x-auto` for proper horizontal scroll on mobile
-- Heading sizes: `text-3xl` → `text-2xl sm:text-3xl` across all pages
-- Stat cards: responsive grid gaps and padding
+- Responsive padding (`p-3 sm:p-6`) across all dashboard pages
+- Responsive headings (`text-2xl sm:text-3xl`)
+- Table `min-w-[600px]` for horizontal scroll on mobile
 
 **5. API Rate Limiting:**
-- `src/lib/rate-limit.ts` — sliding-window token bucket algorithm with Map store
-- Middleware-level rate limit: 60 req/min per IP on all API routes
-- Registration route: 5 req/min per IP
-- Upload route: 10 req/min per user
+- Middleware-level: 60 req/min per IP on all API routes
+- Auth routes: 5 req/min, Upload: 10 req/min per user
 - Returns HTTP 429 with `Retry-After` header
-- Auto-cleanup of stale entries every 5 minutes
 
 **6. Testing Infrastructure:**
-- Vitest + @testing-library/react + jsdom setup
-- `vitest.config.ts` with path aliases and React plugin
-- 3 test suites, 21 tests — all passing:
-  - `scoring.test.ts` — 8 tests (tier calculation, edge cases, profile impact)
-  - `utils.test.ts` — 9 tests (currency formatting, number formatting)
-  - `rate-limit.test.ts` — 4 tests (allow, block, remaining, key isolation)
-- `npm run test` and `npm run test:watch` scripts
-
-**7. Misc:**
-- Fox logo marked as completed in PROGRESS.md (was already deployed in v1.0.0)
-- Version bumped to 3.0.0 in `package.json` and `src/lib/constants.ts`
-
-**Files created:** `vercel.json`, `vitest.config.ts`, `src/lib/rate-limit.ts`, `src/lib/constants.ts`, `src/app/api/cron/refresh-metrics/route.ts`, `src/app/api/cron/expire-orders/route.ts`, `src/app/(dashboard)/admin/analytics/AnalyticsCharts.tsx`, `src/__tests__/setup.ts`, `src/__tests__/scoring.test.ts`, `src/__tests__/utils.test.ts`, `src/__tests__/rate-limit.test.ts`, `tasks/todo.md`
-
-**Files modified:** `src/app/api/upload/route.ts`, `src/app/api/admin/analytics/route.ts`, `src/app/(dashboard)/admin/analytics/page.tsx`, `src/middleware.ts`, `src/app/api/register/route.ts`, `next.config.ts`, `package.json`, `src/app/(dashboard)/layout.tsx`, 19 dashboard page.tsx files (responsive padding + heading + table fixes), `PROGRESS.md`
+- Vitest + @testing-library/react + jsdom
+- 21 tests across 3 suites (scoring, utils, rate-limit)
+- `npm run test` / `npm run test:watch`
 
 ---
 

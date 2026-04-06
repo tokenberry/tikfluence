@@ -51,14 +51,14 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
+  --primary: #d4772c;
+  --primary-foreground: #ffffff;
+  --secondary: #fdf6e3;
+  --secondary-foreground: #2d3436;
+  --muted: #fdf6e3;
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: #fdf6e3;
+  --accent-foreground: #2d3436;
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -70,10 +70,10 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-primary: #d4772c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fdf6e3;
+  --sidebar-accent-foreground: #2d3436;
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
@@ -104,9 +104,9 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-primary: #d4772c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3d4446;
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
@@ -119,4 +119,112 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-in.slide-in-from-right {
+  animation: slide-in-from-right 0.2s ease-out;
+}
+
+/* ── Landing Page Utilities ────────────────────────────────────────── */
+
+.landing-grid {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #d4772c 0%, #f0a050 50%, #d4772c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glow-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    300px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(212, 119, 44, 0.12),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.glow-card:hover {
+  border-color: rgba(212, 119, 44, 0.3);
+  box-shadow: 0 0 40px rgba(212, 119, 44, 0.08);
+}
+
+.glow-card:hover::before {
+  opacity: 1;
+}
+
+/* ── RTL Support ──────────────────────────────────────────────────── */
+
+[dir="rtl"] .space-x-4 > :not(:first-child) {
+  margin-right: 1rem;
+  margin-left: 0;
+}
+
+/* Flip mobile sidebar for RTL */
+[dir="rtl"] .fixed.inset-y-0.left-0 {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .-translate-x-full {
+  --tw-translate-x: 100%;
+}
+
+[dir="rtl"] .translate-x-0 {
+  --tw-translate-x: 0;
+}
+
+/* Flip arrow transitions for RTL */
+[dir="rtl"] .group-hover\:translate-x-0\.5 {
+  --tw-translate-x: -0.125rem;
+}
+
+/* Ensure text alignment for RTL */
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 119, 44, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(212, 119, 44, 0.4); }
 }

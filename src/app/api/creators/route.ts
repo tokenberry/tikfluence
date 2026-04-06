@@ -8,6 +8,7 @@ const querySchema = z.object({
   category: z.string().optional(),
   tier: z.coerce.number().int().min(1).max(5).optional(),
   search: z.string().optional(),
+  contentType: z.enum(["video", "live"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 })
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
       category: searchParams.get("category") ?? undefined,
       tier: searchParams.get("tier") ?? undefined,
       search: searchParams.get("search") ?? undefined,
+      contentType: searchParams.get("contentType") ?? undefined,
       page: searchParams.get("page") ?? undefined,
       limit: searchParams.get("limit") ?? undefined,
     })
@@ -30,13 +32,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const { category, tier, search, page, limit } = parsed.data
+    const { category, tier, search, contentType, page, limit } = parsed.data
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = {}
 
     if (tier) {
       where.tier = tier
+    }
+
+    if (contentType === "video") {
+      where.supportsShortVideo = true
+    } else if (contentType === "live") {
+      where.supportsLive = true
     }
 
     if (category) {

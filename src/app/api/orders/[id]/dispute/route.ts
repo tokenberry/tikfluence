@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { sendDisputeOpenedEmail } from "@/lib/email"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -24,11 +25,11 @@ export async function POST(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        brand: { select: { userId: true } },
+        brand: { include: { user: { select: { id: true, email: true } } } },
         assignments: {
           include: {
-            creator: { select: { userId: true } },
-            network: { select: { userId: true } },
+            creator: { include: { user: { select: { id: true, email: true } } } },
+            network: { include: { user: { select: { id: true, email: true } } } },
           },
         },
       },
@@ -39,11 +40,11 @@ export async function POST(
     }
 
     // Only involved parties can dispute
-    const isBrand = order.brand.userId === session.user.id
+    const isBrand = order.brand.user.id === session.user.id
     const isAssigned = order.assignments.some(
       (a) =>
-        a.creator?.userId === session.user.id ||
-        a.network?.userId === session.user.id
+        a.creator?.user?.id === session.user.id ||
+        a.network?.user?.id === session.user.id
     )
     const isAdmin = session.user.role === "ADMIN"
 
@@ -75,15 +76,25 @@ export async function POST(
         data: { status: "DISPUTED" },
       })
 
+      // creatorId here is the ticket opener (any user), not necessarily a Creator role
       await tx.supportTicket.create({
         data: {
           creatorId: session.user.id,
-          subject: `Dispute: Order ${order.title}`,
+          subject: `Dispute: Order "${order.title}"`,
           description: parsed.data.reason,
           priority: 2,
         },
       })
     })
+
+    // Notify all involved parties
+    const emails = new Set<string>()
+    emails.add(order.brand.user.email)
+    for (const a of order.assignments) {
+      if (a.creator?.user?.email) emails.add(a.creator.user.email)
+      if (a.network?.user?.email) emails.add(a.network.user.email)
+    }
+    sendDisputeOpenedEmail([...emails], order.title)
 
     return NextResponse.json({ message: "Dispute opened" })
   } catch (error) {

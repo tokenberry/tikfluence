@@ -1,5 +1,8 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import Google from "next-auth/providers/google"
+import TikTok from "next-auth/providers/tiktok"
+import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { UserRole } from "@prisma/client"
@@ -10,18 +13,46 @@ declare module "next-auth" {
       id: string
       email: string
       name: string
-      role: UserRole
+      role: UserRole | null
       image?: string | null
     }
   }
 
   interface User {
-    role: UserRole
+    role?: UserRole | null
   }
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  adapter: PrismaAdapter(prisma),
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    TikTok({
+      clientId: process.env.AUTH_TIKTOK_ID,
+      clientSecret: process.env.AUTH_TIKTOK_SECRET,
+      authorization: {
+        url: "https://www.tiktok.com/v2/auth/authorize",
+        params: {
+          client_key: process.env.AUTH_TIKTOK_ID,
+          scope: "user.info.basic,user.info.profile",
+        },
+      },
+      userinfo:
+        "https://open.tiktokapis.com/v2/user/info/?fields=open_id,avatar_url,display_name,username",
+      profile(profile) {
+        const user = profile.data.user
+        return {
+          id: user.open_id,
+          name: user.display_name,
+          image: user.avatar_url,
+          // TikTok doesn't provide email — generate a placeholder
+          email: `tiktok_${user.open_id}@placeholder.foxolog.com`,
+        }
+      },
+    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -37,7 +68,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: credentials.email as string },
         })
 
-        if (!user || !user.isActive) {
+        if (!user || !user.isActive || !user.password) {
           return null
         }
 
@@ -61,17 +92,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id!
-        token.role = (user as { role: UserRole }).role
+        token.role = user.role ?? null
       }
+
+      // Refresh role from DB when triggered or when role is null
+      // (e.g., after OAuth user completes onboarding)
+      if (trigger === "update" || token.role === null) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true },
+        })
+        if (dbUser) {
+          token.role = dbUser.role ?? null
+        }
+      }
+
       return token
     },
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string
-        session.user.role = token.role as UserRole
+        session.user.role = token.role as UserRole | null
       }
       return session
     },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { sendWelcomeEmail } from "@/lib/email"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
@@ -10,14 +11,19 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   name: z.string().min(2),
-  role: z.enum(["CREATOR", "NETWORK", "BRAND"]),
+  role: z.enum(["CREATOR", "NETWORK", "BRAND", "AGENCY"]),
   // Creator-specific
   tiktokUsername: z.string().optional(),
+  supportsShortVideo: z.boolean().optional(),
+  supportsLive: z.boolean().optional(),
   // Network-specific
   companyName: z.string().optional(),
   // Brand-specific
   brandCompanyName: z.string().optional(),
   industry: z.string().optional(),
+  // Agency-specific
+  agencyCompanyName: z.string().optional(),
+  agencyWebsite: z.string().optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -47,6 +53,25 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(data.password, 12)
 
+    // Pre-validate creator-specific fields before creating user
+    if (data.role === "CREATOR") {
+      if (!data.tiktokUsername) {
+        return NextResponse.json(
+          { error: "TikTok username is required for creators" },
+          { status: 400 }
+        )
+      }
+      const existingCreator = await prisma.creator.findUnique({
+        where: { tiktokUsername: data.tiktokUsername },
+      })
+      if (existingCreator) {
+        return NextResponse.json(
+          { error: "TikTok username already registered" },
+          { status: 400 }
+        )
+      }
+    }
+
     // Create user with role-specific profile in a transaction
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
@@ -59,22 +84,13 @@ export async function POST(req: NextRequest) {
       })
 
       if (data.role === "CREATOR") {
-        if (!data.tiktokUsername) {
-          throw new Error("TikTok username is required for creators")
-        }
-
-        // Check if TikTok username already taken
-        const existingCreator = await tx.creator.findUnique({
-          where: { tiktokUsername: data.tiktokUsername },
-        })
-        if (existingCreator) {
-          throw new Error("TikTok username already registered")
-        }
 
         await tx.creator.create({
           data: {
             userId: newUser.id,
-            tiktokUsername: data.tiktokUsername,
+            tiktokUsername: data.tiktokUsername!,
+            supportsShortVideo: data.supportsShortVideo ?? true,
+            supportsLive: data.supportsLive ?? false,
           },
         })
       } else if (data.role === "NETWORK") {
@@ -98,10 +114,23 @@ export async function POST(req: NextRequest) {
             industry: data.industry,
           },
         })
+      } else if (data.role === "AGENCY") {
+        if (!data.agencyCompanyName) {
+          throw new Error("Company name is required for agencies")
+        }
+        await tx.agency.create({
+          data: {
+            userId: newUser.id,
+            companyName: data.agencyCompanyName,
+            website: data.agencyWebsite,
+          },
+        })
       }
 
       return newUser
     })
+
+    sendWelcomeEmail(data.email, data.name, data.role)
 
     return NextResponse.json(
       { message: "Registration successful", userId: user.id },

@@ -34,7 +34,7 @@ export async function GET(
               },
             },
             network: {
-              select: { id: true, companyName: true },
+              select: { id: true, companyName: true, user: { select: { id: true } } },
             },
           },
         },
@@ -47,6 +47,41 @@ export async function GET(
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    // Authorization: only involved parties can view order details
+    const userId = session.user.id
+    const role = session.user.role
+    const isBrandOwner = order.brand.userId === userId
+    const isAssigned = order.assignments.some(
+      (a) => a.creator?.user?.id === userId || a.network?.user?.id === userId
+    )
+
+    if (!isBrandOwner && !isAssigned && role !== "ADMIN") {
+      if (role === "ACCOUNT_MANAGER") {
+        // Account managers can only view orders for their assigned brands
+        const am = await prisma.accountManager.findUnique({ where: { userId } })
+        const manages = am
+          ? await prisma.accountManagerBrand.findFirst({
+              where: { accountManagerId: am.id, brandId: order.brand.id },
+            })
+          : null
+        if (!manages) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        }
+      } else if (role === "AGENCY") {
+        const agency = await prisma.agency.findUnique({ where: { userId } })
+        const manages = agency
+          ? await prisma.agencyBrand.findFirst({
+              where: { agencyId: agency.id, brandId: order.brand.id },
+            })
+          : null
+        if (!manages) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        }
+      } else {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
     }
 
     return NextResponse.json(order)
@@ -67,7 +102,7 @@ const updateOrderSchema = z.object({
   impressionTarget: z.number().int().min(1).optional(),
   budget: z.number().min(0).optional(),
   maxCreators: z.number().int().min(1).optional(),
-  status: z.enum(["DRAFT", "OPEN"]).optional(),
+  status: z.enum(["DRAFT"]).optional(), // OPEN transition requires checkout
 })
 
 export async function PUT(
@@ -85,7 +120,7 @@ export async function PUT(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        brand: { select: { userId: true } },
+        brand: { select: { id: true, userId: true } },
       },
     })
 
@@ -93,7 +128,18 @@ export async function PUT(
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    if (order.brand.userId !== session.user.id) {
+    // Allow brand owner or agency managing this brand
+    let authorized = order.brand.userId === session.user.id
+    if (!authorized && session.user.role === "AGENCY") {
+      const agency = await prisma.agency.findUnique({ where: { userId: session.user.id } })
+      if (agency) {
+        const link = await prisma.agencyBrand.findFirst({
+          where: { agencyId: agency.id, brandId: order.brand.id, status: "APPROVED" },
+        })
+        if (link) authorized = true
+      }
+    }
+    if (!authorized) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -157,7 +203,7 @@ export async function DELETE(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
-        brand: { select: { userId: true } },
+        brand: { select: { id: true, userId: true } },
       },
     })
 
@@ -165,16 +211,49 @@ export async function DELETE(
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    if (order.brand.userId !== session.user.id && session.user.role !== "ADMIN") {
+    let canDelete = order.brand.userId === session.user.id || session.user.role === "ADMIN"
+    if (!canDelete && session.user.role === "AGENCY") {
+      const agency = await prisma.agency.findUnique({ where: { userId: session.user.id } })
+      if (agency) {
+        const link = await prisma.agencyBrand.findFirst({
+          where: { agencyId: agency.id, brandId: order.brand.id, status: "APPROVED" },
+        })
+        if (link) canDelete = true
+      }
+    }
+    if (!canDelete) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    await prisma.order.update({
-      where: { id },
-      data: { status: "CANCELLED" },
+    // Issue credit if order was paid (OPEN or beyond with HELD payment)
+    const shouldIssueCredit =
+      order.status !== "DRAFT" && order.paymentStatus === "HELD"
+
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id },
+        data: {
+          status: "CANCELLED",
+          paymentStatus: shouldIssueCredit ? "REFUNDED" : order.paymentStatus,
+        },
+      })
+
+      if (shouldIssueCredit) {
+        await tx.brandCredit.create({
+          data: {
+            brandId: order.brand.id,
+            amount: order.budget,
+            reason: `Order cancelled: "${order.title}"`,
+            orderId: id,
+          },
+        })
+      }
     })
 
-    return NextResponse.json({ message: "Order cancelled" })
+    return NextResponse.json({
+      message: "Order cancelled",
+      creditIssued: shouldIssueCredit ? order.budget : 0,
+    })
   } catch (error) {
     console.error("Error cancelling order:", error)
     return NextResponse.json(

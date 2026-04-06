@@ -1,18 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { sendDeliverySubmittedEmail } from "@/lib/email"
+import { createNotification } from "@/lib/notifications"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
 
 const deliverySchema = z.object({
+  deliveryType: z.enum(["SHORT_VIDEO", "LIVE"]).default("SHORT_VIDEO"),
   tiktokLink: z.string().url(),
+  tiktokLinks: z.array(z.string().url()).default([]),
   screenshotUrl: z.string().url().optional(),
+  screenshots: z.array(z.string()).default([]),
+  // SHORT_VIDEO metrics
   impressions: z.number().int().min(0).optional(),
   views: z.number().int().min(0).optional(),
   likes: z.number().int().min(0).optional(),
   comments: z.number().int().min(0).optional(),
   shares: z.number().int().min(0).optional(),
+  // LIVE metrics
+  streamDuration: z.number().int().min(1).optional(),
+  peakViewers: z.number().int().min(0).optional(),
+  avgConcurrentViewers: z.number().int().min(0).optional(),
+  chatMessages: z.number().int().min(0).optional(),
+  giftsValue: z.number().min(0).optional(),
   notes: z.string().max(5000).optional(),
 })
 
@@ -31,6 +43,7 @@ export async function POST(
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
+        brand: { include: { user: { select: { id: true, email: true, name: true } } } },
         assignments: {
           include: {
             creator: { select: { userId: true } },
@@ -90,6 +103,22 @@ export async function POST(
 
       return delivery
     })
+
+    // Notify brand that delivery was submitted
+    sendDeliverySubmittedEmail(
+      order.brand.user.email,
+      order.brand.user.name,
+      order.title
+    )
+
+    // In-app notification to brand
+    createNotification(
+      order.brand.user.id,
+      "delivery_submitted",
+      "Delivery submitted",
+      `A delivery has been submitted for "${order.title}"`,
+      `/brand/orders/${id}`
+    )
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {

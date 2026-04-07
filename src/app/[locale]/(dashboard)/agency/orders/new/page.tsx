@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 
@@ -202,18 +204,14 @@ export default function AgencyNewOrderPage() {
 
         {/* LIVE Restriction Warning */}
         {showLiveFields && (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-            <div className="flex items-start gap-2">
-              <span className="text-amber-600 text-lg">&#9888;</span>
-              <div>
-                <p className="text-sm font-medium text-amber-800">LIVE Stream Content Restrictions</p>
-                <p className="text-xs text-amber-700 mt-1">
-                  LIVE streams must use <strong>product placement</strong> or <strong>sponsored gameplay</strong>.
-                  Direct brand logos, explicit mentions, or traditional ad formats may result in stream bans or restrictions from TikTok.
-                </p>
-              </div>
-            </div>
-          </div>
+          <Alert variant="warning">
+            <AlertTriangle />
+            <AlertTitle>LIVE Stream Content Restrictions</AlertTitle>
+            <AlertDescription>
+              LIVE streams must use <strong>product placement</strong> or <strong>sponsored gameplay</strong>.
+              Direct brand logos, explicit mentions, or traditional ad formats may result in stream bans or restrictions from TikTok.
+            </AlertDescription>
+          </Alert>
         )}
 
         <div>

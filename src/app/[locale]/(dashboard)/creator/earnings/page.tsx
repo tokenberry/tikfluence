@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { PaymentStatusBadge } from "@/components/ui/Badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -71,24 +72,20 @@ export default async function CreatorEarningsPage() {
 
       {/* Payoneer Payout Onboarding */}
       {!creator.payoneerPayeeId && (
-        <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-6">
-          <h2 className="text-lg font-semibold text-yellow-800">{t("earnings_setup_title")}</h2>
-          <p className="mt-1 text-sm text-yellow-700">
-            {t("earnings_setup_desc")}
-          </p>
-          <form
-            action="/api/payouts/onboard"
-            method="POST"
-            className="mt-3"
-          >
-            <button
-              type="submit"
-              className="rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
-            >
-              {t("earnings_setup_button")}
-            </button>
-          </form>
-        </div>
+        <Alert variant="warning" className="p-6">
+          <AlertTitle className="text-base">{t("earnings_setup_title")}</AlertTitle>
+          <AlertDescription>
+            <p>{t("earnings_setup_desc")}</p>
+            <form action="/api/payouts/onboard" method="POST" className="mt-3">
+              <button
+                type="submit"
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
+              >
+                {t("earnings_setup_button")}
+              </button>
+            </form>
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Transactions Table */}

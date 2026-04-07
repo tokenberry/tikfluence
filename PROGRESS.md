@@ -1288,4 +1288,58 @@ Each swaps raw `<table>/<thead>/<tbody>/<tr>/<th>/<td>` for the `Table`/`TableHe
 
 ---
 
-*Last updated: April 7, 2026 (v3.7.1)*
+**v3.7.1 → v3.7.2 — Warning banners → `<Alert variant="warning">` (PR #4h)**
+
+**Context:** Small mechanical cleanup closing the last open item in the shadcn migration series. Replaces the remaining hand-rolled `border-amber-300 bg-amber-50` / `border-yellow-300 bg-yellow-50` warning panels with the `Alert` primitive (already landed in PR #4d, v3.5.0). After this, there are no `border-amber-300 bg-amber-50` or `border-yellow-300 bg-yellow-50` div soups left under `src/app/`.
+
+**1. No new deps, no new primitives** — uses the existing `Alert` / `AlertTitle` / `AlertDescription` exports from `src/components/ui/alert.tsx`.
+
+**2. Migrated surfaces (9 banners across 9 files):**
+
+*Live-guidelines read-only panel (5 files, identical pattern):*
+- `admin/orders/[id]/page.tsx`
+- `brand/orders/[id]/page.tsx`
+- `creator/orders/[id]/page.tsx`
+- `network/orders/[id]/page.tsx`
+- `agency/orders/[id]/page.tsx`
+
+Each swaps the hand-rolled `<div>` with `h3` + `p` for `<Alert variant="warning">` + `<AlertTitle>` + `<AlertDescription className="whitespace-pre-wrap">`.
+
+*New-order LIVE warning with icon (2 files):*
+- `brand/orders/new/page.tsx`
+- `agency/orders/new/page.tsx`
+
+Each drops the hand-rolled `<span>&#9888;</span>` glyph + `flex` layout for `<Alert variant="warning">` with a real `<AlertTriangle />` from `lucide-react` — the Alert's `has-[>svg]` grid automatically gives a 2-column layout with the icon aligned to the title/description.
+
+*Payoneer onboarding banners (2 files):*
+- `creator/earnings/page.tsx` (contains a form + submit button)
+- `network/earnings/page.tsx` (contains an anchor CTA)
+
+Each uses `<Alert variant="warning" className="p-6">` (larger padding to match original) with the form/link placed inside `<AlertDescription>` (which sits in `col-start-2` so nested content lays out correctly). The button `bg-yellow-600` was updated to `bg-amber-600` to match the Alert's amber theme.
+
+**3. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 parsing
+- `grep 'border-amber-300 bg-amber-50\|border-yellow-300 bg-yellow-50' src/app` → zero matches
+
+**4. Version bump:** `3.7.1 → 3.7.2` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.0.1 patch** — no API changes, no new deps, pure presentational cleanup.
+
+**5. Shadcn migration series status:**
+- ✅ PR #4a — button + dialog primitives (v3.1.0)
+- ✅ PR #4b — input + textarea + label primitives (v3.2.0 / v3.3.0)
+- ✅ PR #4c — card + select primitives (v3.4.0)
+- ✅ PR #4d — sonner + alert primitives (v3.5.0)
+- ✅ PR #4e — dropdown-menu + popover primitives (v3.6.0)
+- ✅ PR #4f — table + pagination primitives (v3.7.0)
+- ✅ PR #4g — non-admin tables cleanup (v3.7.1)
+- ✅ PR #4h — warning banners cleanup (v3.7.2) ← this PR
+
+The shadcn/ui migration is now complete. All dashboard surfaces use Radix-backed, keyboard-accessible, themeable primitives with consistent styling.
+
+**Files modified:** 9 page files listed above, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.7.2)*

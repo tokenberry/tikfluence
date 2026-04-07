@@ -64,7 +64,7 @@ export default defineConfig({
       ? [
           {
             name: "authed",
-            testMatch: /authed\.spec\.ts$/,
+            testMatch: /(authed|mutation)\.spec\.ts$/,
             use: { ...devices["Desktop Chrome"] },
           },
         ]

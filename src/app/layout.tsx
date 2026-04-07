@@ -1,5 +1,15 @@
 import type { Metadata } from "next"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
 import "./globals.css"
+
+// Self-hosted Geist via the official `geist` package — ships the font
+// files bundled in node_modules so we don't need a build-time fetch to
+// Google Fonts (works in restricted CI/sandbox envs too). Exposes the
+// same `--font-geist-sans` / `--font-geist-mono` CSS variables that
+// `src/app/globals.css` already references via Tailwind's `font-sans`
+// and `font-mono` utilities — before this PR those variables were
+// undefined and Tailwind silently fell back to system sans.
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.foxolog.com"
 const SITE_NAME = "Foxolog"
@@ -139,7 +149,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html className="h-full antialiased" suppressHydrationWarning>
+    <html
+      className={`h-full antialiased ${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           type="application/ld+json"

@@ -28,33 +28,70 @@ npm run test:e2e:install    # downloads chromium (~150 MB)
 ## 2. `authed` — authenticated role flows (local only)
 
 Covers role-based dashboards: creator, brand, admin, network, agency,
-account manager. Logs in using the demo users created by
-`prisma/seed.ts` and asserts on the seeded data.
+account manager (`e2e/authed.spec.ts`), plus the full order mutation
+state machine — brand creates → creator accepts → delivers → brand
+approves → COMPLETED (`e2e/mutation.spec.ts`). Logs in using the demo
+users created by `prisma/seed.ts`.
 
 **This project only runs when `E2E_AUTHED=1` is set.** The config also
 refuses to run it against any `BASE_URL` that isn't `localhost` /
 `127.0.0.1`, so there's no risk of the authed tests ever executing
 against production.
 
-To run locally:
+### Required environment
+
+`mutation.spec.ts` drives the full payment-gated order lifecycle, and
+relies on the **dev-mode fallbacks** built into
+`src/app/api/orders/[id]/checkout/route.ts`,
+`src/lib/payoneer.ts`, and `src/lib/email.ts`. Those fallbacks
+short-circuit external calls when the relevant env vars are **unset**.
+Before running the authed suite, make sure none of these are exported
+in the dev server's environment:
+
+- `STRIPE_SECRET_KEY` (checkout will otherwise create a real Stripe
+  checkout session)
+- `PAYONEER_PARTNER_ID`, `PAYONEER_API_KEY` (approve will otherwise
+  call Payoneer)
+- `RESEND_API_KEY` (order-approved/rejected emails will otherwise
+  attempt to send)
+
+The `DATABASE_URL` must point at a local postgres (`localhost`,
+`127.0.0.1`, or a docker-compose service like `@db:` / `@postgres:`).
+`e2e/fixtures/reset.ts` **refuses to truncate against any non-local
+DATABASE_URL** so there is no risk of wiping a staging/prod DB by
+accident.
+
+### Running locally
 
 ```bash
 # terminal 1 — seed the DB and start the dev server
 npm run db:seed
+unset STRIPE_SECRET_KEY PAYONEER_PARTNER_ID PAYONEER_API_KEY RESEND_API_KEY
 npm run dev
 
-# terminal 2 — run the authed suite against localhost
+# terminal 2 — run the full authed suite against localhost
 E2E_AUTHED=1 BASE_URL=http://localhost:3000 npm run test:e2e
 ```
 
-The authed tests are currently **read-only** — they assert on seeded
-orders / tickets / users without mutating state, so they are idempotent
-and safe to re-run without re-seeding. Full mutation flows (creator
-accepts order → delivers → brand approves) are deferred until:
+### What each authed spec covers
 
-1. a DB reset fixture can reseed between runs, and
-2. Stripe + Payoneer can be mocked so order creation / payout release
-   don't hit live external services.
+- `authed.spec.ts` — read-only: every role logs in, lands on the right
+  dashboard, and sees the seeded data. Does not mutate state.
+- `mutation.spec.ts` — full order state machine via the HTTP API:
+  - **order mutation flow**: brand creates DRAFT → publishes (checkout
+    dev-mode → OPEN) → creator accepts (ASSIGNED) → creator delivers
+    (DELIVERED) → wrong brand gets 403 on approve → owning brand
+    approves (COMPLETED + transaction with correct payout math) →
+    double-approve returns 400.
+  - **order rejection flow**: same setup, brand rejects the delivery
+    with a reason (DELIVERED → REVISION), creator re-delivers, order
+    goes back to DELIVERED.
+
+`mutation.spec.ts` calls `resetMutableOrderState()` in `beforeAll` so
+it can re-run indefinitely without needing `npm run db:seed` again —
+the seed's identity rows (users, brands, creators, categories) stay
+intact and only the mutable order state (orders, assignments,
+deliveries, transactions, notifications, tickets) is wiped.
 
 ## Fixtures
 
@@ -62,3 +99,7 @@ accepts order → delivers → brand approves) are deferred until:
   `DEMO_USERS` map keyed to the seed script's demo credentials. Logs in
   through the credentials form and waits for the middleware redirect to
   the role-specific landing page.
+- `e2e/fixtures/reset.ts` — `resetMutableOrderState()` + `disconnectPrisma()`.
+  Opens a fresh `PrismaClient` against `DATABASE_URL` (rejecting any
+  non-local URL) and deletes every row the mutation spec creates or
+  touches, leaving the stable identity rows alone.

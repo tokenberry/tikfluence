@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useToast } from "@/components/ui/Toast"
+import { toast } from "sonner"
 
 interface Analysis {
   summary: string
@@ -27,7 +27,6 @@ export default function AiInsightsPanel({
   creatorId: string
   initialAnalysis: Analysis | null
 }) {
-  const { toast } = useToast()
   const [analysis, setAnalysis] = useState<Analysis | null>(initialAnalysis)
   const [loading, setLoading] = useState(false)
 
@@ -40,13 +39,13 @@ export default function AiInsightsPanel({
       if (res.ok) {
         const data = await res.json()
         setAnalysis({ ...data, createdAt: new Date().toISOString() })
-        toast("success", "AI analysis complete!")
+        toast.success("AI analysis complete!")
       } else {
         const err = await res.json()
-        toast("error", err.error ?? "Failed to run AI analysis.")
+        toast.error(err.error ?? "Failed to run AI analysis.")
       }
     } catch {
-      toast("error", "An error occurred.")
+      toast.error("An error occurred.")
     } finally {
       setLoading(false)
     }

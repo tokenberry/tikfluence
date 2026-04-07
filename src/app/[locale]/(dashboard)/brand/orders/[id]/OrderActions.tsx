@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useTranslations } from "next-intl";
 
@@ -16,7 +16,6 @@ export default function OrderActions({
   budget: number;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
   const t = useTranslations("orders");
   const tCommon = useTranslations("common");
   const [loading, setLoading] = useState(false);
@@ -44,7 +43,7 @@ export default function OrderActions({
       const data = await res.json();
 
       if (!res.ok) {
-        toast("error", data.error || "Failed to start checkout");
+        toast.error(data.error || "Failed to start checkout");
         return;
       }
 
@@ -57,7 +56,7 @@ export default function OrderActions({
       // Fully covered by credit or dev mode — order is now OPEN
       router.refresh();
     } catch {
-      toast("error", "Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -72,14 +71,14 @@ export default function OrderActions({
       });
 
       if (res.ok) {
-        toast("success", t("order_cancelled"));
+        toast.success(t("order_cancelled"));
         router.refresh();
       } else {
         const data = await res.json();
-        toast("error", data.error || "Failed to cancel order");
+        toast.error(data.error || "Failed to cancel order");
       }
     } catch {
-      toast("error", "Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }

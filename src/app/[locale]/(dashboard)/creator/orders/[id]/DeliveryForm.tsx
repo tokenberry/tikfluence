@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 type DeliveryType = "SHORT_VIDEO" | "LIVE";
@@ -15,7 +15,6 @@ export default function DeliveryForm({
   orderType?: OrderType;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [tiktokLinks, setTiktokLinks] = useState<string[]>([""]);
   const [screenshots, setScreenshots] = useState<{ file: File; preview: string }[]>([]);
@@ -139,7 +138,7 @@ export default function DeliveryForm({
 
     const validLinks = tiktokLinks.filter((l) => l.trim());
     if (validLinks.length === 0) {
-      toast("error", isLiveDelivery ? "Please add the LIVE stream replay link." : "Please add at least one TikTok link.");
+      toast.error(isLiveDelivery ? "Please add the LIVE stream replay link." : "Please add at least one TikTok link.");
       return;
     }
 
@@ -186,12 +185,12 @@ export default function DeliveryForm({
         setVideoForm({ impressions: "", views: "", likes: "", comments: "", shares: "" });
         setLiveForm({ streamDuration: "", peakViewers: "", avgConcurrentViewers: "", chatMessages: "", giftsValue: "" });
         setNotes("");
-        toast("success", "Delivery submitted!");
+        toast.success("Delivery submitted!");
       } else {
-        toast("error", "Failed to submit delivery.");
+        toast.error("Failed to submit delivery.");
       }
     } catch {
-      toast("error", "An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading(false);
       setUploading(false);

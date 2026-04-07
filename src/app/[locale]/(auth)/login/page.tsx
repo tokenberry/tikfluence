@@ -6,6 +6,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+
 export default function LoginPage() {
   const router = useRouter()
   const t = useTranslations("auth")
@@ -56,49 +60,33 @@ export default function LoginPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {t("login_email_label")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="email">{t("login_email_label")}</Label>
+          <Input
             id="email"
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder={t("login_email_placeholder")}
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {t("login_password_label")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="password">{t("login_password_label")}</Label>
+          <Input
             id="password"
             type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder={t("login_password_placeholder")}
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 px-4 bg-[#d4772c] text-white text-sm font-medium rounded-md hover:bg-[#b85c1a] focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? t("login_submit_loading") : t("login_submit")}
-        </button>
+        </Button>
       </form>
 
       <div className="relative my-6">
@@ -110,12 +98,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
+        className="w-full"
         onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
-        <svg className="h-5 w-5" viewBox="0 0 24 24">
+        <svg className="size-5" viewBox="0 0 24 24">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
             fill="#4285F4"
@@ -134,18 +123,18 @@ export default function LoginPage() {
           />
         </svg>
         {t("login_google")}
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        className="mt-3 w-full bg-black text-white hover:bg-gray-900"
         onClick={() => signIn("tiktok", { callbackUrl: "/dashboard" })}
-        className="mt-3 w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+        <svg className="size-5" viewBox="0 0 24 24" fill="none">
           <path d="M16.6 5.82s.51.5 0 0A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" fill="currentColor"/>
         </svg>
         {t("login_tiktok")}
-      </button>
+      </Button>
 
       <p className="mt-6 text-center text-sm text-gray-500">
         {t("login_no_account")}{" "}

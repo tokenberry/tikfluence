@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { actorFromSession, recordAudit } from "@/lib/audit"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -53,10 +54,37 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const before = await prisma.agencyBrand.findUnique({
+      where: { id: parsed.data.id },
+      include: {
+        agency: { select: { companyName: true } },
+        brand: { select: { companyName: true } },
+      },
+    })
+
     const updated = await prisma.agencyBrand.update({
       where: { id: parsed.data.id },
       data: { status: parsed.data.status },
     })
+
+    const actor = actorFromSession(session.user)
+    if (actor) {
+      await recordAudit({
+        actor,
+        action:
+          parsed.data.status === "APPROVED"
+            ? "agency_brand.approve"
+            : "agency_brand.reject",
+        targetType: "AGENCY_BRAND",
+        targetId: parsed.data.id,
+        metadata: {
+          before: { status: before?.status ?? null },
+          after: { status: updated.status },
+          agencyName: before?.agency.companyName ?? null,
+          brandName: before?.brand.companyName ?? null,
+        },
+      })
+    }
 
     return NextResponse.json(updated)
   } catch (error) {

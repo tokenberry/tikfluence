@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { actorFromSession, recordAudit } from "@/lib/audit"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -55,6 +56,10 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    const before = await prisma.platformSettings.findUnique({
+      where: { id: "default" },
+    })
+
     const settings = await prisma.platformSettings.upsert({
       where: { id: "default" },
       create: {
@@ -63,6 +68,31 @@ export async function PUT(request: NextRequest) {
       },
       update: parsed.data,
     })
+
+    const actor = actorFromSession(session.user)
+    if (actor) {
+      await recordAudit({
+        actor,
+        action: "settings.update",
+        targetType: "SETTINGS",
+        targetId: null,
+        metadata: {
+          before: before
+            ? {
+                platformFeeRate: before.platformFeeRate,
+                minOrderBudget: before.minOrderBudget,
+                maxOrderBudget: before.maxOrderBudget,
+              }
+            : null,
+          after: {
+            platformFeeRate: settings.platformFeeRate,
+            minOrderBudget: settings.minOrderBudget,
+            maxOrderBudget: settings.maxOrderBudget,
+          },
+          changed: parsed.data,
+        },
+      })
+    }
 
     return NextResponse.json(settings)
   } catch (error) {

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { createPayout } from "@/lib/payoneer"
 import { createNotification } from "@/lib/notifications"
+import { actorFromSession, recordAudit } from "@/lib/audit"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -172,6 +173,25 @@ export async function POST(
         `/brand/orders/${orderId}`
       )
 
+      const actor = actorFromSession(session.user)
+      if (actor) {
+        await recordAudit({
+          actor,
+          action: "dispute.resolve",
+          targetType: "ORDER",
+          targetId: orderId,
+          metadata: {
+            resolution: "release_to_creator",
+            orderTitle: order.title,
+            assignmentCount,
+            perCreatorBudget,
+            platformFee,
+            creatorPayout,
+            notes: notes ?? null,
+          },
+        })
+      }
+
       return NextResponse.json({ message: "Dispute resolved — payment released to creator(s)" })
     }
 
@@ -212,6 +232,22 @@ export async function POST(
           assignment.creator ? `/creator/orders/${orderId}` : `/network/orders/${orderId}`
         )
       }
+    }
+
+    const actor = actorFromSession(session.user)
+    if (actor) {
+      await recordAudit({
+        actor,
+        action: "dispute.resolve",
+        targetType: "ORDER",
+        targetId: orderId,
+        metadata: {
+          resolution: "credit_to_brand",
+          orderTitle: order.title,
+          creditAmount: order.budget,
+          notes: notes ?? null,
+        },
+      })
     }
 
     return NextResponse.json({ message: "Dispute resolved — credit issued to brand" })

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { RoleBadge } from "@/components/ui/Badge";
 import { toast } from "sonner";
@@ -33,6 +33,8 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
 
@@ -48,6 +50,17 @@ export default function AdminUsersPage() {
       if (res.ok) {
         const data = await res.json();
         setUsers(data.users ?? []);
+        // Prune selection to ids still visible on the current page so
+        // "Select all" + bulk actions don't include rows we no longer
+        // render.
+        setSelected((prev) => {
+          const visibleIds = new Set<string>(
+            (data.users ?? []).map((u: UserRow) => u.id)
+          );
+          const next = new Set<string>();
+          for (const id of prev) if (visibleIds.has(id)) next.add(id);
+          return next;
+        });
         if (data.pagination) {
           setPagination({ total: data.pagination.total, totalPages: data.pagination.totalPages });
         }
@@ -64,18 +77,74 @@ export default function AdminUsersPage() {
     return () => clearTimeout(timeout);
   }, [fetchUsers]);
 
+  const allSelected = useMemo(
+    () => users.length > 0 && users.every((u) => selected.has(u.id)),
+    [users, selected]
+  );
+
+  function toggleOne(userId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected((prev) => {
+      if (users.every((u) => prev.has(u.id))) {
+        // All visible rows are selected — clear them from the selection.
+        const next = new Set(prev);
+        for (const u of users) next.delete(u.id);
+        return next;
+      }
+      // Otherwise add all visible rows.
+      const next = new Set(prev);
+      for (const u of users) next.add(u.id);
+      return next;
+    });
+  }
+
+  async function bulkUpdate(action: "suspend" | "activate") {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/bulk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, userIds: Array.from(selected) }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(t("users_bulk_success", { count: data.updated }));
+        setSelected(new Set());
+        await fetchUsers();
+      } else {
+        toast.error(t("users_bulk_error"));
+      }
+    } catch {
+      toast.error(t("users_bulk_error"));
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
   async function toggleStatus(userId: string, isActive: boolean) {
     setActionLoading(userId);
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
-        method: "PATCH",
+      const res = await fetch(`/api/admin/users`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !isActive }),
+        body: JSON.stringify({ userId, isActive: !isActive }),
       });
       if (res.ok) {
         setUsers((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, isActive: !isActive } : u))
         );
+        toast.success(isActive ? t("users_suspend_success") : t("users_activate_success"));
+      } else {
+        toast.error("Failed to update user status.");
       }
     } catch {
       toast.error("Failed to update user status.");
@@ -112,6 +181,31 @@ export default function AdminUsersPage() {
         </select>
       </div>
 
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#d4772c]/30 bg-[#fdf6e3] px-4 py-3">
+          <span className="text-sm font-medium text-gray-900">
+            {t("users_bulk_selected", { count: selected.size })}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => bulkUpdate("activate")}
+              disabled={bulkLoading}
+              className="rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            >
+              {t("users_bulk_activate")}
+            </button>
+            <button
+              onClick={() => bulkUpdate("suspend")}
+              disabled={bulkLoading}
+              className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {t("users_bulk_suspend")}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         {loading ? (
@@ -119,9 +213,18 @@ export default function AdminUsersPage() {
         ) : users.length === 0 ? (
           <EmptyState title={t("users_empty_title")} description={t("users_empty_desc")} icon={<Users className="h-6 w-6" />} />
         ) : (
-          <Table className="min-w-[600px]">
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12 px-6">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    aria-label={t("users_select_all")}
+                    className="h-4 w-4 rounded border-gray-300 text-[#d4772c] focus:ring-[#d4772c]"
+                  />
+                </TableHead>
                 <TableHead className="px-6">{t("users_table_name")}</TableHead>
                 <TableHead className="px-6">{t("users_table_email")}</TableHead>
                 <TableHead className="px-6">{t("users_table_role")}</TableHead>
@@ -132,7 +235,16 @@ export default function AdminUsersPage() {
             </TableHeader>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user.id} data-state={selected.has(user.id) ? "selected" : undefined}>
+                  <TableCell className="px-6">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(user.id)}
+                      onChange={() => toggleOne(user.id)}
+                      aria-label={`Select ${user.email}`}
+                      className="h-4 w-4 rounded border-gray-300 text-[#d4772c] focus:ring-[#d4772c]"
+                    />
+                  </TableCell>
                   <TableCell className="px-6 font-medium text-gray-900">{user.name}</TableCell>
                   <TableCell className="px-6 text-gray-600">{user.email}</TableCell>
                   <TableCell className="px-6">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { actorFromSession, recordAudit } from "@/lib/audit"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -135,6 +136,32 @@ export async function PUT(request: NextRequest) {
         updatedAt: true,
       },
     })
+
+    // Audit — best effort, never blocks the primary action.
+    const actor = actorFromSession(session.user)
+    if (actor) {
+      const changes: string[] = []
+      if (data.isActive !== undefined && data.isActive !== user.isActive) {
+        changes.push(data.isActive ? "user.activate" : "user.suspend")
+      }
+      if (data.role !== undefined && data.role !== user.role) {
+        changes.push("user.role_change")
+      }
+      // One audit row per logical change so filters work cleanly.
+      for (const action of changes) {
+        await recordAudit({
+          actor,
+          action,
+          targetType: "USER",
+          targetId: userId,
+          metadata: {
+            targetEmail: user.email,
+            before: { isActive: user.isActive, role: user.role },
+            after: { isActive: updated.isActive, role: updated.role },
+          },
+        })
+      }
+    }
 
     return NextResponse.json(updated)
   } catch (error) {

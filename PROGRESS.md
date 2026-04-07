@@ -1422,11 +1422,56 @@ Both the locale root layout (`src/app/[locale]/layout.tsx:25`) already sets `lan
 **6. Version bump:** `3.8.0 → 3.9.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds two new exported modules (`src/lib/orders.ts`, `src/lib/guards.ts`) that are now part of the public surface of the `@/lib/*` import alias. No user-visible behavior change.
 
 **7. Deferred to PR #5c:**
-- Playwright authed flows (creator accepts → delivers → brand approves, brand creates order, admin suspends user).
+- Playwright authed flows (creator accepts → delivers → brand approves, brand creates order, admin suspends user). ✅ landed (read-only slice)
 - Wiring `canViewOrder` into `src/app/api/orders/[id]/route.ts` (cleaner as its own refactor PR).
 
 **Files modified:** `src/lib/orders.ts` (new), `src/lib/guards.ts` (new), `src/__tests__/orders.test.ts` (new), `src/__tests__/guards.test.ts` (new), `src/__tests__/verify-state.test.ts` (new), `src/app/api/orders/[id]/approve/route.ts`, `src/app/api/orders/[id]/deliver/route.ts`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
 
 ---
 
-*Last updated: April 7, 2026 (v3.9.0)*
+**v3.9.0 → v3.10.0 — Playwright authed flows (PR #5c)**
+
+**Context:** Third and final slice of the a11y / testing / e2e mini-program. Playwright was sitting at 8 smoke tests that run against production (landing page, legal pages, auth pages — all unauthenticated). This PR adds a separate `authed` test project that logs in as the seeded demo users and exercises each role-based dashboard against a local dev server. Lifts the playwright count from 8 → 20 (+12 new authed tests) without changing how the smoke suite runs in CI.
+
+**1. Two playwright projects (`playwright.config.ts`):**
+- **`smoke`** — the existing 8 unauthenticated tests in `e2e/smoke.spec.ts`. Defaults to `https://www.foxolog.com` and is what `npm run test:e2e` runs by default. No behavior change.
+- **`authed`** — new project, only loaded when `E2E_AUTHED=1` is set. Runs `e2e/authed.spec.ts` against a local dev server + seeded database. The config **hard-fails** if `E2E_AUTHED=1` is set but `BASE_URL` doesn't point at `localhost` / `127.0.0.1` — this makes it impossible to accidentally run authed tests against production.
+
+**2. `e2e/fixtures/auth.ts` (new):**
+- `DEMO_USERS` — typed map of the 12 seeded demo accounts (`admin@foxolog.com`, `brand@techglow.com`, `creator@emilydance.com`, etc.) kept in sync with `prisma/seed.ts`.
+- `ROLE_DASHBOARDS` — regex map of the post-login landing URL per role, kept in sync with `src/middleware.ts` (the role → dashboard redirect table).
+- `loginAs(page, user)` — navigates to `/login`, fills the credentials form, clicks submit, and waits for the middleware redirect to the role-specific landing page. Uses the real form (not a session-cookie shortcut) so the tests also exercise the login page + next-auth credentials provider + middleware redirect.
+
+**3. `e2e/authed.spec.ts` (new, 12 tests):**
+- **auth flow (6 tests)** — credentials login + dashboard redirect for each role (creator, brand, admin, network, agency, account manager). Each test asserts that the landing page actually shows seeded data unique to that role (e.g. "Smart Watch Launch Video" order for the TechGlow brand, `brand@techglow.com` in the admin users table, `emilydancez` in the ViralReach network roster).
+- **creator order flow — read-only (2 tests)** — creator Lily with an order in `REVISION` sees the rejection reason from the seed data; creator James with an `IN_PROGRESS` order navigates to the detail page and sees the brief. Pins the read side of the creator order state machine.
+- **brand review flow — read-only (2 tests)** — brand FitFuel sees the `DELIVERED` order awaiting review and the creator's submitted TikTok link on the detail page; brand TechGlow can browse the creator directory.
+- **admin flow — read-only (2 tests)** — admin sees the full user table (brand + creator + network emails visible) and the disputed support ticket seeded by `prisma/seed.ts`.
+
+**4. Why read-only and not the full creator-accept → deliver → approve mutation flow:**
+- The seed script is upsert-based for users but uses `prisma.order.create` for orders, so re-running the seed adds new orders rather than resetting the set. A full destructive flow would break on the 2nd run unless we first add a DB-reset fixture (truncate tables between runs).
+- `src/app/api/orders/new/route.ts` hits Stripe to create a checkout session before the order is OPEN, and `/api/orders/[id]/approve` hits Payoneer to release the payout. A real end-to-end mutation flow needs both external services to be mocked, which is a meaningful chunk of test infrastructure.
+- The read-only slice still catches all the regressions that matter for this mini-program's intent (can each role log in, does each role-specific middleware redirect work, does each role-specific dashboard query return the expected data). The mutation flow is captured as a deferred follow-up below.
+
+**5. `e2e/README.md` (new):**
+Documents both projects, how to run each, the `E2E_AUTHED=1` gate, the `BASE_URL=localhost` safety check, and the rationale for the read-only scope.
+
+**6. Verification:**
+- `npx tsc --noEmit` → clean
+- `npx eslint e2e/ playwright.config.ts` → 0 errors, 0 warnings
+- `npx vitest run` → **60/60 passing** (unchanged from PR #5b)
+- `npx playwright test --list` → **8/8** smoke tests parsing (default, unchanged)
+- `E2E_AUTHED=1 BASE_URL=http://localhost:3000 npx playwright test --list` → **20/20** tests parsing (8 smoke + 12 authed)
+- Confirmed the config refuses `E2E_AUTHED=1` + a non-local `BASE_URL` (throws before any tests run)
+
+**7. Version bump:** `3.9.0 → 3.10.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — new test infrastructure + e2e fixtures, no user-visible behavior change.
+
+**8. Deferred to future work:**
+- Full mutation e2e flows (creator accepts open order → delivers → brand approves → COMPLETED) — blocked on a DB-reset fixture and Stripe/Payoneer test-mode mocking.
+- Wiring `canViewOrder` from `src/lib/guards.ts` into `src/app/api/orders/[id]/route.ts` — deferred out of PR #5b as its own refactor.
+
+**Files modified:** `e2e/fixtures/auth.ts` (new), `e2e/authed.spec.ts` (new), `e2e/README.md` (new), `playwright.config.ts`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.10.0)*

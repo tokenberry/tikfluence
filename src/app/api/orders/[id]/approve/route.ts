@@ -5,6 +5,8 @@ import { createPayout } from "@/lib/payoneer"
 import { sendOrderApprovedEmail, sendOrderRejectedEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
 import { analyzeDelivery } from "@/lib/ai"
+import { calculateCreatorPayout, canReviewDelivery } from "@/lib/orders"
+import { canReviewDeliveryAsRole } from "@/lib/guards"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -24,7 +26,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (session.user.role !== "BRAND" && session.user.role !== "ADMIN") {
+    if (!canReviewDeliveryAsRole(session.user.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -67,7 +69,7 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    if (order.status !== "DELIVERED") {
+    if (!canReviewDelivery(order.status)) {
       return NextResponse.json(
         { error: "Order has not been delivered yet" },
         { status: 400 }
@@ -113,14 +115,13 @@ export async function POST(
         })
         const feeRate = settings?.platformFeeRate ?? 0.15
 
-        // Calculate per-creator share based on actual completed assignments
+        // Calculate per-creator share based on actual completed assignments.
+        // See src/lib/orders.ts for the pure function + unit tests.
         const completedCount = order.assignments.filter(
           (a) => a.completedAt !== null
         ).length
-        const activeAssignments = Math.max(completedCount + 1, 1) // +1 for this one
-        const perCreatorBudget = order.budget / activeAssignments
-        const platformFee = perCreatorBudget * feeRate
-        const creatorPayout = perCreatorBudget - platformFee
+        const { perCreatorBudget, platformFee, creatorPayout } =
+          calculateCreatorPayout(order.budget, feeRate, completedCount)
 
         await tx.order.update({
           where: { id },
@@ -160,7 +161,6 @@ export async function POST(
       }
 
       const assignment = order.assignments[0]
-      const perCreatorBudget = txRecord.amount
       const creatorPayout = txRecord.creatorPayout
 
       // Attempt Payoneer payout (non-blocking)

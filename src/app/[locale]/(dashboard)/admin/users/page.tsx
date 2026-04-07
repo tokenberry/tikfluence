@@ -6,7 +6,15 @@ import { RoleBadge } from "@/components/ui/Badge";
 import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
-import Pagination from "@/components/ui/Pagination";
+import { DataPagination } from "@/components/ui/pagination";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Users } from "lucide-react";
 
 interface UserRow {
@@ -111,66 +119,64 @@ export default function AdminUsersPage() {
         ) : users.length === 0 ? (
           <EmptyState title={t("users_empty_title")} description={t("users_empty_desc")} icon={<Users className="h-6 w-6" />} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_name")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_email")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_role")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_status")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_created")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("users_table_actions")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
-                    <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                    <td className="px-6 py-4">
-                      <RoleBadge role={user.role ?? "NONE"} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          user.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {user.isActive ? t("users_active") : t("users_suspended")}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => toggleStatus(user.id, user.isActive)}
-                        disabled={actionLoading === user.id}
-                        className={`rounded px-3 py-1 text-xs font-medium text-white disabled:opacity-50 ${
-                          user.isActive
-                            ? "bg-red-600 hover:bg-red-700"
-                            : "bg-green-600 hover:bg-green-700"
-                        }`}
-                      >
-                        {actionLoading === user.id
-                          ? "..."
-                          : user.isActive
-                          ? t("users_suspend")
-                          : t("users_activate")}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="min-w-[600px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6">{t("users_table_name")}</TableHead>
+                <TableHead className="px-6">{t("users_table_email")}</TableHead>
+                <TableHead className="px-6">{t("users_table_role")}</TableHead>
+                <TableHead className="px-6">{t("users_table_status")}</TableHead>
+                <TableHead className="px-6">{t("users_table_created")}</TableHead>
+                <TableHead className="px-6">{t("users_table_actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="px-6 font-medium text-gray-900">{user.name}</TableCell>
+                  <TableCell className="px-6 text-gray-600">{user.email}</TableCell>
+                  <TableCell className="px-6">
+                    <RoleBadge role={user.role ?? "NONE"} />
+                  </TableCell>
+                  <TableCell className="px-6">
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        user.isActive
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {user.isActive ? t("users_active") : t("users_suspended")}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-500">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="px-6">
+                    <button
+                      onClick={() => toggleStatus(user.id, user.isActive)}
+                      disabled={actionLoading === user.id}
+                      className={`rounded px-3 py-1 text-xs font-medium text-white disabled:opacity-50 ${
+                        user.isActive
+                          ? "bg-red-600 hover:bg-red-700"
+                          : "bg-green-600 hover:bg-green-700"
+                      }`}
+                    >
+                      {actionLoading === user.id
+                        ? "..."
+                        : user.isActive
+                        ? t("users_suspend")
+                        : t("users_activate")}
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
 
-      <Pagination
+      <DataPagination
         page={page}
         totalPages={pagination.totalPages}
         total={pagination.total}

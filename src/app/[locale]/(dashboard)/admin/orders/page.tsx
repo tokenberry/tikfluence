@@ -6,6 +6,14 @@ import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { FileText } from "lucide-react";
 
 interface OrderRow {
@@ -83,38 +91,36 @@ export default function AdminOrdersPage() {
         ) : orders.length === 0 ? (
           <EmptyState title={t("orders_empty_title")} description={t("orders_empty_desc")} icon={<FileText className="h-6 w-6" />} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 font-medium text-gray-500">Title</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Brand</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Status</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Budget</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Created</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {orders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => window.location.href = `/admin/orders/${order.id}`}
-                  >
-                    <td className="px-6 py-4 font-medium text-gray-900">{order.title}</td>
-                    <td className="px-6 py-4 text-gray-600">{order.brand.companyName}</td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={order.status} />
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{formatCurrency(order.budget)}</td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="min-w-[600px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6">Title</TableHead>
+                <TableHead className="px-6">Brand</TableHead>
+                <TableHead className="px-6">Status</TableHead>
+                <TableHead className="px-6">Budget</TableHead>
+                <TableHead className="px-6">Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow
+                  key={order.id}
+                  className="cursor-pointer"
+                  onClick={() => window.location.href = `/admin/orders/${order.id}`}
+                >
+                  <TableCell className="px-6 font-medium text-gray-900">{order.title}</TableCell>
+                  <TableCell className="px-6 text-gray-600">{order.brand.companyName}</TableCell>
+                  <TableCell className="px-6">
+                    <StatusBadge status={order.status} />
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-600">{formatCurrency(order.budget)}</TableCell>
+                  <TableCell className="px-6 text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>

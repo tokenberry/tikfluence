@@ -1218,4 +1218,41 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.6.0)*
+**v3.6.0 → v3.7.0 — shadcn/ui Data Display Primitives (PR #4f)**
+
+**Context:** Sixth slice of the shadcn/ui migration. Introduces the `table` and `pagination` primitives and migrates the five admin tables plus the three remaining call sites of the hand-rolled `Pagination.tsx` to the new composable primitives. The custom `Pagination.tsx` is deleted. Non-admin tables (8 files across creator/network/agency/account-manager) are intentionally deferred to a follow-up cleanup batch — rolling them all into one PR would be too much diff for review.
+
+**1. New dependencies:** none — both primitives are pure React + Tailwind wrappers, no extra Radix packages needed.
+
+**2. New primitives (new-york style):**
+- `src/components/ui/table.tsx` — `Table` (wraps `<table>` in a scroll container), `TableHeader`, `TableBody`, `TableFooter`, `TableRow` (with hover + `data-[state=selected]` styling), `TableHead`, `TableCell`, `TableCaption`. Base styles match the existing design system (`bg-gray-50` header, `divide-y divide-gray-200` body, `border-gray-200`, `hover:bg-gray-50` rows) so the migration is visually a no-op.
+- `src/components/ui/pagination.tsx` — full shadcn pagination composable: `Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink` (reuses `buttonVariants`), `PaginationPrevious`, `PaginationNext`, `PaginationEllipsis`. Plus a `DataPagination` convenience wrapper that preserves the old `Pagination.tsx` public API (`page`, `totalPages`, `onPageChange`, optional `total` + `limit` for the "Showing X-Y of Z" counter) and handles ellipsis logic (<= 7 pages shows all; otherwise `1 … page-1, page, page+1 … totalPages`). Keeping the wrapper means the 3 call sites only need to change an import + a tag name — the ellipsis logic isn't duplicated.
+
+**3. Migrated surfaces:**
+- **Admin tables (5 files):** `admin/users/page.tsx`, `admin/orders/page.tsx`, `admin/tickets/page.tsx`, `admin/transactions/page.tsx`, `admin/analytics/page.tsx`. Each replaces the raw `<table>/<thead>/<tbody>/<tr>/<th>/<td>` markup with the shadcn primitives. Kept `className="px-6"` (or `"px-4 sm:px-6"`) overrides on `TableHead`/`TableCell` to preserve the existing visual rhythm — shadcn's default is `p-4`, the old tables used `px-6 py-3/py-4`.
+- **Pagination call sites (3 files):** `admin/users/page.tsx`, `brand/browse/page.tsx`, `agency/browse/page.tsx`. Each swaps `import Pagination from "@/components/ui/Pagination"` for `import { DataPagination } from "@/components/ui/pagination"` and renames the tag. Same props, same behavior.
+
+**4. Removed:**
+- `src/components/ui/Pagination.tsx` — the hand-rolled PascalCase file. Deleted via `git rm` (case collision with the new lowercase `pagination.tsx` would break on Linux CI otherwise).
+
+**5. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 still parsing
+
+**6. Version bump:** `3.6.0 → 3.7.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds 2 new primitives.
+
+**7. Deferred (future cleanup batch):**
+- Non-admin tables (8 files): `creator/earnings`, `network/earnings`, `agency/earnings`, `agency/orders`, `agency/brands`, `account-manager/orders`, `account-manager/analytics`, `account-manager/clients/[id]`
+- Inline warning banners → `<Alert variant="warning">` migration
+
+**Files added:** `src/components/ui/table.tsx`, `src/components/ui/pagination.tsx`
+
+**Files removed:** `src/components/ui/Pagination.tsx`
+
+**Files modified:** `src/app/[locale]/(dashboard)/admin/users/page.tsx`, `src/app/[locale]/(dashboard)/admin/orders/page.tsx`, `src/app/[locale]/(dashboard)/admin/tickets/page.tsx`, `src/app/[locale]/(dashboard)/admin/transactions/page.tsx`, `src/app/[locale]/(dashboard)/admin/analytics/page.tsx`, `src/app/[locale]/(dashboard)/brand/browse/page.tsx`, `src/app/[locale]/(dashboard)/agency/browse/page.tsx`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.7.0)*

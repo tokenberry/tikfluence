@@ -5,7 +5,7 @@ import { formatNumber, formatCurrency } from "@/lib/utils";
 import { TierBadge } from "@/components/ui/Badge";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
-import Pagination from "@/components/ui/Pagination";
+import { DataPagination } from "@/components/ui/pagination";
 import { Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -192,7 +192,7 @@ export default function AgencyBrowseCreatorsPage() {
         </div>
       )}
 
-      <Pagination
+      <DataPagination
         page={page}
         totalPages={pagination.totalPages}
         total={pagination.total}

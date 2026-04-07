@@ -1255,4 +1255,37 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.7.0)*
+**v3.7.0 → v3.7.1 — Non-admin tables cleanup (PR #4g)**
+
+**Context:** Pure mechanical follow-up to PR #4f. Finishes the shadcn `table` primitive adoption by migrating the 8 non-admin tables that were deferred for review-bandwidth reasons. After this PR, raw `<table>`/`<thead>`/`<tbody>` markup no longer exists anywhere under `src/app/`.
+
+**1. No new deps, no new primitives** — this is purely a call-site migration using the `Table` family landed in #4f.
+
+**2. Migrated surfaces (8 files):**
+- `creator/earnings/page.tsx`
+- `network/earnings/page.tsx`
+- `agency/earnings/page.tsx`
+- `agency/orders/page.tsx`
+- `agency/brands/page.tsx`
+- `account-manager/orders/page.tsx`
+- `account-manager/analytics/page.tsx`
+- `account-manager/clients/[id]/page.tsx`
+
+Each swaps raw `<table>/<thead>/<tbody>/<tr>/<th>/<td>` for the `Table`/`TableHeader`/`TableBody`/`TableRow`/`TableHead`/`TableCell` primitives. `px-6` (and, where the old layout used `uppercase tracking-wider text-xs`, `text-xs uppercase tracking-wider`) overrides are added to preserve the existing visual rhythm — no visual regression intended.
+
+**3. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 parsing
+
+**4. Version bump:** `3.7.0 → 3.7.1` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.0.1 patch** — no API changes, no new deps, pure mechanical migration.
+
+**5. Still pending (future PR):**
+- Inline warning banners (`border-amber-300 bg-amber-50` / `border-yellow-300 bg-yellow-50`) → `<Alert variant="warning">` — small follow-up.
+
+**Files modified:** 8 page files listed above, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.7.1)*

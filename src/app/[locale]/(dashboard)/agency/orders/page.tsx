@@ -3,6 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -45,36 +53,22 @@ export default async function AgencyOrdersPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Brand
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Budget
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Title</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Brand</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Category</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Type</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Status</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Budget</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {orders.map((order) => (
-                <tr key={order.id} className="transition hover:bg-gray-50">
-                  <td className="px-6 py-4">
+                <TableRow key={order.id}>
+                  <TableCell className="px-6">
                     <a
                       href={`/agency/orders/${order.id}`}
                       className="font-medium text-gray-900 hover:text-[#d4772c]"
@@ -84,29 +78,23 @@ export default async function AgencyOrdersPage() {
                     <p className="text-xs text-gray-500">
                       {order._count.assignments} assignment(s)
                     </p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {order.brand.companyName}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {order.category.name}
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-600">{order.brand.companyName}</TableCell>
+                  <TableCell className="px-6 text-gray-600">{order.category.name}</TableCell>
+                  <TableCell className="px-6">
                     <OrderTypeBadge type={order.type} />
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell className="px-6">
                     <StatusBadge status={order.status} />
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {formatCurrency(order.budget)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-600">{formatCurrency(order.budget)}</TableCell>
+                  <TableCell className="px-6 text-gray-500">
                     {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

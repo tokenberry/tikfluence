@@ -2,6 +2,14 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import RequestBrandForm from "./RequestBrandForm";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -43,33 +51,21 @@ export default async function AgencyBrandsPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Company Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Industry
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Contact
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Orders
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Added
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Company Name</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Industry</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Contact</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Orders</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Status</TableHead>
+                <TableHead className="px-6 text-xs uppercase tracking-wider">Added</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {agencyBrands.map((ab) => (
-                <tr key={ab.id} className="transition hover:bg-gray-50">
-                  <td className="px-6 py-4">
+                <TableRow key={ab.id}>
+                  <TableCell className="px-6">
                     {ab.status === "APPROVED" ? (
                       <a
                         href={`/agency/brands/${ab.brand.id}`}
@@ -82,20 +78,14 @@ export default async function AgencyBrandsPage() {
                         {ab.brand.companyName}
                       </span>
                     )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {ab.brand.industry ?? "—"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-medium text-gray-900">
-                      {ab.brand.user.name ?? "—"}
-                    </p>
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-600">{ab.brand.industry ?? "—"}</TableCell>
+                  <TableCell className="px-6">
+                    <p className="font-medium text-gray-900">{ab.brand.user.name ?? "—"}</p>
                     <p className="text-xs text-gray-500">{ab.brand.user.email}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {ab.brand._count.orders}
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-600">{ab.brand._count.orders}</TableCell>
+                  <TableCell className="px-6">
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         ab.status === "APPROVED"
@@ -107,14 +97,14 @@ export default async function AgencyBrandsPage() {
                     >
                       {ab.status}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-500">
                     {new Date(ab.addedAt).toLocaleDateString()}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

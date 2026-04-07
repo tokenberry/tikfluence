@@ -59,6 +59,8 @@
     "footer_brand_name": "Foxolog",
     "footer_login": "Iniciar sesión",
     "footer_register": "Registrarse",
+    "footer_terms": "Términos",
+    "footer_privacy": "Privacidad",
     "footer_copyright": "Foxolog. Todos los derechos reservados."
   },
   "auth": {

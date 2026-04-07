@@ -59,6 +59,8 @@
     "footer_brand_name": "Foxolog",
     "footer_login": "تسجيل الدخول",
     "footer_register": "التسجيل",
+    "footer_terms": "الشروط",
+    "footer_privacy": "الخصوصية",
     "footer_copyright": "Foxolog. جميع الحقوق محفوظة."
   },
   "auth": {

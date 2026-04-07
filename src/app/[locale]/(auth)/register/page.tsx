@@ -12,6 +12,7 @@ type Role = "CREATOR" | "NETWORK" | "BRAND" | "AGENCY"
 export default function RegisterPage() {
   const router = useRouter()
   const t = useTranslations("auth")
+  const tLanding = useTranslations("landing")
   const [role, setRole] = useState<Role>("CREATOR")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -438,6 +439,16 @@ export default function RegisterPage() {
           {t("register_signin_link")}
         </Link>
       </p>
+
+      <div className="mt-4 flex items-center justify-center gap-4 text-xs text-gray-500">
+        <Link href="/terms" className="hover:text-[#d4772c] transition-colors">
+          {tLanding("footer_terms")}
+        </Link>
+        <span aria-hidden="true">&middot;</span>
+        <Link href="/privacy" className="hover:text-[#d4772c] transition-colors">
+          {tLanding("footer_privacy")}
+        </Link>
+      </div>
     </div>
   )
 }

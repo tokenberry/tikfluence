@@ -209,6 +209,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 1.9.4 | 2026-04-05 | Feat: SEO & AI search optimization — comprehensive metadata (OG, Twitter Cards, 20 keywords), JSON-LD structured data (Organization + WebApplication + WebSite), dynamic OG image via ImageResponse, sitemap.ts, robots.ts, per-page metadata for login/register |
 | 2.0.0 | 2026-04-05 | Feat: Full multi-language i18n with next-intl v4 — 5 languages (EN, AR, TR, FR, ES), 660 keys each, RTL support for Arabic, language switcher, 55+ pages wired |
 | 3.0.0 | 2026-04-06 | Feat: Production infrastructure — Vercel Blob file storage, Vercel Cron jobs (TikTok metrics refresh + order expiration), Recharts analytics dashboard (4 charts), mobile optimization (20+ pages), API rate limiting (sliding window), Vitest test suite (21 tests) |
+| 3.0.1 | 2026-04-07 | Fix: TikTok app review rejection — added Terms of Service & Privacy Policy links to landing page footer (and login + register pages) so ToS/PP are easily accessible from the homepage. Translated `footer_terms` / `footer_privacy` keys across all 5 locales (en, ar, tr, fr, es). The `/terms` and `/privacy` pages already existed but were not linked from the new landing page. |
 
 ---
 
@@ -834,4 +835,32 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 6, 2026 (v3.0.0)*
+**v3.0.0 → v3.0.1 — TikTok App Review Compliance (ToS / Privacy Policy Links)**
+
+**Context:** TikTok rejected the production app submission with the note: *"Missing Terms of Service, ToS needs to be easily accessible from the homepage. Missing Privacy Policy, PP needs to be easily accessible from the homepage."* The `/terms` and `/privacy` pages already existed (added in v0.x), but the landing page redesign in v1.9+ inadvertently dropped the footer links — only Login / Register were left.
+
+**1. Landing page footer:**
+- Added `Terms` and `Privacy` links to the homepage footer alongside Login / Register
+- Footer link group switched to `flex-wrap` so the four links wrap cleanly on mobile
+- Both links route to existing `/terms` and `/privacy` pages (already in `publicRoutes` whitelist in `src/middleware.ts`)
+
+**2. Auth pages (login + register):**
+- Added a small `Terms · Privacy` link row beneath the "no account / has account" prompt on both login and register pages
+- Brand-orange hover state, gray default to stay subtle
+
+**3. i18n keys (5 locales):**
+- New `landing.footer_terms` and `landing.footer_privacy` keys
+- Translated across `messages/en.json`, `ar.json`, `tr.json`, `fr.json`, `es.json`
+- Auth pages reuse the `landing` namespace via a second `useTranslations("landing")` hook to avoid duplicating keys
+
+**4. Version bump:**
+- `3.0.0 → 3.0.1` in `package.json`, `package-lock.json`, `src/lib/constants.ts` (`APP_VERSION`)
+- Classified as a minor fix (+0.0.1) per versioning rules — no logic / schema / architecture change, only adding nav links to existing pages
+
+**Files modified:** `src/app/[locale]/page.tsx`, `src/app/[locale]/(auth)/login/page.tsx`, `src/app/[locale]/(auth)/register/page.tsx`, `messages/en.json`, `messages/ar.json`, `messages/tr.json`, `messages/fr.json`, `messages/es.json`, `src/lib/constants.ts`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+**Next step (manual):** Resubmit the foxolog app for TikTok review — the Website URL field already points to https://www.foxolog.com which now has the required ToS/PP links visible in the footer.
+
+---
+
+*Last updated: April 7, 2026 (v3.0.1)*

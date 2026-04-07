@@ -367,12 +367,18 @@ export default function HomePage() {
               <span className="text-sm font-semibold">{t("footer_brand_name")}</span>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-white/30">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/30">
               <Link href="/login" className="hover:text-white/60 transition-colors">
                 {t("footer_login")}
               </Link>
               <Link href="/register" className="hover:text-white/60 transition-colors">
                 {t("footer_register")}
+              </Link>
+              <Link href="/terms" className="hover:text-white/60 transition-colors">
+                {t("footer_terms")}
+              </Link>
+              <Link href="/privacy" className="hover:text-white/60 transition-colors">
+                {t("footer_privacy")}
               </Link>
             </div>
 

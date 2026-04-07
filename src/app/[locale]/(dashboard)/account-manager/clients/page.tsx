@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,9 @@ export default async function AMClientsPage() {
   const session = await auth();
   if (!session?.user || session.user.role !== "ACCOUNT_MANAGER")
     redirect("/login");
+
+  const t = await getTranslations("account_manager");
+  const tCommon = await getTranslations("common");
 
   const am = await prisma.accountManager.findUnique({
     where: { userId: session.user.id },
@@ -44,32 +48,34 @@ export default async function AMClientsPage() {
     if (priority >= 2)
       return (
         <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">
-          VIP
+          {t("priority_vip")}
         </span>
       );
     if (priority === 1)
       return (
         <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">
-          High
+          {t("priority_high")}
         </span>
       );
     return (
       <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-        Normal
+        {t("priority_normal")}
       </span>
     );
   };
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
-      <h1 className="text-3xl font-bold text-gray-900">My Clients</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t("heading")}</h1>
 
       {/* Brands Section */}
       <div>
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">Brands</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          {t("section_brands")}
+        </h2>
         {assignedBrands.length === 0 ? (
           <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-            <p className="text-gray-500">No brands assigned yet.</p>
+            <p className="text-gray-500">{t("empty_brands")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -86,15 +92,19 @@ export default async function AMClientsPage() {
                   {priorityBadge(priority)}
                 </div>
                 <p className="mt-1 text-sm text-gray-500">
-                  {brand.industry ?? "No industry"}
+                  {brand.industry ?? t("no_industry")}
                 </p>
                 <div className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
                   <p>
-                    <span className="font-medium text-gray-700">Contact:</span>{" "}
+                    <span className="font-medium text-gray-700">
+                      {tCommon("contact")}:
+                    </span>{" "}
                     {brand.user.name ?? "—"} ({brand.user.email})
                   </p>
                   <p className="mt-1">
-                    <span className="font-medium text-gray-700">Orders:</span>{" "}
+                    <span className="font-medium text-gray-700">
+                      {t("label_orders")}:
+                    </span>{" "}
                     {brand._count.orders}
                   </p>
                 </div>
@@ -106,10 +116,12 @@ export default async function AMClientsPage() {
 
       {/* Agencies Section */}
       <div>
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">Agencies</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-900">
+          {t("section_agencies")}
+        </h2>
         {assignedAgencies.length === 0 ? (
           <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-            <p className="text-gray-500">No agencies assigned yet.</p>
+            <p className="text-gray-500">{t("empty_agencies")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,12 +139,14 @@ export default async function AMClientsPage() {
                 </div>
                 <div className="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
                   <p>
-                    <span className="font-medium text-gray-700">Contact:</span>{" "}
+                    <span className="font-medium text-gray-700">
+                      {tCommon("contact")}:
+                    </span>{" "}
                     {agency.user.name ?? "—"} ({agency.user.email})
                   </p>
                   <p className="mt-1">
                     <span className="font-medium text-gray-700">
-                      Managed Brands:
+                      {t("label_managed_brands")}:
                     </span>{" "}
                     {agency._count.managedBrands}
                   </p>

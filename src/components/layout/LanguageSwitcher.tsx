@@ -1,6 +1,6 @@
 "use client"
 
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useRouter, usePathname } from "@/i18n/navigation"
 import { locales, type Locale } from "@/i18n/routing"
 import { useState, useRef, useEffect } from "react"
@@ -24,6 +24,7 @@ const LOCALE_FLAGS: Record<Locale, string> = {
 
 export default function LanguageSwitcher() {
   const locale = useLocale() as Locale
+  const t = useTranslations("common")
   const router = useRouter()
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -49,7 +50,7 @@ export default function LanguageSwitcher() {
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-        aria-label="Change language"
+        aria-label={t("aria_change_language")}
       >
         <Globe className="w-4 h-4" />
         <span className="hidden sm:inline">{LOCALE_FLAGS[locale]}</span>

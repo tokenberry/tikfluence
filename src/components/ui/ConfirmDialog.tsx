@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react"
 import { AlertTriangle, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface ConfirmDialogProps {
   open: boolean
@@ -20,10 +21,11 @@ export default function ConfirmDialog({
   onCancel,
   title,
   description,
-  confirmLabel = "Confirm",
+  confirmLabel,
   confirmVariant = "danger",
   icon,
 }: ConfirmDialogProps) {
+  const t = useTranslations("common")
   const [loading, setLoading] = useState(false)
 
   if (!open) return null
@@ -82,14 +84,14 @@ export default function ConfirmDialog({
             disabled={loading}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-offset-2 ${confirmColors}`}
           >
-            {loading ? "Processing..." : confirmLabel}
+            {loading ? t("processing") : (confirmLabel ?? t("confirm"))}
           </button>
         </div>
       </div>

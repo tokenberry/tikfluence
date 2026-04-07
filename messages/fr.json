@@ -223,7 +223,12 @@
     "tier_diamond": "Diamant",
     "order_type_short_video": "Vidéo courte",
     "order_type_live": "LIVE",
-    "order_type_combo": "Combo"
+    "order_type_combo": "Combo",
+    "contact": "Contact",
+    "error_generic": "Une erreur s'est produite",
+    "aria_change_language": "Changer de langue",
+    "aria_open_navigation": "Ouvrir le menu",
+    "menu": "Menu"
   },
   "errors": {
     "not_found_title": "404",
@@ -565,7 +570,10 @@
     "priority_low": "Basse",
     "priority_medium": "Moyenne",
     "priority_high": "Haute",
-    "priority_critical": "Critique"
+    "priority_critical": "Critique",
+    "error_create_failed": "Échec de la création du ticket",
+    "order_subject_prefix": "Problème avec la commande : {title}",
+    "messages_count": "{count, plural, one {# message} other {# messages}}"
   },
   "verification": {
     "tiktok_verified": "Compte TikTok vérifié",
@@ -678,5 +686,21 @@
     "cta_visit": "Visiter Foxolog",
     "cta_contact": "Nous contacter",
     "cta_footer": "www.foxolog.com · Confidentiel · 2026"
+  },
+  "dashboard": {
+    "loading": "Chargement du tableau de bord..."
+  },
+  "account_manager": {
+    "heading": "Mes clients",
+    "section_brands": "Marques",
+    "empty_brands": "Aucune marque assignée pour le moment.",
+    "section_agencies": "Agences",
+    "empty_agencies": "Aucune agence assignée pour le moment.",
+    "no_industry": "Aucun secteur",
+    "label_orders": "Commandes",
+    "label_managed_brands": "Marques gérées",
+    "priority_vip": "VIP",
+    "priority_high": "Haute",
+    "priority_normal": "Normale"
   }
 }

@@ -61,8 +61,7 @@ export default async function TicketsList({
                     {new Date(ticket.createdAt).toLocaleDateString()}
                   </span>
                   <span>
-                    {ticket._count.messages}{" "}
-                    {ticket._count.messages === 1 ? "message" : "messages"}
+                    {t("messages_count", { count: ticket._count.messages })}
                   </span>
                 </div>
               </Link>

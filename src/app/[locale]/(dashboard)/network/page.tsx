@@ -5,6 +5,8 @@ import { formatCurrency } from "@/lib/utils";
 import { getTranslations } from "next-intl/server";
 import { Users, ShoppingBag, CheckCircle, DollarSign } from "lucide-react";
 
+import { Card } from "@/components/ui/card";
+
 export const dynamic = "force-dynamic";
 
 export default async function NetworkDashboardPage() {
@@ -122,20 +124,17 @@ export default async function NetworkDashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
-          >
+          <Card key={stat.label} className="gap-3 p-6">
             <div className="flex items-center gap-3">
               <div className="rounded-md bg-[#d4772c]/10 p-2">
                 <stat.icon className="h-5 w-5 text-[#d4772c]" />
               </div>
               <p className="text-sm font-medium text-gray-500">{stat.label}</p>
             </div>
-            <p className="mt-3 text-3xl font-bold text-gray-900">
+            <p className="text-3xl font-bold text-gray-900">
               {stat.value}
             </p>
-          </div>
+          </Card>
         ))}
       </div>
 

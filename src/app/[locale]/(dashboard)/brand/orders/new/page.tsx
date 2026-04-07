@@ -5,6 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
 import { useTranslations } from "next-intl";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 
@@ -242,20 +249,23 @@ export default function NewOrderPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t("new_order_field_category")}</label>
-          <select
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t("new_order_field_category")}</label>
+          <Select
             required
             value={form.categoryId}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-            className={inputClasses}
+            onValueChange={(value) => setForm({ ...form, categoryId: value })}
           >
-            <option value="">{t("new_order_field_category_placeholder")}</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder={t("new_order_field_category_placeholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* SHORT_VIDEO Fields */}

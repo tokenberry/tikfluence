@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { Card } from "@/components/ui/card";
+
 export const dynamic = "force-dynamic";
 
 export default async function CreatorDashboardPage() {
@@ -127,20 +129,15 @@ export default async function CreatorDashboardPage() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
-          >
+          <Card key={stat.label} className="gap-3">
             <div className="flex items-center gap-3">
               <div className={`rounded-lg ${stat.bg} p-2.5`}>
                 <stat.icon className={`h-5 w-5 ${stat.accent}`} />
               </div>
               <p className="text-sm font-medium text-gray-500">{stat.label}</p>
             </div>
-            <p className="mt-3 text-2xl font-bold text-gray-900">
-              {stat.value}
-            </p>
-          </div>
+            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+          </Card>
         ))}
       </div>
 

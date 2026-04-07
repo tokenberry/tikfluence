@@ -5,6 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
 import { useTranslations } from "next-intl";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 
@@ -152,20 +159,23 @@ export default function AgencyNewOrderPage() {
       >
         {/* Brand Selector */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">{t("new_order_brand_label")}</label>
-          <select
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t("new_order_brand_label")}</label>
+          <Select
             required
             value={selectedBrandId}
-            onChange={(e) => setSelectedBrandId(e.target.value)}
-            className={inputClasses}
+            onValueChange={setSelectedBrandId}
           >
-            <option value="">{t("new_order_brand_placeholder")}</option>
-            {brands.map((ab) => (
-              <option key={ab.brand.id} value={ab.brand.id}>
-                {ab.brand.companyName}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder={t("new_order_brand_placeholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {brands.map((ab) => (
+                <SelectItem key={ab.brand.id} value={ab.brand.id}>
+                  {ab.brand.companyName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Order Type Selector */}
@@ -243,20 +253,23 @@ export default function AgencyNewOrderPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Category *</label>
-          <select
+          <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+          <Select
             required
             value={form.categoryId}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-            className={inputClasses}
+            onValueChange={(value) => setForm({ ...form, categoryId: value })}
           >
-            <option value="">Select a category</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* SHORT_VIDEO Fields */}

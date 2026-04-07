@@ -78,6 +78,7 @@ model User {
   tickets         SupportTicket[] @relation("TicketCreator")
   assignedTickets SupportTicket[] @relation("TicketAssignee")
   notifications   Notification[]
+  auditLogs       AuditLog[]      @relation("AuditActor")
 
   @@index([role])
   @@index([email])
@@ -581,4 +582,41 @@ model InternalNote {
   @@index([creatorId])
   @@index([orderId])
   @@index([accountManagerId])
+}
+
+// ──── Admin Audit Log ────
+// Append-only record of admin-initiated mutations. Populated best-effort from
+// `src/lib/audit.ts` — a failure here never blocks the primary action. Read
+// from `/admin/audit-log` for compliance + incident-response forensics.
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  // Actor — the admin who triggered the action. Snapshots email + role at
+  // write time so the log stays interpretable even if the user is later
+  // deleted or renamed. actorUserId uses onDelete: SetNull so the row
+  // survives user deletion.
+  actorUserId String?
+  actorUser   User?   @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorEmail  String
+  actorRole   String
+
+  // What was changed
+  action     String // e.g. "user.suspend", "user.activate", "settings.update",
+                   // "dispute.resolve", "agency_brand.approve", "users.bulk_suspend"
+  targetType String // "USER" | "ORDER" | "SETTINGS" | "AGENCY_BRAND" | "BULK"
+  targetId   String? // null for "SETTINGS" (singleton) and bulk ops
+
+  // Free-form structured detail (before/after, reason, affected IDs).
+  // Stored as JSON for flexibility — the audit log page renders it via
+  // JSON.stringify for now and individual action types can grow their own
+  // formatters later.
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([targetType, targetId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
 }

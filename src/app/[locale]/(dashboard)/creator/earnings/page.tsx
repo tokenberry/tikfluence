@@ -3,6 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { PaymentStatusBadge } from "@/components/ui/Badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
@@ -91,36 +99,34 @@ export default async function CreatorEarningsPage() {
         {transactions.length === 0 ? (
           <div className="p-6 text-center text-gray-500">{t("earnings_no_transactions")}</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("earnings_table_order")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("earnings_table_amount")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("earnings_table_fee")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("earnings_table_payout")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("earnings_table_status")}</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">{t("earnings_table_date")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900">{tx.order.title}</td>
-                    <td className="px-6 py-4 text-gray-600">{formatCurrency(tx.amount)}</td>
-                    <td className="px-6 py-4 text-gray-600">{formatCurrency(tx.platformFee)}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{formatCurrency(tx.creatorPayout)}</td>
-                    <td className="px-6 py-4">
-                      <PaymentStatusBadge status={tx.status} />
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {new Date(tx.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="min-w-[600px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6">{t("earnings_table_order")}</TableHead>
+                <TableHead className="px-6">{t("earnings_table_amount")}</TableHead>
+                <TableHead className="px-6">{t("earnings_table_fee")}</TableHead>
+                <TableHead className="px-6">{t("earnings_table_payout")}</TableHead>
+                <TableHead className="px-6">{t("earnings_table_status")}</TableHead>
+                <TableHead className="px-6">{t("earnings_table_date")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transactions.map((tx) => (
+                <TableRow key={tx.id}>
+                  <TableCell className="px-6 font-medium text-gray-900">{tx.order.title}</TableCell>
+                  <TableCell className="px-6 text-gray-600">{formatCurrency(tx.amount)}</TableCell>
+                  <TableCell className="px-6 text-gray-600">{formatCurrency(tx.platformFee)}</TableCell>
+                  <TableCell className="px-6 font-medium text-gray-900">{formatCurrency(tx.creatorPayout)}</TableCell>
+                  <TableCell className="px-6">
+                    <PaymentStatusBadge status={tx.status} />
+                  </TableCell>
+                  <TableCell className="px-6 text-gray-500">
+                    {new Date(tx.createdAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>

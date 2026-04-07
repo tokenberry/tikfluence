@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { fetchTikTokUserInfo } from "@/lib/tiktok"
 import { calculateCreatorScore } from "@/lib/scoring"
+import { logger } from "@/lib/logger"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300 // 5 minutes for batch processing
 
 export async function GET(request: NextRequest) {
+  const requestId = request.headers.get("x-request-id") ?? undefined
+  const log = logger.child({
+    route: "api/cron/refresh-metrics",
+    ...(requestId ? { requestId } : {}),
+  })
+
   // Verify cron secret (Vercel sends this header for cron jobs)
   const authHeader = request.headers.get("authorization")
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -72,10 +79,28 @@ export async function GET(request: NextRequest) {
 
         refreshed++
       } catch (err) {
-        console.error(`Failed to refresh creator ${creator.tiktokUsername}:`, err)
+        log.error(
+          {
+            event: "cron_refresh_metrics_creator_failed",
+            creatorId: creator.id,
+            tiktokUsername: creator.tiktokUsername,
+            err,
+          },
+          "Failed to refresh creator metrics"
+        )
         failed++
       }
     }
+
+    log.info(
+      {
+        event: "cron_refresh_metrics_complete",
+        total: staleCreators.length,
+        refreshed,
+        failed,
+      },
+      "Cron refresh-metrics batch finished"
+    )
 
     return NextResponse.json({
       success: true,
@@ -84,7 +109,10 @@ export async function GET(request: NextRequest) {
       failed,
     })
   } catch (error) {
-    console.error("Cron refresh-metrics error:", error)
+    log.error(
+      { event: "cron_refresh_metrics_error", err: error },
+      "Cron refresh-metrics crashed"
+    )
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

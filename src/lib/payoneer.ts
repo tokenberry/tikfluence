@@ -10,10 +10,14 @@
  *   PAYONEER_API_URL     — API base URL (sandbox or production)
  */
 
+import { logger } from "@/lib/logger"
+
 const PAYONEER_PARTNER_ID = process.env.PAYONEER_PARTNER_ID
 const PAYONEER_API_KEY = process.env.PAYONEER_API_KEY
 const PAYONEER_API_URL =
   process.env.PAYONEER_API_URL || "https://api.payoneer.com/v4/programs"
+
+const log = logger.child({ module: "payoneer" })
 
 function isConfigured(): boolean {
   return !!(PAYONEER_PARTNER_ID && PAYONEER_API_KEY)
@@ -21,7 +25,10 @@ function isConfigured(): boolean {
 
 async function payoneerFetch(path: string, options: RequestInit = {}) {
   if (!isConfigured()) {
-    console.warn("[payoneer] Not configured — skipping API call:", path)
+    log.warn(
+      { event: "payoneer_dev_mode_skip", path },
+      "Payoneer not configured — skipping API call"
+    )
     return null
   }
 
@@ -37,7 +44,10 @@ async function payoneerFetch(path: string, options: RequestInit = {}) {
 
   if (!res.ok) {
     const text = await res.text()
-    console.error(`[payoneer] API error ${res.status}:`, text)
+    log.error(
+      { event: "payoneer_api_error", status: res.status, path, body: text },
+      `Payoneer API error: ${res.status}`
+    )
     throw new Error(`Payoneer API error: ${res.status}`)
   }
 
@@ -56,7 +66,10 @@ export async function registerPayee(params: {
   redirectUrl: string
 }): Promise<{ registrationUrl: string | null; devMode: boolean }> {
   if (!isConfigured()) {
-    console.warn("[payoneer] Dev mode — skipping payee registration for:", params.email)
+    log.warn(
+      { event: "payoneer_dev_mode_skip_registration", email: params.email },
+      "Payoneer dev mode — skipping payee registration"
+    )
     return { registrationUrl: null, devMode: true }
   }
 
@@ -108,8 +121,14 @@ export async function createPayout(params: {
   paymentId: string // our internal reference (e.g. transaction ID)
 }): Promise<{ payoutId: string | null; devMode: boolean }> {
   if (!isConfigured()) {
-    console.warn(
-      `[payoneer] Dev mode — skipping payout of $${params.amount} to payee ${params.payeeId}`
+    log.warn(
+      {
+        event: "payoneer_dev_mode_skip_payout",
+        payeeId: params.payeeId,
+        amount: params.amount,
+        paymentId: params.paymentId,
+      },
+      `Payoneer dev mode — skipping payout of $${params.amount}`
     )
     return { payoutId: null, devMode: true }
   }

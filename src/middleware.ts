@@ -1,9 +1,37 @@
 import { auth } from "@/lib/auth"
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import createIntlMiddleware from "next-intl/middleware"
 import { routing, locales } from "@/i18n/routing"
 
 const intlMiddleware = createIntlMiddleware(routing)
+
+const REQUEST_ID_HEADER = "x-request-id"
+
+/**
+ * Get or mint a correlation ID for this request. Upstream proxies
+ * (Vercel's edge) typically set `x-request-id` already — we pass theirs
+ * through unchanged so our logs line up with the platform's. Locally /
+ * when absent we generate a fresh UUID.
+ */
+function resolveRequestId(req: NextRequest): string {
+  return req.headers.get(REQUEST_ID_HEADER) ?? crypto.randomUUID()
+}
+
+/**
+ * Wrap a raw middleware response so the correlation ID travels on:
+ *   • the response headers (visible to the browser / Vercel log view)
+ *   • the forwarded request headers (so API routes can read it and
+ *     bind a child logger to it — see `getRequestId()` in lib/logger
+ *     follow-ups)
+ *
+ * This is called for every exit path in the `auth((req) => …)` handler
+ * below so the header is always attached regardless of whether we
+ * rate-limited, redirected, or passed through.
+ */
+function withRequestId(res: NextResponse, requestId: string): NextResponse {
+  res.headers.set(REQUEST_ID_HEADER, requestId)
+  return res
+}
 
 const roleRoutes: Record<string, string[]> = {
   CREATOR: ["/creator"],
@@ -52,6 +80,21 @@ function checkApiRateLimit(ip: string): { allowed: boolean; retryAfter: number }
 export default auth((req) => {
   const { pathname } = req.nextUrl
   const user = req.auth?.user
+  const requestId = resolveRequestId(req)
+
+  // Forward the request ID to downstream handlers. API routes can read
+  // it from `headers().get("x-request-id")` and bind it to a child logger.
+  const forwardedHeaders = new Headers(req.headers)
+  forwardedHeaders.set(REQUEST_ID_HEADER, requestId)
+  const passthrough = () =>
+    withRequestId(
+      NextResponse.next({ request: { headers: forwardedHeaders } }),
+      requestId
+    )
+  const intlPassthrough = () => {
+    const res = intlMiddleware(req as unknown as NextRequest) as NextResponse
+    return withRequestId(res, requestId)
+  }
 
   // Let API routes pass through without i18n
   if (pathname.startsWith("/api/")) {
@@ -60,15 +103,18 @@ export default auth((req) => {
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown"
       const { allowed, retryAfter } = checkApiRateLimit(ip)
       if (!allowed) {
-        return new NextResponse(
-          JSON.stringify({ error: "Too many requests" }),
-          {
-            status: 429,
-            headers: {
-              "Content-Type": "application/json",
-              "Retry-After": String(retryAfter),
-            },
-          }
+        return withRequestId(
+          new NextResponse(
+            JSON.stringify({ error: "Too many requests" }),
+            {
+              status: 429,
+              headers: {
+                "Content-Type": "application/json",
+                "Retry-After": String(retryAfter),
+              },
+            }
+          ),
+          requestId
         )
       }
     }
@@ -76,10 +122,13 @@ export default auth((req) => {
     // Block admin API routes for non-admin users
     if (pathname.startsWith("/api/admin")) {
       if (!user || user.role !== "ADMIN") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        return withRequestId(
+          NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+          requestId
+        )
       }
     }
-    return NextResponse.next()
+    return passthrough()
   }
 
   // Strip locale prefix for auth logic
@@ -88,9 +137,12 @@ export default auth((req) => {
   // Authenticated users without a role must complete onboarding first
   if (user && !user.role) {
     if (path === "/onboarding") {
-      return intlMiddleware(req)
+      return intlPassthrough()
     }
-    return NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin))
+    return withRequestId(
+      NextResponse.redirect(new URL("/onboarding", req.nextUrl.origin)),
+      requestId
+    )
   }
 
   // Redirect authenticated users from landing page to their dashboard
@@ -105,21 +157,24 @@ export default auth((req) => {
     }
     const dest = roleDashboard[user.role] || "/"
     if (dest !== "/") {
-      return NextResponse.redirect(new URL(dest, req.nextUrl.origin))
+      return withRequestId(
+        NextResponse.redirect(new URL(dest, req.nextUrl.origin)),
+        requestId
+      )
     }
   }
 
   // Public routes - no auth required
   const publicRoutes = ["/", "/login", "/register", "/terms", "/privacy", "/dashboard", "/deck"]
   if (publicRoutes.some((route) => path === route || path.startsWith(route + "/"))) {
-    return intlMiddleware(req)
+    return intlPassthrough()
   }
 
   // Redirect unauthenticated users to login
   if (!user) {
     const loginUrl = new URL("/login", req.nextUrl.origin)
     loginUrl.searchParams.set("callbackUrl", path)
-    return NextResponse.redirect(loginUrl)
+    return withRequestId(NextResponse.redirect(loginUrl), requestId)
   }
 
   const role = user.role!
@@ -134,8 +189,11 @@ export default auth((req) => {
       AGENCY: "/agency",
       ACCOUNT_MANAGER: "/account-manager/clients",
     }
-    return NextResponse.redirect(
-      new URL(dashboardMap[role] || "/", req.nextUrl.origin)
+    return withRequestId(
+      NextResponse.redirect(
+        new URL(dashboardMap[role] || "/", req.nextUrl.origin)
+      ),
+      requestId
     )
   }
 
@@ -151,14 +209,17 @@ export default auth((req) => {
           AGENCY: "/agency/brands",
           ACCOUNT_MANAGER: "/account-manager/clients",
         }
-        return NextResponse.redirect(
-          new URL(dashboardMap[role] || "/", req.nextUrl.origin)
+        return withRequestId(
+          NextResponse.redirect(
+            new URL(dashboardMap[role] || "/", req.nextUrl.origin)
+          ),
+          requestId
         )
       }
     }
   }
 
-  return intlMiddleware(req)
+  return intlPassthrough()
 })
 
 export const config = {

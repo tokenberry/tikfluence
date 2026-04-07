@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { verifyState } from "@/lib/verify-state"
+import { logger } from "@/lib/logger"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.foxolog.com"
+  const requestId = request.headers.get("x-request-id") ?? undefined
+  const log = logger.child({
+    route: "api/verify-tiktok/callback",
+    ...(requestId ? { requestId } : {}),
+  })
 
   try {
     const session = await auth()
@@ -64,7 +70,10 @@ export async function GET(request: NextRequest) {
     )
 
     if (!tokenResponse.ok) {
-      console.error("TikTok token exchange failed:", tokenResponse.status)
+      log.warn(
+        { event: "tiktok_token_exchange_failed", status: tokenResponse.status },
+        "TikTok token exchange failed"
+      )
       return NextResponse.redirect(
         new URL("/creator/profile?verify=error&reason=token_failed", appUrl)
       )
@@ -74,7 +83,10 @@ export async function GET(request: NextRequest) {
     const accessToken = tokenData.access_token
 
     if (!accessToken) {
-      console.error("No access token in TikTok response:", tokenData)
+      log.warn(
+        { event: "tiktok_no_access_token", tokenData },
+        "TikTok token exchange returned no access_token"
+      )
       return NextResponse.redirect(
         new URL("/creator/profile?verify=error&reason=no_token", appUrl)
       )
@@ -89,7 +101,13 @@ export async function GET(request: NextRequest) {
     )
 
     if (!userInfoResponse.ok) {
-      console.error("TikTok userinfo fetch failed:", userInfoResponse.status)
+      log.warn(
+        {
+          event: "tiktok_userinfo_fetch_failed",
+          status: userInfoResponse.status,
+        },
+        "TikTok userinfo fetch failed"
+      )
       return NextResponse.redirect(
         new URL("/creator/profile?verify=error&reason=userinfo_failed", appUrl)
       )
@@ -99,7 +117,10 @@ export async function GET(request: NextRequest) {
     const tiktokUser = userInfoData.data?.user
 
     if (!tiktokUser?.username) {
-      console.error("No username in TikTok response:", userInfoData)
+      log.warn(
+        { event: "tiktok_no_username", userInfoData },
+        "TikTok userinfo returned no username"
+      )
       return NextResponse.redirect(
         new URL("/creator/profile?verify=error&reason=no_username", appUrl)
       )
@@ -150,7 +171,10 @@ export async function GET(request: NextRequest) {
       new URL("/creator/profile?verify=success", appUrl)
     )
   } catch (error) {
-    console.error("Error in TikTok verification callback:", error)
+    log.error(
+      { event: "tiktok_callback_error", err: error },
+      "Error in TikTok verification callback"
+    )
     return NextResponse.redirect(
       new URL("/creator/profile?verify=error&reason=server", appUrl)
     )

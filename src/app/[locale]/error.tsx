@@ -1,14 +1,24 @@
 "use client"
 
+import { useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { logger } from "@/lib/logger"
 
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void
 }) {
   const t = useTranslations("errors")
+
+  useEffect(() => {
+    logger.error(
+      { event: "locale_error_boundary", err: error, digest: error.digest },
+      "Unhandled error in locale segment"
+    )
+  }, [error])
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#fdf6e3] px-4">

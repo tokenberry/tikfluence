@@ -1,6 +1,8 @@
 import { prisma } from "./prisma"
 import { z } from "zod"
+import { logger } from "@/lib/logger"
 
+const log = logger.child({ module: "ai" })
 const AI_TIMEOUT_MS = 60_000
 
 const creatorAnalysisSchema = z.object({
@@ -148,7 +150,14 @@ Respond ONLY with the JSON object, no additional text.`
     const json = JSON.parse(jsonText)
     parsed = creatorAnalysisSchema.parse(json)
   } catch (err) {
-    console.error("Failed to parse AI creator analysis response:", text.slice(0, 200))
+    log.error(
+      {
+        event: "ai_creator_analysis_parse_failed",
+        err,
+        preview: text.slice(0, 200),
+      },
+      "Failed to parse AI creator analysis response"
+    )
     throw new Error(
       err instanceof z.ZodError
         ? `AI response validation failed: ${err.issues.map((i) => i.message).join(", ")}`
@@ -285,7 +294,14 @@ Respond ONLY with the JSON object, no additional text.`
     const json = JSON.parse(jsonText)
     parsed = deliveryAnalysisSchema.parse(json)
   } catch (err) {
-    console.error("Failed to parse AI delivery analysis response:", text.slice(0, 200))
+    log.error(
+      {
+        event: "ai_delivery_analysis_parse_failed",
+        err,
+        preview: text.slice(0, 200),
+      },
+      "Failed to parse AI delivery analysis response"
+    )
     throw new Error(
       err instanceof z.ZodError
         ? `AI response validation failed: ${err.issues.map((i) => i.message).join(", ")}`

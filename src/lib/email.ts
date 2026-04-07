@@ -1,4 +1,7 @@
 import { Resend } from "resend"
+import { logger } from "@/lib/logger"
+
+const log = logger.child({ module: "email" })
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -27,13 +30,19 @@ function emailWrapper(title: string, body: string): string {
 
 async function send(to: string, subject: string, html: string) {
   if (!resend) {
-    console.warn("[email] RESEND_API_KEY not set — skipping email:", subject)
+    log.warn(
+      { event: "email_dev_mode_skip", subject, to },
+      "RESEND_API_KEY not set — skipping email"
+    )
     return
   }
   try {
     await resend.emails.send({ from: FROM, to, subject, html })
   } catch (err) {
-    console.error("[email] Failed to send:", subject, err)
+    log.error(
+      { event: "email_send_failed", subject, to, err },
+      "Failed to send email"
+    )
   }
 }
 

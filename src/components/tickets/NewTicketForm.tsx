@@ -8,13 +8,14 @@ import { useTranslations } from "next-intl"
 
 function NewTicketFormInner({ basePath }: { basePath: string }) {
   const t = useTranslations("tickets")
+  const tCommon = useTranslations("common")
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderTitle = searchParams.get("orderTitle")
   const orderId = searchParams.get("orderId")
 
   const [subject, setSubject] = useState(
-    orderTitle ? `Issue with order: ${orderTitle}` : ""
+    orderTitle ? t("order_subject_prefix", { title: orderTitle }) : ""
   )
   const [description, setDescription] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -48,12 +49,12 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null)
-        throw new Error(data?.error ?? "Failed to create ticket")
+        throw new Error(data?.error ?? t("error_create_failed"))
       }
 
       router.push(basePath)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
+      setError(err instanceof Error ? err.message : tCommon("error_generic"))
       setSubmitting(false)
     }
   }

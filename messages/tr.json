@@ -223,7 +223,12 @@
     "tier_diamond": "Elmas",
     "order_type_short_video": "Kısa Video",
     "order_type_live": "CANLI",
-    "order_type_combo": "Kombo"
+    "order_type_combo": "Kombo",
+    "contact": "İletişim",
+    "error_generic": "Bir şeyler ters gitti",
+    "aria_change_language": "Dili değiştir",
+    "aria_open_navigation": "Menüyü aç",
+    "menu": "Menü"
   },
   "errors": {
     "not_found_title": "404",
@@ -565,7 +570,10 @@
     "priority_low": "Düşük",
     "priority_medium": "Orta",
     "priority_high": "Yüksek",
-    "priority_critical": "Kritik"
+    "priority_critical": "Kritik",
+    "error_create_failed": "Talep oluşturulamadı",
+    "order_subject_prefix": "Sipariş sorunu: {title}",
+    "messages_count": "{count, plural, one {# mesaj} other {# mesaj}}"
   },
   "verification": {
     "tiktok_verified": "TikTok Hesabı Doğrulandı",
@@ -678,5 +686,21 @@
     "cta_visit": "Foxolog'u Ziyaret Et",
     "cta_contact": "İletişime Geç",
     "cta_footer": "www.foxolog.com · Gizli · 2026"
+  },
+  "dashboard": {
+    "loading": "Panel yükleniyor..."
+  },
+  "account_manager": {
+    "heading": "Müşterilerim",
+    "section_brands": "Markalar",
+    "empty_brands": "Henüz atanmış marka yok.",
+    "section_agencies": "Ajanslar",
+    "empty_agencies": "Henüz atanmış ajans yok.",
+    "no_industry": "Sektör belirtilmemiş",
+    "label_orders": "Siparişler",
+    "label_managed_brands": "Yönetilen Markalar",
+    "priority_vip": "VIP",
+    "priority_high": "Yüksek",
+    "priority_normal": "Normal"
   }
 }

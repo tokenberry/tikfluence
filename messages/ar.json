@@ -223,7 +223,12 @@
     "tier_diamond": "ماسي",
     "order_type_short_video": "فيديو قصير",
     "order_type_live": "بث مباشر",
-    "order_type_combo": "مجمّع"
+    "order_type_combo": "مجمّع",
+    "contact": "جهة الاتصال",
+    "error_generic": "حدث خطأ ما",
+    "aria_change_language": "تغيير اللغة",
+    "aria_open_navigation": "فتح القائمة",
+    "menu": "القائمة"
   },
   "errors": {
     "not_found_title": "404",
@@ -565,7 +570,10 @@
     "priority_low": "منخفضة",
     "priority_medium": "متوسطة",
     "priority_high": "عالية",
-    "priority_critical": "حرجة"
+    "priority_critical": "حرجة",
+    "error_create_failed": "فشل إنشاء التذكرة",
+    "order_subject_prefix": "مشكلة في الطلب: {title}",
+    "messages_count": "{count, plural, zero {لا رسائل} one {رسالة واحدة} two {رسالتان} few {# رسائل} many {# رسالة} other {# رسالة}}"
   },
   "verification": {
     "tiktok_verified": "تم توثيق حساب تيك توك",
@@ -678,5 +686,21 @@
     "cta_visit": "زيارة Foxolog",
     "cta_contact": "تواصل معنا",
     "cta_footer": "www.foxolog.com · سري · 2026"
+  },
+  "dashboard": {
+    "loading": "جاري تحميل لوحة التحكم..."
+  },
+  "account_manager": {
+    "heading": "عملائي",
+    "section_brands": "العلامات التجارية",
+    "empty_brands": "لم يتم تعيين علامات تجارية بعد.",
+    "section_agencies": "الوكالات",
+    "empty_agencies": "لم يتم تعيين وكالات بعد.",
+    "no_industry": "بدون صناعة",
+    "label_orders": "الطلبات",
+    "label_managed_brands": "العلامات المُدارة",
+    "priority_vip": "VIP",
+    "priority_high": "عالية",
+    "priority_normal": "عادية"
   }
 }

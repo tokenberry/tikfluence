@@ -964,4 +964,39 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.1.0)*
+**v3.1.0 → v3.1.1 — i18n Coverage Audit**
+
+**Context:** The v2.0.0 next-intl migration translated most of the app, but a handful of surfaces — added later or overlooked — still rendered hardcoded English in all 5 locales. This PR closes those gaps and adds the missing keys to `en/ar/tr/fr/es`.
+
+**1. Audit:** A subagent swept the codebase looking for raw English strings inside JSX, hardcoded `aria-label`s, English error messages thrown to UI, and English fallbacks like `?? "..."`. Six files were flagged as the only remaining offenders (the four v1.9.x dashboard home pages were verified clean).
+
+**2. New translation keys (all 5 locales: en/ar/tr/fr/es):**
+- `common.contact`, `common.error_generic`, `common.aria_change_language`, `common.aria_open_navigation`, `common.menu`
+- `tickets.error_create_failed`, `tickets.order_subject_prefix` (with `{title}` placeholder), `tickets.messages_count` (ICU plural)
+- New `dashboard` namespace: `dashboard.loading`
+- New `account_manager` namespace: `heading`, `section_brands`, `empty_brands`, `section_agencies`, `empty_agencies`, `no_industry`, `label_orders`, `label_managed_brands`, `priority_vip`, `priority_high`, `priority_normal`
+
+**3. Wired files:**
+- `src/app/[locale]/(dashboard)/account-manager/clients/page.tsx` — server component, added `getTranslations("account_manager")` + `getTranslations("common")`. Replaced 13 hardcoded strings (page heading, section headings, empty states, "VIP/High/Normal" priority badges, "No industry", "Contact:", "Orders:", "Managed Brands:").
+- `src/components/ui/ConfirmDialog.tsx` — client component, added `useTranslations("common")`. Cancel button + "Processing..." loading state + default `confirmLabel` now translated. Existing `confirmLabel` prop still wins when passed.
+- `src/app/[locale]/(dashboard)/layout.tsx` — client component, added `useTranslations("dashboard")` + `useTranslations("common")`. "Loading dashboard...", `aria-label="Open navigation"`, and "Menu" label now translated.
+- `src/components/layout/LanguageSwitcher.tsx` — added `useTranslations("common")` for `aria-label="Change language"` (the language names themselves stay hardcoded — they're meant to render in their own language).
+- `src/components/tickets/NewTicketForm.tsx` — added `useTranslations("common")`. Initial subject prefix `Issue with order: ${orderTitle}` now uses ICU `t("order_subject_prefix", { title })`. "Failed to create ticket" and "Something went wrong" fallbacks now translated.
+- `src/components/tickets/TicketsList.tsx` — replaced inline `count === 1 ? "message" : "messages"` ternary with ICU plural `t("messages_count", { count })`, which gives every locale (including Arabic with its 6 plural forms) correct grammatical agreement.
+
+**4. Why ICU plural for `messages_count`:** Hand-rolled ternaries silently break in languages with non-binary plural rules. Using `{count, plural, one {# message} other {# messages}}` lets next-intl pick the right form per locale — Arabic in particular gets a full `zero/one/two/few/many/other` rule set.
+
+**5. Verification:**
+- All 5 locale files validated as parseable JSON
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 still parsing
+
+**6. Version bump:** `3.1.0 → 3.1.1` in `package.json`, `package-lock.json`, `src/lib/constants.ts` (`APP_VERSION`). Classified as **+0.0.1 patch** per versioning rules — closes leftover gaps from the v2.0.0 migration, no new feature.
+
+**Files modified:** `messages/{en,ar,tr,fr,es}.json`, `src/app/[locale]/(dashboard)/account-manager/clients/page.tsx`, `src/components/ui/ConfirmDialog.tsx`, `src/app/[locale]/(dashboard)/layout.tsx`, `src/components/layout/LanguageSwitcher.tsx`, `src/components/tickets/NewTicketForm.tsx`, `src/components/tickets/TicketsList.tsx`, `src/lib/constants.ts`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.1.1)*

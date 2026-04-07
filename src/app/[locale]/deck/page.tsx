@@ -731,8 +731,12 @@ export default function DeckPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [direction, setDirection] = useState(0)
 
+  // Read sessionStorage post-mount; can't use a lazy initializer because
+  // sessionStorage isn't available during SSR. Empty deps + one-shot setState
+  // means no cascading re-renders.
   useEffect(() => {
     if (sessionStorage.getItem("deck_unlocked") === "true") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnlocked(true)
     }
   }, [])

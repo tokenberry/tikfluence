@@ -71,6 +71,7 @@ export default function DeliveryActions({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder={t("delivery_rejection_placeholder")}
+          aria-label="Rejection reason"
           rows={2}
           className="w-48 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />

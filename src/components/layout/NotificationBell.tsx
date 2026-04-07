@@ -133,7 +133,7 @@ export default function NotificationBell() {
           />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+          <span className="absolute -end-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -171,7 +171,7 @@ export default function NotificationBell() {
                   {!n.read && (
                     <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-[#d4772c]" />
                   )}
-                  <div className={!n.read ? "" : "ml-4"}>
+                  <div className={!n.read ? "" : "ms-4"}>
                     <p className="text-sm font-medium text-gray-900">{n.title}</p>
                     <p className="text-xs text-gray-500 line-clamp-2">{n.message}</p>
                     <p className="mt-0.5 text-xs text-gray-400">{timeAgo(n.createdAt)}</p>

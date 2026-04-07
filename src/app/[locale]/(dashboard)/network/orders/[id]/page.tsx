@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
@@ -138,10 +139,10 @@ export default async function NetworkOrderDetailPage({
 
       {/* LIVE Content Guidelines */}
       {(order.type === "LIVE" || order.type === "COMBO") && order.liveGuidelines && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-          <h3 className="text-sm font-semibold text-amber-800">{t("live_content_guidelines")}</h3>
-          <p className="mt-1 text-sm text-amber-700 whitespace-pre-wrap">{order.liveGuidelines}</p>
-        </div>
+        <Alert variant="warning">
+          <AlertTitle>{t("live_content_guidelines")}</AlertTitle>
+          <AlertDescription className="whitespace-pre-wrap">{order.liveGuidelines}</AlertDescription>
+        </Alert>
       )}
 
       {/* Timeline */}

@@ -17,7 +17,7 @@ import {
   UserRoleChart,
   OrderTrendChart,
   RevenueTrendChart,
-} from "./AnalyticsCharts";
+} from "./AnalyticsChartsLazy";
 
 export const dynamic = "force-dynamic"
 

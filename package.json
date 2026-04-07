@@ -1,6 +1,6 @@
 {
   "name": "foxolog",
-  "version": "3.11.0",
+  "version": "3.12.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "analyze": "next experimental-analyze"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -34,6 +35,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
+    "geist": "^1.7.0",
     "lucide-react": "^1.6.0",
     "next": "16.2.1",
     "next-auth": "^5.0.0-beta.30",

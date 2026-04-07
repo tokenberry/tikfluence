@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 
 interface Analysis {
   summary: string;
@@ -15,7 +15,6 @@ interface Analysis {
 }
 
 export default function AiInsights({ creatorId }: { creatorId: string }) {
-  const { toast } = useToast();
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -39,10 +38,10 @@ export default function AiInsights({ creatorId }: { creatorId: string }) {
         setAnalysis({ ...data, createdAt: new Date().toISOString() });
       } else {
         const err = await res.json();
-        toast("error", err.error ?? "Failed to run AI analysis.");
+        toast.error(err.error ?? "Failed to run AI analysis.");
       }
     } catch {
-      toast("error", "An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading(false);
     }

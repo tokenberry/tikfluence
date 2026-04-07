@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import {
   Select,
@@ -18,7 +18,6 @@ type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 export default function NewOrderPage() {
   const t = useTranslations("brand");
   const router = useRouter();
-  const { toast } = useToast();
   const searchParams = useSearchParams();
   const creatorId = searchParams.get("creatorId");
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
@@ -128,10 +127,10 @@ export default function NewOrderPage() {
         router.push(`/brand/orders/${data.id ?? data.order?.id ?? ""}`);
       } else {
         const data = await res.json();
-        toast("error", data.error ?? t("new_order_error"));
+        toast.error(data.error ?? t("new_order_error"));
       }
     } catch {
-      toast("error", "An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading(false);
     }

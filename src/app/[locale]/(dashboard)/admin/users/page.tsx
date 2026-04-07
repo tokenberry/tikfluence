@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { RoleBadge } from "@/components/ui/Badge";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
@@ -20,7 +20,6 @@ interface UserRow {
 
 export default function AdminUsersPage() {
   const t = useTranslations("admin");
-  const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -71,7 +70,7 @@ export default function AdminUsersPage() {
         );
       }
     } catch {
-      toast("error", "Failed to update user status.");
+      toast.error("Failed to update user status.");
     } finally {
       setActionLoading(null);
     }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 export default function AdminOrderActions({
@@ -13,7 +13,6 @@ export default function AdminOrderActions({
   status: string;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
   const [loading, setLoading] = useState("");
   const [confirmAction, setConfirmAction] = useState<"complete" | "cancel" | null>(null);
 
@@ -27,14 +26,14 @@ export default function AdminOrderActions({
         body: JSON.stringify({ approved: true }),
       });
       if (res.ok) {
-        toast("success", "Order marked as completed.");
+        toast.success("Order marked as completed.");
         router.refresh();
       } else {
         const data = await res.json();
-        toast("error", data.error ?? "Failed to complete order.");
+        toast.error(data.error ?? "Failed to complete order.");
       }
     } catch {
-      toast("error", "An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading("");
     }
@@ -48,14 +47,14 @@ export default function AdminOrderActions({
         method: "DELETE",
       });
       if (res.ok) {
-        toast("success", "Order cancelled.");
+        toast.success("Order cancelled.");
         router.refresh();
       } else {
         const data = await res.json();
-        toast("error", data.error ?? "Failed to cancel order.");
+        toast.error(data.error ?? "Failed to cancel order.");
       }
     } catch {
-      toast("error", "An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading("");
     }

@@ -1132,4 +1132,55 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.4.0)*
+**v3.4.0 → v3.5.0 — shadcn/ui Feedback Primitives (PR #4d)**
+
+**Context:** Fourth slice of the shadcn/ui migration. Replaces the hand-rolled `Toast.tsx` (Context + provider + bottom-right stack) with `sonner` — the toast library shadcn switched to in v0.8 — and adds the `Alert` primitive for inline feedback banners. Removes the old provider entirely; sonner is mounted once as `<Toaster />` in the client-side `Providers` component.
+
+**1. New dependency:**
+- `sonner ^2.0.7` — battle-tested toast library, brand-styled via `richColors` + `closeButton` + `toastOptions.classNames`
+
+**2. New primitives (new-york style):**
+- `src/components/ui/sonner.tsx` — thin `<Toaster />` wrapper. Pinned to `theme="light"`, `position="bottom-right"` to match the old `Toast.tsx` placement, and brand orange `#d4772c` on the `actionButton`. Uses `richColors` so `toast.success` / `toast.error` / `toast.info` get semantically-colored backgrounds out of the box.
+- `src/components/ui/alert.tsx` — inline alert with `default` / `destructive` / `success` / `warning` / `info` variants via `cva`. Exports `Alert`, `AlertTitle`, `AlertDescription`. Replaces the ad-hoc `border-amber-300 bg-amber-50` divs sprinkled through forms — those will be migrated in a follow-up batch.
+
+**3. Removed:**
+- `src/components/ui/Toast.tsx` — the old `ToastProvider` + `useToast` hook. Replaced everywhere by `import { toast } from "sonner"` and direct `toast.success()` / `toast.error()` / `toast.info()` calls. No more context plumbing, no more `useToast must be used within ToastProvider` runtime errors.
+
+**4. Provider rewire:**
+- `src/app/providers.tsx` — `<ToastProvider>` removed. `<Toaster />` from `@/components/ui/sonner` mounts as a sibling of `{children}` inside `SessionProvider`. Sonner uses a portal so it doesn't matter where in the tree it sits; placing it at the root means a single instance for the whole app.
+
+**5. Migrated call sites (11 files):** mechanical swap from `const { toast } = useToast()` + `toast("error", msg)` to `import { toast } from "sonner"` + `toast.error(msg)`. The `"info"` variant in `DeliveryActions.tsx` (delivery rejected) became `toast.info(...)`. No translation strings touched.
+- `src/components/ai/AiInsightsPanel.tsx`
+- `src/app/[locale]/(dashboard)/creator/profile/AiInsights.tsx`
+- `src/app/[locale]/(dashboard)/creator/orders/[id]/DeliveryForm.tsx`
+- `src/app/[locale]/(dashboard)/creator/orders/AcceptOrderButton.tsx`
+- `src/app/[locale]/(dashboard)/brand/orders/[id]/OrderActions.tsx`
+- `src/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions.tsx`
+- `src/app/[locale]/(dashboard)/brand/orders/new/page.tsx`
+- `src/app/[locale]/(dashboard)/agency/brands/[id]/AgencyOrderActions.tsx`
+- `src/app/[locale]/(dashboard)/agency/orders/new/page.tsx`
+- `src/app/[locale]/(dashboard)/admin/orders/[id]/AdminOrderActions.tsx`
+- `src/app/[locale]/(dashboard)/admin/users/page.tsx`
+
+**6. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 still parsing
+
+**7. Version bump:** `3.4.0 → 3.5.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds a new dep (`sonner`), 2 new primitives (`Toaster`, `Alert`), and removes the legacy `Toast.tsx`.
+
+**8. Still hand-rolled (future PRs):**
+- Inline `border-amber-300 bg-amber-50` warning blocks in new-order forms — easy follow-up to migrate to `<Alert variant="warning">`
+- Navbar user menu, language switcher → PR #4e (`dropdown-menu` + `popover`)
+- Admin tables, custom `Pagination.tsx` → PR #4f (`table` + `pagination`)
+
+**Files added:** `src/components/ui/sonner.tsx`, `src/components/ui/alert.tsx`
+
+**Files removed:** `src/components/ui/Toast.tsx`
+
+**Files modified:** `src/app/providers.tsx`, 11 toast call sites listed above, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.5.0)*

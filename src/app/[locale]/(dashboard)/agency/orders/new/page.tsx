@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import {
   Select,
@@ -49,7 +49,6 @@ const ORDER_TYPES: { value: OrderType; label: string; description: string; icon:
 export default function AgencyNewOrderPage() {
   const t = useTranslations("agency");
   const router = useRouter();
-  const { toast } = useToast();
   const searchParams = useSearchParams();
   const preselectedBrandId = searchParams.get("brandId");
 
@@ -103,7 +102,7 @@ export default function AgencyNewOrderPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedBrandId) {
-      toast("error", "Please select a brand.");
+      toast.error("Please select a brand.");
       return;
     }
     setLoading(true);
@@ -132,10 +131,10 @@ export default function AgencyNewOrderPage() {
         router.push("/agency/orders");
       } else {
         const data = await res.json();
-        toast("error", data.error ?? "Failed to create order.");
+        toast.error(data.error ?? "Failed to create order.");
       }
     } catch {
-      toast("error", "An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading(false);
     }

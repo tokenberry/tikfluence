@@ -1,3 +1,7 @@
+import { logger } from "@/lib/logger"
+
+const log = logger.child({ module: "tiktok" })
+
 interface TikTokUserInfo {
   tiktokId: string
   username: string
@@ -46,7 +50,10 @@ export async function fetchTikTokUserInfo(
   const apiKey = process.env.TIKTOK_API_KEY
 
   if (!apiKey) {
-    console.warn("TikTok API key not configured, using mock data for development")
+    log.warn(
+      { event: "tiktok_dev_mode_mock", username },
+      "TikTok API key not configured, using mock data for development"
+    )
     return getMockTikTokData(username)
   }
 
@@ -73,7 +80,15 @@ export async function fetchTikTokUserInfo(
     })
 
     if (!userResponse.ok) {
-      console.error("Failed to fetch TikTok user info:", userResponse.statusText)
+      log.error(
+        {
+          event: "tiktok_user_info_failed",
+          username,
+          status: userResponse.status,
+          statusText: userResponse.statusText,
+        },
+        "Failed to fetch TikTok user info"
+      )
       return null
     }
 
@@ -146,7 +161,10 @@ export async function fetchTikTokUserInfo(
       videoMetrics,
     }
   } catch (error) {
-    console.error("Error fetching TikTok data:", error)
+    log.error(
+      { event: "tiktok_fetch_error", username, err: error },
+      "Error fetching TikTok data"
+    )
     return null
   }
 }

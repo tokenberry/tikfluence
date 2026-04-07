@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { constructWebhookEvent } from "@/lib/stripe"
+import { logger } from "@/lib/logger"
 
 export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  const requestId = request.headers.get("x-request-id") ?? undefined
+  const log = logger.child({
+    route: "api/payments/webhook",
+    ...(requestId ? { requestId } : {}),
+  })
+
   try {
     const body = await request.text()
     const signature = request.headers.get("stripe-signature")
@@ -20,7 +27,10 @@ export async function POST(request: NextRequest) {
     try {
       event = constructWebhookEvent(body, signature)
     } catch (err) {
-      console.error("Webhook signature verification failed:", err)
+      log.warn(
+        { event: "stripe_webhook_signature_failed", err },
+        "Stripe webhook signature verification failed"
+      )
       return NextResponse.json(
         { error: "Invalid signature" },
         { status: 400 }
@@ -163,12 +173,18 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`)
+        log.info(
+          { event: "stripe_webhook_unhandled", type: event.type },
+          `Unhandled Stripe webhook event: ${event.type}`
+        )
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("Webhook error:", error)
+    log.error(
+      { event: "stripe_webhook_error", err: error },
+      "Stripe webhook handler failed"
+    )
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 }

@@ -1048,4 +1048,47 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.2.0)*
+**v3.2.0 → v3.3.0 — shadcn/ui Form Primitives (PR #4b)**
+
+**Context:** Second slice of the shadcn/ui migration. Adds the three form primitives (`Input`, `Label`, `Textarea`) and migrates the highest-traffic form surfaces: login, register, and the support ticket form.
+
+**1. New dependency:**
+- `@radix-ui/react-label ^2.1.x` — used by the `Label` primitive for proper click-to-focus semantics
+
+**2. New primitives (new-york style):**
+- `src/components/ui/input.tsx` — standard input with brand-orange focus ring, `aria-invalid` styling, `disabled:*` states, and `file:*` classes for file inputs
+- `src/components/ui/label.tsx` — Radix label with `peer-disabled` support and `group-data-[disabled=true]` for compound form components
+- `src/components/ui/textarea.tsx` — auto-resizing textarea (`field-sizing-content`) matching the input's visual language
+
+**3. Removed:**
+- `src/components/ui/FormField.tsx` — old hand-rolled `InputField` / `TextareaField` / `SelectField` wrappers. Verified unused (zero imports across the codebase) so safe to delete without migration.
+
+**4. Migrated surfaces:**
+- **`src/app/[locale]/(auth)/login/page.tsx`** — raw `<label>` + `<input>` + `<button>` blocks replaced with `Label` + `Input` + `Button`. Google and TikTok SSO buttons also use `Button` (outline variant and custom black override respectively). `login_submit_loading` + `login_submit` still wired correctly.
+- **`src/app/[locale]/(auth)/register/page.tsx`** — same migration across all 4 role-specific branches (CREATOR with TikTok + content types, NETWORK, BRAND with industry, AGENCY with website). 10+ input fields and 3+ buttons migrated. Kept the custom role-selector and content-type toggles as-is — they're bespoke multi-select pills, not form fields, and belong to a future layout-primitives PR.
+- **`src/components/tickets/NewTicketForm.tsx`** — subject `Input`, description `Textarea`, and cancel/submit `Button`s. The cancel button uses `<Button asChild>` wrapping a `<Link>` — demonstrates the `asChild` pattern from the Button primitive. `aria-invalid` now drives the error-state styling declaratively instead of a manual class toggle.
+
+**5. `aria-invalid` wiring:** every migrated field now sets `aria-invalid={!!fieldErrors.foo}`. The `Input` / `Textarea` primitives read this via `aria-invalid:border-red-500 aria-invalid:ring-red-500/20`, so the red error state is now a free side effect of the existing validation logic — no more hand-applied conditional class strings.
+
+**6. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 still parsing (the `/login` and `/register` regression guards still target `footer a[href$="/terms"]` which is unaffected by the form migration)
+
+**7. Version bump:** `3.2.0 → 3.3.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds a new dep and 3 new primitives.
+
+**8. Still hand-rolled (future PRs):**
+- Role-selector pills and content-type toggles on register page — will fold into `ToggleGroup` in a later PR
+- `select` elements in brand/agency settings, new-order category dropdown — waiting on shadcn `Select` primitive (PR #4b-2 or #4c)
+- Search inputs on admin user list, browse creators — trivial follow-up, will batch into #4c
+
+**Files added:** `src/components/ui/input.tsx`, `src/components/ui/label.tsx`, `src/components/ui/textarea.tsx`
+
+**Files removed:** `src/components/ui/FormField.tsx`
+
+**Files modified:** `src/app/[locale]/(auth)/login/page.tsx`, `src/app/[locale]/(auth)/register/page.tsx`, `src/components/tickets/NewTicketForm.tsx`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.3.0)*

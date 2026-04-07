@@ -7,6 +7,11 @@ import { useRouter } from "next/navigation"
 import { registerSchema } from "@/lib/validations"
 import { useTranslations } from "next-intl"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
+
 type Role = "CREATOR" | "NETWORK" | "BRAND" | "AGENCY"
 
 export default function RegisterPage() {
@@ -129,21 +134,20 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Role selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t("register_role_label")}
-          </label>
+        <div className="space-y-2">
+          <Label>{t("register_role_label")}</Label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {roles.map((r) => (
               <button
                 key={r.value}
                 type="button"
                 onClick={() => setRole(r.value)}
-                className={`p-3 rounded-md border text-center transition-colors ${
+                className={cn(
+                  "p-3 rounded-md border text-center transition-colors",
                   role === r.value
                     ? "border-[#d4772c] bg-[#fdf6e3] text-[#b85c1a]"
                     : "border-gray-200 text-gray-700 hover:border-gray-300"
-                }`}
+                )}
               >
                 <span className="block text-sm font-medium">{t(r.labelKey)}</span>
                 <span className="block text-xs text-gray-500 mt-0.5">
@@ -155,59 +159,44 @@ export default function RegisterPage() {
         </div>
 
         {/* Common fields */}
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {t("register_name_label")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="name">{t("register_name_label")}</Label>
+          <Input
             id="name"
             type="text"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder={t("register_name_placeholder")}
+            aria-invalid={!!fieldErrors.name}
           />
           {fieldError("name")}
         </div>
 
-        <div>
-          <label
-            htmlFor="reg-email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {t("register_email_label")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="reg-email">{t("register_email_label")}</Label>
+          <Input
             id="reg-email"
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder={t("register_email_placeholder")}
+            aria-invalid={!!fieldErrors.email}
           />
           {fieldError("email")}
         </div>
 
-        <div>
-          <label
-            htmlFor="reg-password"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {t("register_password_label")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="reg-password">{t("register_password_label")}</Label>
+          <Input
             id="reg-password"
             type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
             placeholder={t("register_password_placeholder")}
+            aria-invalid={!!fieldErrors.password}
           />
           {fieldError("password")}
         </div>
@@ -215,53 +204,49 @@ export default function RegisterPage() {
         {/* Role-specific fields */}
         {role === "CREATOR" && (
           <>
-            <div>
-              <label
-                htmlFor="tiktok"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t("register_tiktok_label")}
-              </label>
+            <div className="space-y-1.5">
+              <Label htmlFor="tiktok">{t("register_tiktok_label")}</Label>
               <div className="flex">
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
                   @
                 </span>
-                <input
+                <Input
                   id="tiktok"
                   type="text"
                   required
                   value={tiktokUsername}
                   onChange={(e) => setTiktokUsername(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                   placeholder={t("register_tiktok_placeholder")}
+                  aria-invalid={!!fieldErrors.tiktokUsername}
+                  className="rounded-l-none"
                 />
               </div>
               {fieldError("tiktokUsername")}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t("register_content_types_label")}
-              </label>
+            <div className="space-y-2">
+              <Label>{t("register_content_types_label")}</Label>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setSupportsShortVideo(!supportsShortVideo)}
-                  className={`flex-1 rounded-md border p-3 text-center text-sm font-medium transition-colors ${
+                  className={cn(
+                    "flex-1 rounded-md border p-3 text-center text-sm font-medium transition-colors",
                     supportsShortVideo
                       ? "border-blue-500 bg-blue-50 text-blue-700"
                       : "border-gray-200 text-gray-500 hover:border-gray-300"
-                  }`}
+                  )}
                 >
                   {t("register_content_type_short_video")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setSupportsLive(!supportsLive)}
-                  className={`flex-1 rounded-md border p-3 text-center text-sm font-medium transition-colors ${
+                  className={cn(
+                    "flex-1 rounded-md border p-3 text-center text-sm font-medium transition-colors",
                     supportsLive
                       ? "border-red-500 bg-red-50 text-red-700"
                       : "border-gray-200 text-gray-500 hover:border-gray-300"
-                  }`}
+                  )}
                 >
                   {t("register_content_type_live")}
                 </button>
@@ -276,21 +261,16 @@ export default function RegisterPage() {
         )}
 
         {role === "NETWORK" && (
-          <div>
-            <label
-              htmlFor="company-network"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              {t("register_network_company_label")}
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <Label htmlFor="company-network">{t("register_network_company_label")}</Label>
+            <Input
               id="company-network"
               type="text"
               required
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
               placeholder={t("register_network_company_placeholder")}
+              aria-invalid={!!fieldErrors.companyName}
             />
             {fieldError("companyName")}
           </div>
@@ -298,37 +278,26 @@ export default function RegisterPage() {
 
         {role === "BRAND" && (
           <>
-            <div>
-              <label
-                htmlFor="company-brand"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t("register_brand_company_label")}
-              </label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="company-brand">{t("register_brand_company_label")}</Label>
+              <Input
                 id="company-brand"
                 type="text"
                 required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder={t("register_brand_company_placeholder")}
+                aria-invalid={!!fieldErrors.companyName}
               />
               {fieldError("companyName")}
             </div>
-            <div>
-              <label
-                htmlFor="industry"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t("register_brand_industry_label")}
-              </label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="industry">{t("register_brand_industry_label")}</Label>
+              <Input
                 id="industry"
                 type="text"
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder={t("register_brand_industry_placeholder")}
               />
             </div>
@@ -337,51 +306,37 @@ export default function RegisterPage() {
 
         {role === "AGENCY" && (
           <>
-            <div>
-              <label
-                htmlFor="company-agency"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t("register_agency_name_label")}
-              </label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="company-agency">{t("register_agency_name_label")}</Label>
+              <Input
                 id="company-agency"
                 type="text"
                 required
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder={t("register_agency_name_placeholder")}
+                aria-invalid={!!fieldErrors.companyName}
               />
               {fieldError("companyName")}
             </div>
-            <div>
-              <label
-                htmlFor="agency-website"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t("register_agency_website_label")}
-              </label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="agency-website">{t("register_agency_website_label")}</Label>
+              <Input
                 id="agency-website"
                 type="text"
                 value={agencyWebsite}
                 onChange={(e) => setAgencyWebsite(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:border-[#d4772c]"
                 placeholder={t("register_agency_website_placeholder")}
+                aria-invalid={!!fieldErrors.agencyWebsite}
               />
               {fieldError("agencyWebsite")}
             </div>
           </>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 px-4 bg-[#d4772c] text-white text-sm font-medium rounded-md hover:bg-[#b85c1a] focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? t("register_submit_loading") : t("register_submit")}
-        </button>
+        </Button>
       </form>
 
       <div className="relative my-6">
@@ -393,12 +348,13 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
+        className="w-full"
         onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
-        <svg className="h-5 w-5" viewBox="0 0 24 24">
+        <svg className="size-5" viewBox="0 0 24 24">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
             fill="#4285F4"
@@ -417,18 +373,18 @@ export default function RegisterPage() {
           />
         </svg>
         {t("register_google")}
-      </button>
+      </Button>
 
-      <button
+      <Button
         type="button"
+        className="mt-3 w-full bg-black text-white hover:bg-gray-900"
         onClick={() => signIn("tiktok", { callbackUrl: "/dashboard" })}
-        className="mt-3 w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-[#d4772c] focus:ring-offset-2 transition-colors"
       >
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+        <svg className="size-5" viewBox="0 0 24 24" fill="none">
           <path d="M16.6 5.82s.51.5 0 0A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z" fill="currentColor"/>
         </svg>
         {t("register_tiktok")}
-      </button>
+      </Button>
 
       <p className="mt-6 text-center text-sm text-gray-500">
         {t("register_has_account")}{" "}

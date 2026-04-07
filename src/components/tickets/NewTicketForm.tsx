@@ -6,6 +6,11 @@ import Link from "next/link"
 import { ticketSchema } from "@/lib/validations"
 import { useTranslations } from "next-intl"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+
 function NewTicketFormInner({ basePath }: { basePath: string }) {
   const t = useTranslations("tickets")
   const tCommon = useTranslations("common")
@@ -59,9 +64,6 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
     }
   }
 
-  const inputClass =
-    "mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
-
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6">
       <div>
@@ -86,42 +88,32 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
           </div>
         )}
 
-        <div>
-          <label
-            htmlFor="subject"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {t("subject_label")}
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="subject">{t("subject_label")}</Label>
+          <Input
             id="subject"
             type="text"
             required
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder={t("subject_placeholder")}
-            className={inputClass}
+            aria-invalid={!!fieldErrors.subject}
           />
           {fieldErrors.subject && (
             <p className="mt-1 text-xs text-red-600">{fieldErrors.subject}</p>
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {t("description_label")}
-          </label>
-          <textarea
+        <div className="space-y-1.5">
+          <Label htmlFor="description">{t("description_label")}</Label>
+          <Textarea
             id="description"
             required
             rows={6}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t("description_placeholder")}
-            className={inputClass}
+            aria-invalid={!!fieldErrors.description}
           />
           {fieldErrors.description && (
             <p className="mt-1 text-xs text-red-600">{fieldErrors.description}</p>
@@ -129,19 +121,12 @@ function NewTicketFormInner({ basePath }: { basePath: string }) {
         </div>
 
         <div className="flex items-center justify-end gap-3">
-          <Link
-            href={basePath}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            {t("cancel")}
-          </Link>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-lg bg-[#d4772c] px-4 py-2 text-sm font-medium text-white hover:bg-[#b8632a] disabled:opacity-50"
-          >
+          <Button asChild variant="outline">
+            <Link href={basePath}>{t("cancel")}</Link>
+          </Button>
+          <Button type="submit" disabled={submitting}>
             {submitting ? t("submitting") : t("submit")}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

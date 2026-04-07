@@ -59,6 +59,8 @@
     "footer_brand_name": "Foxolog",
     "footer_login": "Giriş",
     "footer_register": "Kayıt",
+    "footer_terms": "Şartlar",
+    "footer_privacy": "Gizlilik",
     "footer_copyright": "Foxolog. Tüm hakları saklıdır."
   },
   "auth": {

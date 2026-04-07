@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl"
 export default function LoginPage() {
   const router = useRouter()
   const t = useTranslations("auth")
+  const tLanding = useTranslations("landing")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -155,6 +156,16 @@ export default function LoginPage() {
           {t("login_register_link")}
         </Link>
       </p>
+
+      <div className="mt-4 flex items-center justify-center gap-4 text-xs text-gray-500">
+        <Link href="/terms" className="hover:text-[#d4772c] transition-colors">
+          {tLanding("footer_terms")}
+        </Link>
+        <span aria-hidden="true">&middot;</span>
+        <Link href="/privacy" className="hover:text-[#d4772c] transition-colors">
+          {tLanding("footer_privacy")}
+        </Link>
+      </div>
     </div>
   )
 }

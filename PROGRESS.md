@@ -999,4 +999,53 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.1.1)*
+**v3.1.1 → v3.2.0 — shadcn/ui Foundation (PR #4a)**
+
+**Context:** First slice of the shadcn/ui migration. The repo already had `components.json`, the CSS theme tokens in `globals.css`, and the `cn()` helper in `src/lib/utils.ts` — but **zero actual primitives**. Every UI component (`Button`, `ConfirmDialog`, `Toast`, etc.) was hand-rolled. This PR installs the missing pieces, scaffolds two primitives, and migrates one consumer as proof of concept.
+
+**Strategy:** Split the migration into multiple PRs to keep each one reviewable. This PR is the foundation; future PRs will incrementally swap form fields, tables, dropdowns, etc.
+
+**1. New dependencies:**
+- `@radix-ui/react-dialog ^1.1.15` — headless dialog primitive
+- `@radix-ui/react-slot ^1.2.4` — for `<Button asChild>` polymorphism
+- `tw-animate-css ^1.4.0` — Tailwind v4 animation utility (replaces `tailwindcss-animate` for v4 codebases)
+
+(`clsx`, `tailwind-merge`, `class-variance-authority` were already installed.)
+
+**2. CSS:**
+- Added `@import "tw-animate-css";` to `src/app/globals.css` so `data-[state=open]:animate-in` etc. resolve
+
+**3. New primitives:**
+- `src/components/ui/button.tsx` — shadcn new-york button with `cva` variants (`default`, `destructive`, `outline`, `secondary`, `ghost`, `link`) and sizes (`default`, `sm`, `lg`, `icon`). Default variant uses the brand orange `#d4772c`. Supports `asChild` via Radix Slot.
+- `src/components/ui/dialog.tsx` — full shadcn dialog primitive set: `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription`, `DialogClose`, `DialogOverlay`, `DialogPortal`. Includes the standard close (X) button, fade/zoom animations driven by Radix `data-state`, and a backdrop overlay.
+
+**4. Removed:**
+- `src/components/ui/Button.tsx` — old PascalCase hand-rolled button. Was unused (zero imports across the codebase) and would have caused a case-insensitive filename collision with the new lowercase `button.tsx` on macOS/Windows. Safe to delete.
+
+**5. Migrated component (proof of concept):**
+- `src/components/ui/ConfirmDialog.tsx` — rewritten on top of `Dialog` + `Button` from the new primitives. Public API unchanged: same props (`open`, `onConfirm`, `onCancel`, `title`, `description`, `confirmLabel?`, `confirmVariant?`, `icon?`), so the 3 existing call sites (`brand/orders/[id]/OrderActions.tsx`, `agency/brands/[id]/AgencyOrderActions.tsx`, `admin/orders/[id]/AdminOrderActions.tsx`) need zero changes. Now wires `onCancel` into Radix's `onOpenChange` so ESC and clicking the overlay also dismiss correctly — both small wins the old hand-rolled version had to implement manually.
+
+**6. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 still parsing
+
+**7. Version bump:** `3.1.1 → 3.2.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. Classified as **+0.1.0 minor** per versioning rules — adds new dependencies and primitives, even though no user-facing feature changes.
+
+**8. Future PRs (#4b, #4c, ...):**
+- Form primitives: `input`, `label`, `textarea`, `select` → migrate `FormField`, login/register, brand settings, new-order forms
+- Layout primitives: `card`, `tabs` → migrate dashboard cards
+- Feedback primitives: `toast` (replacing the custom `Toast.tsx`), `alert`
+- Navigation: `dropdown-menu`, `popover` → migrate navbar user menu, language switcher
+- Data display: `table`, `pagination` → migrate admin tables, replace custom `Pagination.tsx`
+
+**Files added:** `src/components/ui/button.tsx`, `src/components/ui/dialog.tsx`
+
+**Files removed:** `src/components/ui/Button.tsx`
+
+**Files modified:** `src/app/globals.css`, `src/components/ui/ConfirmDialog.tsx`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.2.0)*

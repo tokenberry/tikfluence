@@ -1091,4 +1091,45 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.3.0)*
+**v3.3.0 → v3.4.0 — shadcn/ui Card + Select Primitives (PR #4c)**
+
+**Context:** Third slice of the shadcn/ui migration. Adds the `Card` layout primitive and the `Select` primitive (Radix-backed combobox) and migrates the dashboard stat cards on every role's home page plus the new-order category dropdown for both brand and agency.
+
+**1. New dependency:**
+- `@radix-ui/react-select ^2.2.6` — backs the `Select` primitive (proper keyboard nav, portal-rendered popper, ARIA combobox semantics)
+
+**2. New primitives (new-york style):**
+- `src/components/ui/card.tsx` — exports `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardAction`, `CardContent`, `CardFooter`. The base `Card` is a `flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm` div, matching the inline pattern used everywhere in the dashboards.
+- `src/components/ui/select.tsx` — full new-york Select set: `Select`, `SelectGroup`, `SelectValue`, `SelectTrigger` (with `sm`/`default` size variants), `SelectContent` (popper position, portal-rendered), `SelectLabel`, `SelectItem` (with `CheckIcon` indicator), `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`. Brand colors wired in: `focus-visible:border-[#d4772c] focus-visible:ring-1 focus-visible:ring-[#d4772c]` on the trigger, `focus:bg-[#fdf6e3] focus:text-[#b85c1a]` on items.
+
+**3. Migrated surfaces — stat cards (all four dashboards):**
+- **`src/app/[locale]/(dashboard)/creator/page.tsx`** — 4 stat cards. Replaced inline `rounded-lg border border-gray-200 bg-white p-5 shadow-sm` with `<Card key={stat.label} className="gap-3">`. The `gap-3` override compresses the default `gap-4` to match the original visual rhythm (icon row + value).
+- **`src/app/[locale]/(dashboard)/brand/page.tsx`** — 5 stat cards. Same migration, with `className="gap-3 p-6"` to preserve the brand dashboard's slightly larger card padding.
+- **`src/app/[locale]/(dashboard)/network/page.tsx`** — 4 stat cards. Same migration. Removed the `mt-3` margin since `Card`'s flex column already supplies vertical rhythm.
+- **`src/app/[locale]/(dashboard)/agency/page.tsx`** — 4 stat cards. Default `Card` (no override) since the agency layout already used the default `p-5` padding and the icon-beside-value layout doesn't need a custom gap.
+
+**4. Migrated surfaces — Select dropdowns:**
+- **`src/app/[locale]/(dashboard)/brand/orders/new/page.tsx`** — category `<select>` replaced with `<Select>` + `<SelectTrigger>` + `<SelectContent>` + `<SelectItem>`. Switched from `onChange={(e) => ...e.target.value}` to Radix's `onValueChange`.
+- **`src/app/[locale]/(dashboard)/agency/orders/new/page.tsx`** — both the brand selector and the category selector migrated to `Select`. Two `<select>` → `<Select>` swaps in one file.
+
+**5. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 still parsing (no smoke-test selectors target stat cards or category dropdowns)
+
+**6. Version bump:** `3.3.0 → 3.4.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds a new dep (`@radix-ui/react-select`) and 2 new primitives (`Card`, `Select`).
+
+**7. Still hand-rolled (future PRs):**
+- Other `<select>` instances: admin/users, admin/tickets, brand/browse, agency/browse — will batch into a follow-up since they're all filter dropdowns rather than form fields
+- Custom `Toast.tsx` — pending PR #4d (`toast` + `alert` feedback primitives)
+- Navbar user menu, language switcher — pending PR #4e (`dropdown-menu` + `popover`)
+- Admin tables, custom `Pagination.tsx` — pending PR #4f (`table` + `pagination`)
+
+**Files added:** `src/components/ui/card.tsx`, `src/components/ui/select.tsx`
+
+**Files modified:** `src/app/[locale]/(dashboard)/creator/page.tsx`, `src/app/[locale]/(dashboard)/brand/page.tsx`, `src/app/[locale]/(dashboard)/network/page.tsx`, `src/app/[locale]/(dashboard)/agency/page.tsx`, `src/app/[locale]/(dashboard)/brand/orders/new/page.tsx`, `src/app/[locale]/(dashboard)/agency/orders/new/page.tsx`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.4.0)*

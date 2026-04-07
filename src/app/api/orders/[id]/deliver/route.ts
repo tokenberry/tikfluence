@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { sendDeliverySubmittedEmail } from "@/lib/email"
 import { createNotification } from "@/lib/notifications"
+import { canDeliverOrder } from "@/lib/orders"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -71,7 +72,7 @@ export async function POST(
       )
     }
 
-    if (!["ASSIGNED", "IN_PROGRESS", "REVISION"].includes(order.status)) {
+    if (!canDeliverOrder(order.status)) {
       return NextResponse.json(
         { error: "Order is not in a deliverable state" },
         { status: 400 }

@@ -1381,11 +1381,52 @@ Both the locale root layout (`src/app/[locale]/layout.tsx:25`) already sets `lan
 **6. Version bump:** `3.7.2 → 3.8.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds user-visible accessibility improvements and a meaningful behavior change for the Arabic locale (sidebar slides from the correct edge).
 
 **7. Deferred to future PRs:**
-- **PR #5b** — unit test coverage (order state machine, payout calcs, role guards)
+- **PR #5b** — unit test coverage (order state machine, payout calcs, role guards) ✅ landed
 - **PR #5c** — playwright authed flows (creator accept → deliver → brand approve)
 
 **Files modified:** `src/components/layout/Sidebar.tsx`, `src/components/layout/NotificationBell.tsx`, `src/app/[locale]/(dashboard)/creator/orders/[id]/DeliveryForm.tsx`, `src/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions.tsx`, `src/app/[locale]/(dashboard)/admin/tickets/[id]/page.tsx`, `src/app/[locale]/(dashboard)/account-manager/clients/[id]/AddNoteForm.tsx`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
 
 ---
 
-*Last updated: April 7, 2026 (v3.8.0)*
+**v3.8.0 → v3.9.0 — Unit test coverage: order state machine, payouts, guards (PR #5b)**
+
+**Context:** Second slice of the a11y / testing / e2e mini-program. Vitest was sitting at 21 tests covering `utils`, `scoring`, and `rate-limit` only — none of the critical business logic was under test. This PR extracts three clusters of pure functions out of the route handlers, wires the route handlers to call them, and adds unit tests. Lifts coverage from 21 → 60 tests (+39) without changing any production behavior.
+
+**1. `src/lib/orders.ts` — payout + order state machine (new file):**
+- `calculateCreatorPayout(budget, feeRate, completedCount)` — extracted from `src/app/api/orders/[id]/approve/route.ts:114-123`. Returns `{ perCreatorBudget, platformFee, creatorPayout }`, splitting the budget evenly across completed creators + the one being approved. Throws on invalid inputs (negative budget, fee outside `[0, 1]`, non-finite `completedCount`).
+- `canDeliverOrder(status)` — returns `true` for `ASSIGNED` / `IN_PROGRESS` / `REVISION`. Replaces the inline `["ASSIGNED", "IN_PROGRESS", "REVISION"].includes(...)` array in `src/app/api/orders/[id]/deliver/route.ts:74`.
+- `canReviewDelivery(status)` — returns `true` only for `DELIVERED`. Replaces the inline `order.status !== "DELIVERED"` check in `src/app/api/orders/[id]/approve/route.ts:70`.
+- `canCancelOrder(status)` — returns `true` for `DRAFT` / `OPEN`. Documents the state machine; not yet wired into a route (the cancel route has additional authorization logic that doesn't belong in a pure function).
+- `DELIVERABLE_STATUSES` — exported `readonly` tuple as the single source of truth for deliverable statuses.
+
+**2. `src/lib/guards.ts` — role-based guards (new file):**
+- `isAdmin/isBrand/isCreator/isNetwork/isAgency/isAccountManager(role)` — simple role predicates that tolerate `null | undefined`.
+- `canReviewDeliveryAsRole(role)` — returns `true` for `ADMIN` / `BRAND`. Replaces the inline `role !== "BRAND" && role !== "ADMIN"` check in the approve route.
+- `canViewOrder({ userId, role, brandUserId, assignedUserIds, agencyUserId?, accountManagerUserIds? })` — documents the full order-view authorization ladder (admin > brand owner > assigned creator/network > managing agency > assigned account manager). Not yet wired into `src/app/api/orders/[id]/route.ts` (the route has a more complex prisma include graph and wiring it would bloat this PR); left as a follow-up and the existing inline logic is unchanged. Tests pin the expected behavior so the future refactor has a safety net.
+
+**3. Routes updated to call the new pure helpers:**
+- `src/app/api/orders/[id]/approve/route.ts` — now calls `canReviewDeliveryAsRole(session.user.role)`, `canReviewDelivery(order.status)`, and `calculateCreatorPayout(order.budget, feeRate, completedCount)`. Behavior is byte-identical to before; only the locations of the decisions moved.
+- `src/app/api/orders/[id]/deliver/route.ts` — now calls `canDeliverOrder(order.status)`.
+
+**4. New vitest suites:**
+- `src/__tests__/orders.test.ts` — 18 tests: payout splits for 1/2/4 creators, zero/full fee rates, zero budget, invariants (`payout + fee === perCreatorBudget`), input validation, plus full coverage of `canDeliverOrder` / `canReviewDelivery` / `canCancelOrder` across every `OrderStatus` enum value.
+- `src/__tests__/guards.test.ts` — 16 tests: each role predicate, `canReviewDeliveryAsRole` for all six roles + null/undefined, and `canViewOrder` for admin / brand owner / non-owner brand / assigned creator / unassigned creator / agency / wrong agency / account manager / wrong account manager / stranger / empty assignments.
+- `src/__tests__/verify-state.test.ts` — 7 tests covering `createVerifyState` / `verifyState`: happy-path round-trip, tampered payload, tampered signature, malformed tokens (empty, no dot, empty halves), wrong secret, expired token (via `vi.useFakeTimers`), in-window token. Closes the test-coverage gap on `src/lib/verify-state.ts` which had zero tests despite guarding the TikTok OAuth flow.
+
+**5. Verification:**
+- `npx tsc --noEmit` → clean
+- `npx eslint <changed files>` → 0 errors, 0 warnings
+- `npx vitest run` → **60/60 passing** (was 21, +39 new tests across 3 new suites)
+- `npx playwright test --list` → 8/8 parsing (unchanged)
+
+**6. Version bump:** `3.8.0 → 3.9.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds two new exported modules (`src/lib/orders.ts`, `src/lib/guards.ts`) that are now part of the public surface of the `@/lib/*` import alias. No user-visible behavior change.
+
+**7. Deferred to PR #5c:**
+- Playwright authed flows (creator accepts → delivers → brand approves, brand creates order, admin suspends user).
+- Wiring `canViewOrder` into `src/app/api/orders/[id]/route.ts` (cleaner as its own refactor PR).
+
+**Files modified:** `src/lib/orders.ts` (new), `src/lib/guards.ts` (new), `src/__tests__/orders.test.ts` (new), `src/__tests__/guards.test.ts` (new), `src/__tests__/verify-state.test.ts` (new), `src/app/api/orders/[id]/approve/route.ts`, `src/app/api/orders/[id]/deliver/route.ts`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.9.0)*

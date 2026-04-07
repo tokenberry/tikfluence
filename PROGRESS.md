@@ -1183,4 +1183,39 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.5.0)*
+**v3.5.0 → v3.6.0 — shadcn/ui Navigation Primitives (PR #4e)**
+
+**Context:** Fifth slice of the shadcn/ui migration. Replaces three hand-rolled dropdowns in the navbar — the user menu, the language switcher, and the notification bell — with proper Radix-backed primitives. Gets us keyboard nav, ESC-to-close, outside-click handling, focus trapping, and ARIA combobox/menu semantics for free, and deletes ~40 lines of `useRef` + `mousedown` event-listener plumbing.
+
+**1. New dependencies:**
+- `@radix-ui/react-dropdown-menu ^2.1.16` — backs the `DropdownMenu` primitive
+- `@radix-ui/react-popover ^1.1.15` — backs the `Popover` primitive
+
+**2. New primitives (new-york style):**
+- `src/components/ui/dropdown-menu.tsx` — full set: `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem` (with `default` / `destructive` variants), `DropdownMenuCheckboxItem`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`, `DropdownMenuShortcut`, `DropdownMenuGroup`, `DropdownMenuSub`/`SubTrigger`/`SubContent`, `DropdownMenuPortal`. Brand colors on items (`focus:bg-[#fdf6e3] focus:text-[#b85c1a]`).
+- `src/components/ui/popover.tsx` — `Popover`, `PopoverTrigger`, `PopoverContent`, `PopoverAnchor`. Portal-rendered with slide/zoom animations on open/close.
+
+**3. Migrated surfaces:**
+- **`src/components/layout/Navbar.tsx`** — user menu. Dropped the local `userMenuOpen` `useState` (Radix manages its own state). `DropdownMenuTrigger` wraps the avatar + name button; `DropdownMenuContent` (aligned `end`, dark theme override to match the navbar's `#141414` background) holds a `DropdownMenuLabel` (email), a `DropdownMenuSeparator`, a settings `DropdownMenuItem` with `asChild` wrapping `<Link>`, and a sign-out `DropdownMenuItem` with `onSelect={() => signOut(...)}`. The `asChild` pattern means the settings link is a real `<a>` (right-click, middle-click, cmd+click all work).
+- **`src/components/layout/LanguageSwitcher.tsx`** — dropped `useState`, `useRef`, and the entire `useEffect` that wired `mousedown` listeners for outside-click. Uses `DropdownMenu` + `DropdownMenuTrigger` + `DropdownMenuContent` + `DropdownMenuItem`. Active locale gets `bg-[#d4772c]/10 text-[#d4772c]` styling; keyboard nav and ESC-to-close now work for free. Net: −18 lines, same visual behavior, better a11y.
+- **`src/components/layout/NotificationBell.tsx`** — migrated to `Popover` (not `DropdownMenu`) because this is a panel with mixed content (header, scroll region, per-item click) rather than a menu of discrete choices. Kept the local `open` state but wired it through Radix's `open`/`onOpenChange` so `handleClick(notification)` can still programmatically close the panel after navigation. Dropped `useRef` + the `mousedown` `useEffect` — Radix handles outside-click. The panel rendering (header + `max-h-80` scroll list + unread bullets + timeAgo) is unchanged inside `PopoverContent`.
+
+**4. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 still parsing
+
+**5. Version bump:** `3.5.0 → 3.6.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds 2 new deps and 2 new primitives.
+
+**6. Still hand-rolled (future PRs):**
+- Admin tables, custom `Pagination.tsx` → PR #4f (`table` + `pagination`)
+- Inline warning banners in new-order forms → small follow-up to migrate to `<Alert variant="warning">`
+
+**Files added:** `src/components/ui/dropdown-menu.tsx`, `src/components/ui/popover.tsx`
+
+**Files modified:** `src/components/layout/Navbar.tsx`, `src/components/layout/LanguageSwitcher.tsx`, `src/components/layout/NotificationBell.tsx`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.6.0)*

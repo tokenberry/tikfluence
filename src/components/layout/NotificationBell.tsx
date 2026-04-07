@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface Notification {
   id: string;
@@ -22,7 +27,6 @@ export default function NotificationBell() {
   // `now` is updated on an interval so that timeAgo() can be a pure function
   // of state instead of calling Date.now() during render (react-hooks/purity).
   const [now, setNow] = useState(() => Date.now());
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("notifications");
 
   const fetchNotifications = useCallback(async () => {
@@ -62,16 +66,6 @@ export default function NotificationBell() {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [fetchNotifications]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Tick `now` every 30s so timeAgo() can stay pure (no Date.now() in render).
   useEffect(() => {
@@ -119,10 +113,9 @@ export default function NotificationBell() {
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="relative rounded-full p-1.5 text-gray-300 hover:text-white transition-colors"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        className="relative rounded-full p-1.5 text-gray-300 hover:text-white transition-colors focus:outline-none"
         aria-label={t("title")}
       >
         <svg
@@ -144,51 +137,51 @@ export default function NotificationBell() {
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-            <h3 className="text-sm font-semibold text-gray-900">{t("title")}</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllRead}
-                className="text-xs text-[#d4772c] hover:text-[#b8632a]"
-              >
-                {t("mark_all_read")}
-              </button>
-            )}
-          </div>
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-gray-500">
-                {t("no_notifications")}
-              </p>
-            ) : (
-              notifications.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => handleClick(n)}
-                  className={`block w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                    !n.read ? "bg-orange-50/50" : ""
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    {!n.read && (
-                      <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-[#d4772c]" />
-                    )}
-                    <div className={!n.read ? "" : "ml-4"}>
-                      <p className="text-sm font-medium text-gray-900">{n.title}</p>
-                      <p className="text-xs text-gray-500 line-clamp-2">{n.message}</p>
-                      <p className="mt-0.5 text-xs text-gray-400">{timeAgo(n.createdAt)}</p>
-                    </div>
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="w-80 p-0 rounded-lg overflow-hidden"
+      >
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+          <h3 className="text-sm font-semibold text-gray-900">{t("title")}</h3>
+          {unreadCount > 0 && (
+            <button
+              onClick={markAllRead}
+              className="text-xs text-[#d4772c] hover:text-[#b8632a]"
+            >
+              {t("mark_all_read")}
+            </button>
+          )}
         </div>
-      )}
-    </div>
+        <div className="max-h-80 overflow-y-auto">
+          {notifications.length === 0 ? (
+            <p className="px-4 py-6 text-center text-sm text-gray-500">
+              {t("no_notifications")}
+            </p>
+          ) : (
+            notifications.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => handleClick(n)}
+                className={`block w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                  !n.read ? "bg-orange-50/50" : ""
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {!n.read && (
+                    <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-[#d4772c]" />
+                  )}
+                  <div className={!n.read ? "" : "ml-4"}>
+                    <p className="text-sm font-medium text-gray-900">{n.title}</p>
+                    <p className="text-xs text-gray-500 line-clamp-2">{n.message}</p>
+                    <p className="mt-0.5 text-xs text-gray-400">{timeAgo(n.createdAt)}</p>
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

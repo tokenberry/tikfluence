@@ -7,6 +7,14 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import NotificationBell from "./NotificationBell"
 import LanguageSwitcher from "./LanguageSwitcher"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const roleDashboardPath: Record<string, string> = {
   CREATOR: "/creator",
@@ -30,7 +38,6 @@ export default function Navbar() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const t = useTranslations("nav")
 
   const role = session?.user?.role ?? ""
@@ -70,38 +77,35 @@ export default function Navbar() {
                 <NotificationBell />
 
                 {/* User menu */}
-                <div className="relative">
-                  <button
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-[#d4772c]"
-                  >
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-[#d4772c] focus:outline-none">
                     <span className="w-8 h-8 rounded-full bg-[#d4772c]/20 text-[#d4772c] flex items-center justify-center text-sm font-semibold">
                       {session.user.name?.charAt(0).toUpperCase() ?? "U"}
                     </span>
                     <span>{session.user.name}</span>
-                  </button>
-
-                  {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#141414] rounded-md shadow-lg border border-white/10 py-1 z-50">
-                      <div className="px-4 py-2 text-xs text-white/40 border-b border-white/10">
-                        {session.user.email}
-                      </div>
-                      <Link
-                        href={settingsHref}
-                        onClick={() => setUserMenuOpen(false)}
-                        className="block w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
-                      >
-                        {t("settings")}
-                      </Link>
-                      <button
-                        onClick={() => signOut({ callbackUrl: "/" })}
-                        className="w-full text-left px-4 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"
-                      >
-                        {t("sign_out")}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-48 bg-[#141414] border-white/10 text-white/80"
+                  >
+                    <DropdownMenuLabel className="text-xs font-normal text-white/40">
+                      {session.user.email}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-white/10" />
+                    <DropdownMenuItem
+                      asChild
+                      className="text-white/70 focus:bg-white/5 focus:text-white"
+                    >
+                      <Link href={settingsHref}>{t("settings")}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => signOut({ callbackUrl: "/" })}
+                      className="text-white/70 focus:bg-white/5 focus:text-white"
+                    >
+                      {t("sign_out")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
 

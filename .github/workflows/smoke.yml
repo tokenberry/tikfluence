@@ -1,0 +1,82 @@
+name: smoke
+
+# Runs the Playwright smoke suite (`e2e/smoke.spec.ts`) against the live
+# production deployment at https://www.foxolog.com.
+#
+# The most important assertion in this suite is the v3.0.1 TikTok review
+# regression guard: the landing page footer must always expose Terms of Service
+# and Privacy Policy links. If those silently disappear again, this workflow
+# fails and you'll see a red ❌ on the commits page within minutes.
+#
+# Triggers:
+#   - push to main: 90s sleep gives Vercel time to finish deploying, then run
+#   - schedule (daily 06:00 UTC): catches non-code regressions (DB outage,
+#     Vercel issue, TikTok-related breakage, etc.)
+#   - workflow_dispatch: manual "Run workflow" button in the Actions tab —
+#     also accepts an optional BASE_URL input to test a preview deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override BASE_URL (e.g. a Vercel preview URL). Leave blank to use https://www.foxolog.com."
+        required: false
+        type: string
+
+jobs:
+  smoke:
+    name: Playwright smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system deps (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # On push to main, wait for Vercel to finish deploying the new commit
+      # before hitting production. 90s is a typical Vercel build window for
+      # this project; bump it if deploys take longer.
+      - name: Wait for Vercel deploy (push to main only)
+        if: github.event_name == 'push'
+        run: sleep 90
+
+      - name: Run Playwright smoke tests
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url || 'https://www.foxolog.com' }}
+        run: npm run test:e2e
+
+      - name: Upload Playwright HTML report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

@@ -211,7 +211,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 3.0.0 | 2026-04-06 | Feat: Production infrastructure — Vercel Blob file storage, Vercel Cron jobs (TikTok metrics refresh + order expiration), Recharts analytics dashboard (4 charts), mobile optimization (20+ pages), API rate limiting (sliding window), Vitest test suite (21 tests) |
 | 3.0.1 | 2026-04-07 | Fix: TikTok app review rejection — added Terms of Service & Privacy Policy links to landing page footer (and login + register pages) so ToS/PP are easily accessible from the homepage. Translated `footer_terms` / `footer_privacy` keys across all 5 locales (en, ar, tr, fr, es). The `/terms` and `/privacy` pages already existed but were not linked from the new landing page. |
 | 3.0.2 | 2026-04-07 | Fix: Lint baseline cleanup — disabled `@next/next/no-html-link-for-pages` (Pages Router rule, misfires under App Router; was producing 228 spurious errors); fixed 4 real React 19 / React Compiler errors: NotificationBell now uses `useRouter().push()` instead of `window.location.href` and a stateful `now` (30s tick) instead of `Date.now()` in render to satisfy `react-hooks/immutability` + `react-hooks/purity`; targeted `react-hooks/set-state-in-effect` disable comments on legitimate one-shot URL-param + sessionStorage effects in `VerificationBanner` and `deck/page.tsx`. Lint now reports 0 errors (down from 232). All 21 vitest tests pass; tsc clean. |
-| 3.1.0 | 2026-04-07 | Feat: Playwright E2E smoke tests — new `e2e/smoke.spec.ts` with 8 tests covering landing page render, **footer ToS + Privacy links (TikTok review compliance regression guard)**, footer link navigation, `/terms` + `/privacy` page render, and `/login` + `/register` legal-link visibility. Configured `playwright.config.ts` with `BASE_URL` env (defaults to `https://www.foxolog.com`, override for local dev / preview deploys). New scripts: `npm run test:e2e` and `npm run test:e2e:install`. Vitest configured to exclude `e2e/**` so the two test runners don't collide. |
+| 3.1.0 | 2026-04-07 | Feat: Playwright E2E smoke tests + GitHub Actions CI — new `e2e/smoke.spec.ts` with 8 tests covering landing page render, **footer ToS + Privacy links (TikTok review compliance regression guard)**, footer link navigation, `/terms` + `/privacy` page render, and `/login` + `/register` legal-link visibility. Configured `playwright.config.ts` with `BASE_URL` env (defaults to `https://www.foxolog.com`). New `.github/workflows/smoke.yml` runs the suite automatically on push to main (with 90s Vercel-deploy delay), daily at 06:00 UTC, and via manual workflow_dispatch. Browser binary cached between runs. HTML report uploaded as artifact on failure. |
 
 ---
 
@@ -944,13 +944,23 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 - `3.0.2 → 3.1.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts` (`APP_VERSION`)
 - Classified as **+0.1.0 minor feature** per versioning rules — adds new test infrastructure (devDep + scripts + test suite + config), not just a fix.
 
-**Files added:** `playwright.config.ts`, `e2e/smoke.spec.ts`
+**9. GitHub Actions CI (`.github/workflows/smoke.yml`):**
+- Runs the Playwright suite automatically against `https://www.foxolog.com` so the maintainer doesn't need a local dev env
+- **Triggers:**
+  - `push` to `main` — with a 90 s `sleep` to give Vercel time to finish deploying the new commit before hitting prod
+  - `schedule` — daily at 06:00 UTC (catches non-code regressions: DB outages, Vercel issues, third-party breakage)
+  - `workflow_dispatch` — manual "Run workflow" button in the Actions tab, with an optional `base_url` input to point at a Vercel preview URL
+- Caches `~/.cache/ms-playwright` between runs (keyed on `package-lock.json`) so chromium isn't re-downloaded every time
+- Uploads the Playwright HTML report as a workflow artifact on failure (14-day retention)
+- `playwright.config.ts` switches to a multi-reporter (`list` + `html`) when `CI=true` so the artifact actually exists
+
+**Files added:** `playwright.config.ts`, `e2e/smoke.spec.ts`, `.github/workflows/smoke.yml`
 
 **Files modified:** `package.json`, `package-lock.json`, `vitest.config.ts`, `.gitignore`, `src/lib/constants.ts`, `PROGRESS.md`
 
 **Future enhancements (not in this PR):**
-- Hook this suite into CI as a post-deploy check (e.g. GitHub Action that runs `BASE_URL=https://www.foxolog.com npm run test:e2e` after Vercel finishes deploying `main`)
 - Add coverage for authenticated flows (login, order creation, delivery review) — needs a seeded test account
+- Wire a Vercel deployment-finished webhook to `repository_dispatch` so the smoke run fires the instant the deploy is live (instead of relying on the 90 s sleep)
 
 ---
 

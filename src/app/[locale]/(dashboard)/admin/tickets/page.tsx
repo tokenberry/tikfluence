@@ -4,6 +4,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { TicketStatusBadge } from "@/components/ui/Badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
 
@@ -37,57 +45,52 @@ export default async function AdminTicketsPage() {
         {tickets.length === 0 ? (
           <div className="p-8 text-center text-gray-500">{t("tickets_empty")}</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 font-medium text-gray-500">Subject</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">User</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Status</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Priority</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Messages</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Assignee</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {tickets.map((ticket) => {
-                  const priority = priorityLabels[ticket.priority] ?? priorityLabels[0];
-                  return (
-                    <tr
-                      key={ticket.id}
-                      className="hover:bg-gray-50"
-                    >
-                      <td className="px-6 py-4 font-medium text-gray-900">
-                        <Link href={`/admin/tickets/${ticket.id}`} className="hover:text-[#d4772c]">
-                          {ticket.subject}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="text-gray-900">{ticket.creator.name}</p>
-                          <p className="text-xs text-gray-500">{ticket.creator.email}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <TicketStatusBadge status={ticket.status} />
-                      </td>
-                      <td className={`px-6 py-4 font-medium ${priority.color}`}>
-                        {priority.label}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">{ticket._count.messages}</td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {ticket.assignee?.name ?? "Unassigned"}
-                      </td>
-                      <td className="px-6 py-4 text-gray-500">
-                        {new Date(ticket.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table className="min-w-[600px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6">Subject</TableHead>
+                <TableHead className="px-6">User</TableHead>
+                <TableHead className="px-6">Status</TableHead>
+                <TableHead className="px-6">Priority</TableHead>
+                <TableHead className="px-6">Messages</TableHead>
+                <TableHead className="px-6">Assignee</TableHead>
+                <TableHead className="px-6">Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tickets.map((ticket) => {
+                const priority = priorityLabels[ticket.priority] ?? priorityLabels[0];
+                return (
+                  <TableRow key={ticket.id}>
+                    <TableCell className="px-6 font-medium text-gray-900">
+                      <Link href={`/admin/tickets/${ticket.id}`} className="hover:text-[#d4772c]">
+                        {ticket.subject}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="px-6">
+                      <div>
+                        <p className="text-gray-900">{ticket.creator.name}</p>
+                        <p className="text-xs text-gray-500">{ticket.creator.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-6">
+                      <TicketStatusBadge status={ticket.status} />
+                    </TableCell>
+                    <TableCell className={`px-6 font-medium ${priority.color}`}>
+                      {priority.label}
+                    </TableCell>
+                    <TableCell className="px-6 text-gray-600">{ticket._count.messages}</TableCell>
+                    <TableCell className="px-6 text-gray-600">
+                      {ticket.assignee?.name ?? "Unassigned"}
+                    </TableCell>
+                    <TableCell className="px-6 text-gray-500">
+                      {new Date(ticket.createdAt).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>

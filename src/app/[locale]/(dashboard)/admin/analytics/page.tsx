@@ -5,6 +5,14 @@ import { getTranslations } from "next-intl/server";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   OrderStatusChart,
   UserRoleChart,
   OrderTrendChart,
@@ -179,36 +187,34 @@ export default async function AdminAnalyticsPage() {
         {recentOrders.length === 0 ? (
           <div className="p-6 text-center text-gray-500">{t("analytics_no_orders")}</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-4 sm:px-6 py-3 font-medium text-gray-500">Title</th>
-                  <th className="px-4 sm:px-6 py-3 font-medium text-gray-500">Brand</th>
-                  <th className="px-4 sm:px-6 py-3 font-medium text-gray-500">Category</th>
-                  <th className="px-4 sm:px-6 py-3 font-medium text-gray-500">Status</th>
-                  <th className="px-4 sm:px-6 py-3 font-medium text-gray-500">Budget</th>
-                  <th className="px-4 sm:px-6 py-3 font-medium text-gray-500">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-4 font-medium text-gray-900">{order.title}</td>
-                    <td className="px-4 sm:px-6 py-4 text-gray-600">{order.brand.companyName}</td>
-                    <td className="px-4 sm:px-6 py-4 text-gray-600">{order.category.name}</td>
-                    <td className="px-4 sm:px-6 py-4">
-                      <StatusBadge status={order.status} />
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 text-gray-600">{formatCurrency(order.budget)}</td>
-                    <td className="px-4 sm:px-6 py-4 text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="min-w-[600px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-4 sm:px-6">Title</TableHead>
+                <TableHead className="px-4 sm:px-6">Brand</TableHead>
+                <TableHead className="px-4 sm:px-6">Category</TableHead>
+                <TableHead className="px-4 sm:px-6">Status</TableHead>
+                <TableHead className="px-4 sm:px-6">Budget</TableHead>
+                <TableHead className="px-4 sm:px-6">Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentOrders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="px-4 sm:px-6 font-medium text-gray-900">{order.title}</TableCell>
+                  <TableCell className="px-4 sm:px-6 text-gray-600">{order.brand.companyName}</TableCell>
+                  <TableCell className="px-4 sm:px-6 text-gray-600">{order.category.name}</TableCell>
+                  <TableCell className="px-4 sm:px-6">
+                    <StatusBadge status={order.status} />
+                  </TableCell>
+                  <TableCell className="px-4 sm:px-6 text-gray-600">{formatCurrency(order.budget)}</TableCell>
+                  <TableCell className="px-4 sm:px-6 text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>

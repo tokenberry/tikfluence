@@ -1468,10 +1468,36 @@ Documents both projects, how to run each, the `E2E_AUTHED=1` gate, the `BASE_URL
 
 **8. Deferred to future work:**
 - Full mutation e2e flows (creator accepts open order → delivers → brand approves → COMPLETED) — blocked on a DB-reset fixture and Stripe/Payoneer test-mode mocking.
-- Wiring `canViewOrder` from `src/lib/guards.ts` into `src/app/api/orders/[id]/route.ts` — deferred out of PR #5b as its own refactor.
+- Wiring `canViewOrder` from `src/lib/guards.ts` into `src/app/api/orders/[id]/route.ts` — deferred out of PR #5b as its own refactor. ✅ landed in PR #6a.
 
 **Files modified:** `e2e/fixtures/auth.ts` (new), `e2e/authed.spec.ts` (new), `e2e/README.md` (new), `playwright.config.ts`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
 
 ---
 
-*Last updated: April 7, 2026 (v3.10.0)*
+**v3.10.0 → v3.10.1 — `canViewOrder` refactor (PR #6a)**
+
+**Context:** PR #5b extracted `canViewOrder` to `src/lib/guards.ts` and added 16 unit tests pinning its behavior, but deferred the actual wiring into `src/app/api/orders/[id]/route.ts` as a follow-up refactor. This PR closes that loop. Behavior is byte-identical to before; only the location of the authorization decision moved from inline branches in the route handler to the pure helper.
+
+**1. What changed — `src/app/api/orders/[id]/route.ts` GET handler:**
+- Removed the inline `isBrandOwner / isAssigned / role !== "ADMIN" / role === "ACCOUNT_MANAGER" / role === "AGENCY"` branching.
+- Added a two-phase guard:
+  - **Fast path** — calls `canViewOrder` with just the identity-based fields (userId, role, brandUserId, assignedUserIds) and returns immediately if admin / brand-owner / assigned creator/network. Happy path still requires zero extra DB calls.
+  - **Slow path** — only if the fast path denies AND the role is `AGENCY` or `ACCOUNT_MANAGER`, does the DB lookup to resolve whether they manage the order's brand, then calls `canViewOrder` again with the resolved `agencyUserId` / `accountManagerUserIds`.
+- The PUT and DELETE handlers in the same file are **unchanged** — they have a narrower "brand-owner OR agency-managing-this-brand" authorization that doesn't fit `canViewOrder`'s shape (and their guards weren't on the PR #5b deferral list).
+
+**2. Why two-phase and not eager load?**
+- The original route only reads the `accountManager` / `agency` tables when the user isn't the brand owner / admin / assigned creator. Eagerly loading those for every request would add 1–2 extra queries to the happy path (brand viewing their own order, creator viewing an assigned order) which are by far the most common cases.
+- The two-phase pattern preserves the original query count exactly: 1 `order.findUnique` for the fast path, +1 `agency`/`accountManager` lookup +1 `agencyBrand`/`accountManagerBrand` lookup only when needed.
+
+**3. Verification:**
+- `npx tsc --noEmit` → clean
+- `npx eslint src/app/api/orders/[id]/route.ts` → 0 errors, 0 warnings
+- `npx vitest run` → **60/60 passing** — the 16 `canViewOrder` tests from PR #5b now exercise the same function that's wired into production, giving the refactor a real safety net.
+
+**4. Version bump:** `3.10.0 → 3.10.1` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.0.1 patch** — no API surface change, no user-visible behavior change, pure internal refactor pointing the route handler at an already-tested pure helper.
+
+**Files modified:** `src/app/api/orders/[id]/route.ts`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.10.1)*

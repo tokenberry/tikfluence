@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { canViewOrder } from "@/lib/guards"
 import { z } from "zod"
 
 export const dynamic = "force-dynamic"
@@ -49,37 +50,57 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    // Authorization: only involved parties can view order details
+    // Authorization: only involved parties can view order details.
+    // The decision itself is a pure function in src/lib/guards.ts; the
+    // agency/account-manager branches still need a DB lookup to resolve
+    // whether this user manages the order's brand, but we only do that
+    // lookup if the fast path (admin / brand-owner / assigned creator)
+    // already denied access.
     const userId = session.user.id
     const role = session.user.role
-    const isBrandOwner = order.brand.userId === userId
-    const isAssigned = order.assignments.some(
-      (a) => a.creator?.user?.id === userId || a.network?.user?.id === userId
-    )
+    const assignedUserIds = order.assignments
+      .flatMap((a) => [a.creator?.user?.id, a.network?.user?.id])
+      .filter((x): x is string => typeof x === "string")
 
-    if (!isBrandOwner && !isAssigned && role !== "ADMIN") {
-      if (role === "ACCOUNT_MANAGER") {
-        // Account managers can only view orders for their assigned brands
-        const am = await prisma.accountManager.findUnique({ where: { userId } })
-        const manages = am
-          ? await prisma.accountManagerBrand.findFirst({
-              where: { accountManagerId: am.id, brandId: order.brand.id },
-            })
-          : null
-        if (!manages) {
-          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-        }
-      } else if (role === "AGENCY") {
+    let agencyUserId: string | null = null
+    let accountManagerUserIds: string[] = []
+
+    const fastPathAllowed = canViewOrder({
+      userId,
+      role,
+      brandUserId: order.brand.userId,
+      assignedUserIds,
+    })
+
+    if (!fastPathAllowed) {
+      if (role === "AGENCY") {
         const agency = await prisma.agency.findUnique({ where: { userId } })
-        const manages = agency
-          ? await prisma.agencyBrand.findFirst({
-              where: { agencyId: agency.id, brandId: order.brand.id },
-            })
-          : null
-        if (!manages) {
-          return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        if (agency) {
+          const manages = await prisma.agencyBrand.findFirst({
+            where: { agencyId: agency.id, brandId: order.brand.id },
+          })
+          if (manages) agencyUserId = userId
         }
-      } else {
+      } else if (role === "ACCOUNT_MANAGER") {
+        const am = await prisma.accountManager.findUnique({ where: { userId } })
+        if (am) {
+          const manages = await prisma.accountManagerBrand.findFirst({
+            where: { accountManagerId: am.id, brandId: order.brand.id },
+          })
+          if (manages) accountManagerUserIds = [userId]
+        }
+      }
+
+      if (
+        !canViewOrder({
+          userId,
+          role,
+          brandUserId: order.brand.userId,
+          assignedUserIds,
+          agencyUserId,
+          accountManagerUserIds,
+        })
+      ) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
       }
     }

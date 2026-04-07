@@ -53,6 +53,7 @@ export default function AddNoteForm({ brandId, agencyId }: AddNoteFormProps) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Write an internal note..."
+        aria-label="Internal note content"
         rows={3}
         className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
       />

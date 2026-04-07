@@ -1342,4 +1342,50 @@ The shadcn/ui migration is now complete. All dashboard surfaces use Radix-backed
 
 ---
 
-*Last updated: April 7, 2026 (v3.7.2)*
+**v3.7.2 → v3.8.0 — Accessibility pass (PR #5a)**
+
+**Context:** First slice of the a11y / testing / e2e mini-program. Now that every dashboard surface is on Radix-backed shadcn primitives (which handle keyboard nav, focus trapping, and ARIA semantics for free), this PR tackles the remaining hand-rolled surfaces that primitives don't cover — icon-only buttons, form inputs without labels, and a handful of `ml-*`/`mr-*`/`left-*`/`right-*` classes in the navigation layout that don't flip in the Arabic (RTL) locale.
+
+**1. Icon-only buttons → added `aria-label`:**
+- `src/components/layout/Sidebar.tsx` — mobile drawer close button (`<X />` icon) → `aria-label="Close menu"`
+- `src/app/[locale]/(dashboard)/creator/orders/[id]/DeliveryForm.tsx` — three unlabeled icon buttons:
+  - TikTok link remove (`×`) → `aria-label={`Remove TikTok link ${i + 1}`}`
+  - Screenshot remove (`×`) → `aria-label={`Remove screenshot ${i + 1}`}`
+  - Add screenshot (`+`) → `aria-label="Add another screenshot"`
+
+**2. Form controls → added labels / associations:**
+- `src/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions.tsx` — rejection-reason textarea → `aria-label="Rejection reason"`
+- `src/app/[locale]/(dashboard)/admin/tickets/[id]/page.tsx` — ticket reply textarea → `aria-label={t("reply_placeholder")}`
+- `src/app/[locale]/(dashboard)/account-manager/clients/[id]/AddNoteForm.tsx` — internal-note textarea → `aria-label="Internal note content"`
+- `src/app/[locale]/(dashboard)/creator/orders/[id]/DeliveryForm.tsx` — delivery-notes textarea → added matching `htmlFor`/`id="delivery-notes"` association on the existing `<label>`
+
+**3. RTL logical properties (Arabic locale):**
+- `src/components/layout/Sidebar.tsx` — mobile drawer: `left-0` → `start-0`, `border-r` → `border-e`, close slide `-translate-x-full` → `ltr:-translate-x-full rtl:translate-x-full` so the drawer slides in from the right in Arabic
+- `src/components/layout/NotificationBell.tsx` — unread-count badge `-right-0.5` → `-end-0.5`, and indented read-notification item `ml-4` → `ms-4`
+
+Both the locale root layout (`src/app/[locale]/layout.tsx:25`) already sets `lang={locale} dir={dir}` with `dir="rtl"` for Arabic, and the shadcn primitives (including `Dialog`, `DropdownMenu`, `Popover`, `Sonner`) honor `dir` automatically — the remaining RTL issues were all hand-rolled layout classes in navigation.
+
+**4. Things that already pass a11y (no change needed):**
+- `DialogContent` sites: all use `<DialogDescription>` via `ConfirmDialog` or direct usage
+- `<img>` tags: zero raw `<img>` in the codebase (lint warnings are all `next/image` performance hints, not a11y)
+- Login/register/order-new forms: all inputs have associated `<Label htmlFor>` via shadcn primitives
+- Keyboard traps: all modals/overlays use the `Dialog` primitive (Radix focus trap for free)
+
+**5. Verification:**
+- `npx tsc --noEmit` → clean
+- `npm run lint` → 0 errors
+- `npm test` → 21/21 passing
+- `npx playwright test --list` → 8/8 parsing
+- Manual scan: zero `<button>` with icon-only children remaining under `src/components/layout/` and `src/app/[locale]/(dashboard)/`
+
+**6. Version bump:** `3.7.2 → 3.8.0` in `package.json`, `package-lock.json`, `src/lib/constants.ts`. **+0.1.0 minor** — adds user-visible accessibility improvements and a meaningful behavior change for the Arabic locale (sidebar slides from the correct edge).
+
+**7. Deferred to future PRs:**
+- **PR #5b** — unit test coverage (order state machine, payout calcs, role guards)
+- **PR #5c** — playwright authed flows (creator accept → deliver → brand approve)
+
+**Files modified:** `src/components/layout/Sidebar.tsx`, `src/components/layout/NotificationBell.tsx`, `src/app/[locale]/(dashboard)/creator/orders/[id]/DeliveryForm.tsx`, `src/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions.tsx`, `src/app/[locale]/(dashboard)/admin/tickets/[id]/page.tsx`, `src/app/[locale]/(dashboard)/account-manager/clients/[id]/AddNoteForm.tsx`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `PROGRESS.md`
+
+---
+
+*Last updated: April 7, 2026 (v3.8.0)*

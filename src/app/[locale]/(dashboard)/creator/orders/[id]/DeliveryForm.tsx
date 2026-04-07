@@ -268,6 +268,7 @@ export default function DeliveryForm({
                 <button
                   type="button"
                   onClick={() => removeLinkField(i)}
+                  aria-label={`Remove TikTok link ${i + 1}`}
                   className="rounded-lg border border-gray-300 px-2.5 text-gray-400 hover:border-red-300 hover:text-red-500"
                 >
                   &times;
@@ -314,6 +315,7 @@ export default function DeliveryForm({
                   <button
                     type="button"
                     onClick={() => removeScreenshot(i)}
+                    aria-label={`Remove screenshot ${i + 1}`}
                     className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     &times;
@@ -324,6 +326,7 @@ export default function DeliveryForm({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
+                  aria-label="Add another screenshot"
                   className="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-2xl text-gray-400 hover:border-orange-400 hover:text-orange-500"
                 >
                   +
@@ -422,8 +425,9 @@ export default function DeliveryForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Notes</label>
+        <label htmlFor="delivery-notes" className="block text-sm font-medium text-gray-700">Notes</label>
         <textarea
+          id="delivery-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}

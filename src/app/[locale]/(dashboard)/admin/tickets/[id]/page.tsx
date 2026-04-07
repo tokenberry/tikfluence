@@ -226,6 +226,7 @@ export default function AdminTicketDetailPage() {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={t("reply_placeholder")}
+              aria-label={t("reply_placeholder")}
               rows={3}
               maxLength={5000}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#d4772c] focus:ring-1 focus:ring-[#d4772c]"

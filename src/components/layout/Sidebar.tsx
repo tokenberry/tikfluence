@@ -162,14 +162,15 @@ export function MobileSidebar({
       )}
       {/* Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0a0a0a] border-r border-white/5 flex flex-col transform transition-transform duration-200 ease-in-out lg:hidden ${
-          open ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 start-0 z-50 w-64 bg-[#0a0a0a] border-e border-white/5 flex flex-col transform transition-transform duration-200 ease-in-out lg:hidden ${
+          open ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-2">
           <span className="text-sm font-bold text-white">{t("menu")}</span>
           <button
             onClick={onClose}
+            aria-label="Close menu"
             className="rounded p-1 text-white/40 hover:text-white/70"
           >
             <X className="h-5 w-5" />

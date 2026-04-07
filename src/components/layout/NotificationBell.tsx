@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 interface Notification {
@@ -14,9 +15,13 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  // `now` is updated on an interval so that timeAgo() can be a pure function
+  // of state instead of calling Date.now() during render (react-hooks/purity).
+  const [now, setNow] = useState(() => Date.now());
   const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("notifications");
 
@@ -33,7 +38,12 @@ export default function NotificationBell() {
     }
   }, []);
 
+  // Poll the notifications endpoint on mount and on a 30s interval. The
+  // setState calls happen inside fetchNotifications (which is an async callback),
+  // so the rule's "cascading renders" warning is a false positive here — this
+  // is exactly the "subscribe to external system" effect pattern.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
     let interval = setInterval(fetchNotifications, 30000);
 
@@ -63,6 +73,12 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Tick `now` every 30s so timeAgo() can stay pure (no Date.now() in render).
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(tick);
+  }, []);
+
   async function markAllRead() {
     try {
       await fetch("/api/notifications", { method: "PUT" });
@@ -86,13 +102,13 @@ export default function NotificationBell() {
       }
     }
     if (notification.link) {
-      window.location.href = notification.link;
+      router.push(notification.link);
     }
     setOpen(false);
   }
 
   function timeAgo(dateStr: string) {
-    const diff = Date.now() - new Date(dateStr).getTime();
+    const diff = now - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return t("just_now");
     if (mins < 60) return t("minutes_ago", { count: mins });

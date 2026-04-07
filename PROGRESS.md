@@ -210,6 +210,7 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 | 2.0.0 | 2026-04-05 | Feat: Full multi-language i18n with next-intl v4 — 5 languages (EN, AR, TR, FR, ES), 660 keys each, RTL support for Arabic, language switcher, 55+ pages wired |
 | 3.0.0 | 2026-04-06 | Feat: Production infrastructure — Vercel Blob file storage, Vercel Cron jobs (TikTok metrics refresh + order expiration), Recharts analytics dashboard (4 charts), mobile optimization (20+ pages), API rate limiting (sliding window), Vitest test suite (21 tests) |
 | 3.0.1 | 2026-04-07 | Fix: TikTok app review rejection — added Terms of Service & Privacy Policy links to landing page footer (and login + register pages) so ToS/PP are easily accessible from the homepage. Translated `footer_terms` / `footer_privacy` keys across all 5 locales (en, ar, tr, fr, es). The `/terms` and `/privacy` pages already existed but were not linked from the new landing page. |
+| 3.0.2 | 2026-04-07 | Fix: Lint baseline cleanup — disabled `@next/next/no-html-link-for-pages` (Pages Router rule, misfires under App Router; was producing 228 spurious errors); fixed 4 real React 19 / React Compiler errors: NotificationBell now uses `useRouter().push()` instead of `window.location.href` and a stateful `now` (30s tick) instead of `Date.now()` in render to satisfy `react-hooks/immutability` + `react-hooks/purity`; targeted `react-hooks/set-state-in-effect` disable comments on legitimate one-shot URL-param + sessionStorage effects in `VerificationBanner` and `deck/page.tsx`. Lint now reports 0 errors (down from 232). All 21 vitest tests pass; tsc clean. |
 
 ---
 
@@ -863,4 +864,39 @@ Comprehensive UX improvements wiring up existing but unused UI components, elimi
 
 ---
 
-*Last updated: April 7, 2026 (v3.0.1)*
+**v3.0.1 → v3.0.2 — Lint Baseline Cleanup (0 errors)**
+
+**Context:** Establishing a green baseline before tackling future refactors. `npm test` already passed (21/21), `tsc --noEmit` was clean, but `npm run lint` reported **232 errors + 17 warnings**. Investigation showed:
+- 228 errors were spurious `@next/next/no-html-link-for-pages` — that rule is for the legacy Pages Router and misfires on every `<Link>` / `<a>` under `src/app/[locale]/`.
+- 4 errors were real React 19 / React Compiler purity issues.
+- 17 warnings were minor (mostly unused vars + a few `<img>` tags); left for a future cosmetic cleanup.
+
+**1. Disable spurious Pages-Router rule:**
+- Added an override in `eslint.config.mjs` turning off `@next/next/no-html-link-for-pages`. App Router doesn't need it.
+
+**2. NotificationBell — proper React 19 fixes (`src/components/layout/NotificationBell.tsx`):**
+- `react-hooks/immutability`: replaced `window.location.href = notification.link` in the click handler with `useRouter().push(notification.link)`.
+- `react-hooks/purity`: removed the `Date.now()` call from `timeAgo()` (which was called during render). Added a `now` state initialised to `Date.now()` and a small `useEffect` that ticks `setNow(Date.now())` every 30 s. `timeAgo()` now uses `now - new Date(dateStr).getTime()` and is a pure function of state.
+- Added a single targeted `// eslint-disable-next-line react-hooks/set-state-in-effect` on the polling `fetchNotifications()` call inside the existing notification-fetch effect, with a comment explaining why it's a false positive (this is the canonical "subscribe to external system" effect pattern).
+
+**3. Targeted disables on legitimate one-shot effects:**
+- `src/app/[locale]/(dashboard)/creator/profile/VerificationBanner.tsx:54-78` — the OAuth-callback effect reads `searchParams` and syncs them into local state (success / error). It runs once on mount + when params change and doesn't cascade. Added eslint-disable comments + an explanatory block comment.
+- `src/app/[locale]/deck/page.tsx:734-741` — the sessionStorage-read effect that flips `unlocked` post-mount. A lazy `useState` initializer can't be used because sessionStorage isn't available during SSR. Added eslint-disable + explanatory comment.
+
+**4. Verification:**
+- `npm run lint` → **0 errors** (down from 232), 19 warnings remaining (cosmetic only)
+- `npm test` → 21/21 passing
+- `npx tsc --noEmit` → clean
+
+**5. Version bump:**
+- `3.0.1 → 3.0.2` in `package.json`, `package-lock.json`, `src/lib/constants.ts` (`APP_VERSION`)
+- Classified as a minor fix (+0.0.1) per versioning rules — no logic / schema / architecture change.
+
+**Files modified:** `eslint.config.mjs`, `src/components/layout/NotificationBell.tsx`, `src/app/[locale]/(dashboard)/creator/profile/VerificationBanner.tsx`, `src/app/[locale]/deck/page.tsx`, `src/lib/constants.ts`, `package.json`, `package-lock.json`, `PROGRESS.md`
+
+**Out of scope (deferred to a future cleanup PR):**
+- 19 remaining lint warnings: unused vars (`fetchWithAuth` in `src/lib/tiktok.ts`, `request` params in 3 API routes, `perCreatorBudget` in approve route, `setShowBioCode` in VerificationBanner) and a few `<img>` tags that should become `next/image`. None are bugs.
+
+---
+
+*Last updated: April 7, 2026 (v3.0.2)*

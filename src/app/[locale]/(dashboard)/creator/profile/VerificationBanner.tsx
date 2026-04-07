@@ -50,12 +50,15 @@ export default function VerificationBanner({
   const [error, setError] = useState("")
   const [showBioCode, setShowBioCode] = useState(!!hasActiveCode)
 
-  // Handle redirect params from OAuth callback
+  // Handle redirect params from OAuth callback. This is a one-shot effect that
+  // syncs URL state into local component state on mount / when params change;
+  // it doesn't cascade because the deps don't change as a result of setState.
   useEffect(() => {
     const verify = searchParams.get("verify")
     const reason = searchParams.get("reason")
 
     if (verify === "success") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState("verified")
     } else if (verify === "error" && reason) {
       let msg = ERROR_MESSAGES[reason] || "Verification failed. Please try again."
@@ -68,7 +71,9 @@ export default function VerificationBanner({
         }
       }
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(msg)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState("idle")
     }
   }, [searchParams])

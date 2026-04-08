@@ -1522,4 +1522,71 @@ Documents both projects, how to run each, the `E2E_AUTHED=1` gate, the `BASE_URL
 
 ---
 
-*Last updated: April 7, 2026 (v3.10.1)*
+### April 8, 2026
+
+**v3.14.0 → v3.14.1 — PROGRESS.md accuracy sweep + stray warning banner (PR #89)**
+
+**Context:** Doc drift check. The "Not Yet Done" section still had an unchecked `[ ] shadcn/ui components` box even though the v3.2.0–v3.7.2 migration series had landed it, and an "API Routes Planned but Not Built" section listing routes that were already shipped under different names. Separately, a grep for `border-amber-200 bg-amber-50` turned up one stray hand-rolled warning panel that PR #4h had missed: the unverified-state card on `/creator/profile`.
+
+**1. `VerificationBanner.tsx` Alert migration:**
+- `src/app/[locale]/(dashboard)/creator/profile/VerificationBanner.tsx` — replaced the manual `flex` + `AlertCircle` + heading + paragraph scaffold with `<Alert variant="warning"><AlertCircle /><AlertTitle /><AlertDescription>…</AlertDescription></Alert>`.
+- Internal state machine (idle / redirecting / code-shown / failed / checking / verified), button styling, and copy all unchanged — only the wrapper.
+
+**2. PROGRESS.md sync:**
+- Flipped the stale `[ ] shadcn/ui components` checkbox to `[x]`, with a forward reference to the Future Refactors section for the domain-specific wrappers.
+- Removed the obsolete "API Routes Planned but Not Built" section — both originally planned routes are shipped (`verify-tiktok` for OAuth, `verify` for bio-code, `refresh-metrics` for the daily cron) — and replaced it with a "Future Refactors" section holding the `CreatorCard`/`OrderCard` extraction item.
+- Dropped the "No shadcn/ui" bullet from Architecture Differences; reworded the "No separate CreatorCard/OrderCard files" bullet to acknowledge the `Card` primitive is in place.
+
+**3. Verification:** `npx tsc --noEmit` clean, `npm run lint` 0 errors (18 pre-existing warnings), `npx vitest run` 70/70 passing.
+
+**4. Version bump:** `3.14.0 → 3.14.1` (+0.0.1 patch — docs + 1 cosmetic wrapper swap). Back-synced `package-lock.json` which had been stale at 3.13.0 through the v3.14.0 PR.
+
+---
+
+**v3.14.1 → v3.15.0 — `CreatorCard` + `OrderCard` extraction (PR #90)**
+
+**Context:** Completes the `[ ]` item from the Future Refactors section added in v3.14.1. Goal: remove duplicated inline card JSX across the list pages without creating a god-component that tries to cover every use case.
+
+**1. `src/components/CreatorCard.tsx` (new):**
+- Opinionated *browse-variant* creator card. Props: `{ creator, href, showVerifiedBadge?, labels }`.
+- Renders `<a href>` wrapper → avatar initial + name/username + tier badge → 3-col stats grid (followers / avg views / score) → content-type badges (Video / LIVE) → category + price footer.
+- `labels` is a 5-string object so each consumer page keeps its own i18n path: `/brand/browse` passes hardcoded English strings (its current state), `/agency/browse` passes `t()`-backed strings from the `browse` namespace via `useMemo`.
+- `showVerifiedBadge` is brand-only; agencies don't surface the verified pill in their browse experience.
+
+**2. `src/components/OrderCard.tsx` (new):**
+- Slot-based compound layout component. Exports `OrderCard` + `OrderCardSubtitle` + `OrderCardMetrics` + `OrderCardFooter`.
+- `<OrderCard href? title badge? className?>` renders the `<a>` (or `<div>` when no href) wrapper + shared header flex row (title + status badge). All metadata rows are passed as `children` via the subcomponents.
+- Chose children-slots over a structured `metrics: []` prop because the 3 order-list pages have materially different inner layouts:
+  - `brand/orders` has 4 metrics + creation date footer
+  - `network/orders` has 2 subtitles (brand + conditional creator in orange) + metrics
+  - `creator/orders` has a slim brand subtitle + metrics
+- A structured prop would force a lowest-common-denominator shape and still need escape hatches. Compound components are the right tool here.
+
+**3. Page migrations (5):**
+- `brand/browse/page.tsx` → `<CreatorCard showVerifiedBadge labels={cardLabels} />` — ~60 lines of inline card JSX replaced with one component call.
+- `agency/browse/page.tsx` → `<CreatorCard labels={cardLabels} />` — same story, with `useMemo`-memoized `t()`-backed labels.
+- `brand/orders/page.tsx` → `<OrderCard>` + `OrderCardSubtitle` (category) + `OrderCardMetrics className="gap-6"` (target / budget / cpm / counts) + `OrderCardFooter` (created date).
+- `network/orders/page.tsx` → `<OrderCard>` + 2× `OrderCardSubtitle` (brand name + conditional creator name in orange) + `OrderCardMetrics`.
+- `creator/orders/page.tsx` (*accepted* section only) → `<OrderCard>` + `OrderCardSubtitle` (brand) + `OrderCardMetrics`.
+
+**4. Scope — intentionally skipped:**
+- The *available* orders section on `/creator/orders` kept its inline layout. The locked-state dim + "Requires LIVE support" pill + `AcceptOrderButton` footer diverges enough that folding it into `OrderCard` would require a second variant prop that exists only for this one call site. Not worth it.
+- `agency/orders`, `admin/orders`, `account-manager/orders` use table layouts — outside the card-extraction scope.
+- `network/creators`, `agency/creators` are managed-creator lists with a different shape (add/remove actions) — also outside the browse-variant scope.
+
+**5. PROGRESS.md sync:**
+- Flipped the `[ ] CreatorCard / OrderCard extraction` checkbox in Future Refactors to `[x]` with a scope note.
+- Dropped the obsolete "No separate CreatorCard/OrderCard files" bullet from Architecture Differences and updated the shadcn/ui bullet to reference v3.15.0.
+- Added the v3.15.0 version-history row.
+
+**6. Verification:** `npx tsc --noEmit` clean, `npm run lint` 0 errors (18 pre-existing warnings — baseline preserved), `npx vitest run` 70/70 passing, `npx next build` compiles cleanly.
+
+**7. Version bump:** `3.14.1 → 3.15.0` (+0.1 minor — structural change: 2 new shared components + 5 migrated list pages).
+
+**8. Dead branch cleanup:** `claude/tiktok-influencer-marketplace-OlJ2B` was stale at the same SHA as main and was the GitHub default branch (blocking deletion). User changed the default to `main` in GitHub Settings and deleted the dead branch. Repo default is now `main`.
+
+**Files modified (v3.14.1 + v3.15.0):** `PROGRESS.md`, `package.json`, `package-lock.json`, `src/lib/constants.ts`, `src/app/[locale]/(dashboard)/creator/profile/VerificationBanner.tsx`, `src/app/[locale]/(dashboard)/brand/browse/page.tsx`, `src/app/[locale]/(dashboard)/agency/browse/page.tsx`, `src/app/[locale]/(dashboard)/brand/orders/page.tsx`, `src/app/[locale]/(dashboard)/network/orders/page.tsx`, `src/app/[locale]/(dashboard)/creator/orders/page.tsx`, `src/components/CreatorCard.tsx` (new), `src/components/OrderCard.tsx` (new), `tasks/todo.md`.
+
+---
+
+*Last updated: April 8, 2026 (v3.15.0)*

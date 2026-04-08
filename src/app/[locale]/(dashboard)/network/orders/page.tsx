@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
+import OrderCard, {
+  OrderCardMetrics,
+  OrderCardSubtitle,
+} from "@/components/OrderCard";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic"
@@ -53,28 +57,27 @@ export default async function NetworkOrdersPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {assignments.map((assignment) => (
-            <a
+            <OrderCard
               key={assignment.id}
               href={`/network/orders/${assignment.order.id}`}
-              className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              title={assignment.order.title}
+              badge={<StatusBadge status={assignment.status} />}
             >
-              <div className="flex items-start justify-between">
-                <h3 className="font-semibold text-gray-900">{assignment.order.title}</h3>
-                <StatusBadge status={assignment.status} />
-              </div>
-              <p className="mt-1 text-sm text-gray-500">{assignment.order.brand.companyName}</p>
+              <OrderCardSubtitle>
+                {assignment.order.brand.companyName}
+              </OrderCardSubtitle>
               {assignment.creator && (
-                <p className="mt-1 text-sm text-[#d4772c]">
+                <OrderCardSubtitle className="text-[#d4772c]">
                   Creator: {assignment.creator.user.name}
-                </p>
+                </OrderCardSubtitle>
               )}
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600">
+              <OrderCardMetrics>
                 <span>{assignment.order.category.name}</span>
                 <span>{formatNumber(assignment.order.impressionTarget)} impressions</span>
                 <span>{formatCurrency(assignment.order.budget)}</span>
                 <span>CPM: {formatCurrency(assignment.order.cpmRate)}</span>
-              </div>
-            </a>
+              </OrderCardMetrics>
+            </OrderCard>
           ))}
         </div>
       )}

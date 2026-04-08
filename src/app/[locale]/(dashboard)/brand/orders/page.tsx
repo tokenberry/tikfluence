@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/Badge";
+import OrderCard, {
+  OrderCardFooter,
+  OrderCardMetrics,
+  OrderCardSubtitle,
+} from "@/components/OrderCard";
 import EmptyState from "@/components/ui/EmptyState";
 import { FileText } from "lucide-react";
 import OrderStatusFilter from "./OrderStatusFilter";
@@ -71,29 +76,24 @@ export default async function BrandOrdersPage({
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <a
+            <OrderCard
               key={order.id}
               href={`/brand/orders/${order.id}`}
-              className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              title={order.title}
+              badge={<StatusBadge status={order.status} />}
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{order.title}</h3>
-                  <p className="mt-1 text-sm text-gray-500">{order.category.name}</p>
-                </div>
-                <StatusBadge status={order.status} />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-6 text-sm text-gray-600">
+              <OrderCardSubtitle>{order.category.name}</OrderCardSubtitle>
+              <OrderCardMetrics className="gap-6">
                 <span>Target: {formatNumber(order.impressionTarget)} impressions</span>
                 <span>Budget: {formatCurrency(order.budget)}</span>
                 <span>CPM: {formatCurrency(order.cpmRate)}</span>
                 <span>{order._count.assignments} creator(s)</span>
                 <span>{order._count.deliveries} delivery(ies)</span>
-              </div>
-              <p className="mt-2 text-xs text-gray-400">
+              </OrderCardMetrics>
+              <OrderCardFooter>
                 Created: {new Date(order.createdAt).toLocaleDateString()}
-              </p>
-            </a>
+              </OrderCardFooter>
+            </OrderCard>
           ))}
         </div>
       )}

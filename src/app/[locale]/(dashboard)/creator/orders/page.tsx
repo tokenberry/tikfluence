@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
+import OrderCard, {
+  OrderCardMetrics,
+  OrderCardSubtitle,
+} from "@/components/OrderCard";
 import AcceptOrderButton from "./AcceptOrderButton";
 import { getTranslations } from "next-intl/server";
 
@@ -65,23 +69,20 @@ export default async function CreatorOrdersPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {myAssignments.map(({ order, status }) => (
-              <a
+              <OrderCard
                 key={order.id}
                 href={`/creator/orders/${order.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+                title={order.title}
+                badge={<StatusBadge status={status} />}
               >
-                <div className="flex items-start justify-between">
-                  <h3 className="font-semibold text-gray-900">{order.title}</h3>
-                  <StatusBadge status={status} />
-                </div>
-                <p className="mt-1 text-sm text-gray-500">{order.brand.companyName}</p>
-                <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600">
+                <OrderCardSubtitle>{order.brand.companyName}</OrderCardSubtitle>
+                <OrderCardMetrics>
                   <span>{order.category.name}</span>
                   <span>{formatNumber(order.impressionTarget)} impressions</span>
                   <span>{formatCurrency(order.budget)}</span>
                   <span>CPM: {formatCurrency(order.cpmRate)}</span>
-                </div>
-              </a>
+                </OrderCardMetrics>
+              </OrderCard>
             ))}
           </div>
         )}

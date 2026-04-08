@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { formatNumber, formatCurrency } from "@/lib/utils";
-import { TierBadge } from "@/components/ui/Badge";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import CreatorCard from "@/components/CreatorCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
 import { DataPagination } from "@/components/ui/pagination";
@@ -25,6 +24,16 @@ interface CreatorResult {
 
 export default function AgencyBrowseCreatorsPage() {
   const t = useTranslations("browse");
+  const cardLabels = useMemo(
+    () => ({
+      followers: t("followers"),
+      avgViews: t("avg_views"),
+      score: t("score"),
+      badgeVideo: t("badge_video"),
+      badgeLive: t("badge_live"),
+    }),
+    [t]
+  );
   const [creators, setCreators] = useState<CreatorResult[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [search, setSearch] = useState("");
@@ -128,67 +137,14 @@ export default function AgencyBrowseCreatorsPage() {
         <EmptyState title={t("empty_title")} description={t("empty_desc")} icon={<Users className="h-6 w-6" />} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {creators.map((creator) => {
-            return (
-              <a
-                key={creator.id}
-                href={`/agency/browse/${creator.id}`}
-                className="block rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-lg font-bold text-[#d4772c]">
-                    {creator.user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{creator.user.name}</h3>
-                    <p className="text-sm text-gray-500">@{creator.tiktokUsername}</p>
-                  </div>
-                  <TierBadge tier={creator.tier} />
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <p className="text-lg font-bold text-gray-900">{formatNumber(creator.followerCount)}</p>
-                    <p className="text-xs text-gray-500">{t("followers")}</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-gray-900">{formatNumber(creator.avgViews)}</p>
-                    <p className="text-xs text-gray-500">{t("avg_views")}</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-[#d4772c]">{creator.score.toFixed(1)}</p>
-                    <p className="text-xs text-gray-500">{t("score")}</p>
-                  </div>
-                </div>
-
-                {/* Content Type Badges */}
-                <div className="mt-3 flex gap-1">
-                  {creator.supportsShortVideo && (
-                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">{t("badge_video")}</span>
-                  )}
-                  {creator.supportsLive && (
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">{t("badge_live")}</span>
-                  )}
-                </div>
-
-                <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-3">
-                  <div className="flex flex-wrap gap-1">
-                    {creator.categories.slice(0, 2).map(({ category }, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-                      >
-                        {category.name}
-                      </span>
-                    ))}
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {formatCurrency(creator.pricePerThousand)}/1K
-                  </span>
-                </div>
-              </a>
-            );
-          })}
+          {creators.map((creator) => (
+            <CreatorCard
+              key={creator.id}
+              creator={creator}
+              href={`/agency/browse/${creator.id}`}
+              labels={cardLabels}
+            />
+          ))}
         </div>
       )}
 

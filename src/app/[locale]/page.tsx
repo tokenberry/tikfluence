@@ -16,7 +16,7 @@ import {
   Menu,
   X,
 } from "lucide-react"
-import { FadeIn, StaggerChildren, GlowCard, CountUp, staggerItem, useMouseParallax } from "@/components/landing/animations"
+import { FadeIn, StaggerChildren, GlowCard, CountUp, staggerItem, useMouseParallax, AuroraOrbs, LetterReveal, SpotlightCursor, MagneticButton } from "@/components/landing/animations"
 import { useTransform } from "framer-motion"
 import { APP_VERSION } from "@/lib/constants"
 import { useState } from "react"
@@ -42,6 +42,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white landing-grid">
+      <SpotlightCursor />
       {/* ── Header ─────────────────────────────────────────────── */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -108,6 +109,9 @@ export default function HomePage() {
 
       {/* ── Hero ───────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-20 lg:pt-44 lg:pb-32 overflow-hidden">
+        {/* Aurora orbs */}
+        <AuroraOrbs />
+
         {/* Ambient glow */}
         <motion.div
           className="hero-glow pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px]"
@@ -120,39 +124,46 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
             style={{ x: titleX, y: titleY }}
           >
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl leading-[1.1]">
-              {t("hero_title_line_1")}
+              <LetterReveal text={t("hero_title_line_1")} delay={0.2} stagger={0.04} />
               <br />
-              <span className="gradient-text">{t("hero_title_line_2")}</span>
+              <LetterReveal text={t("hero_title_line_2")} className="gradient-text" delay={0.6} stagger={0.04} />
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-white/50 leading-relaxed">
+            <motion.p
+              className="mx-auto mt-6 max-w-2xl text-lg text-white/50 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+            >
               {t("hero_subtitle")}
-            </p>
+            </motion.p>
           </motion.div>
 
           <motion.div
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 1.5 }}
             style={{ x: buttonsX, y: buttonsY }}
           >
-            <Link
-              href="/register?role=brand"
-              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white transition-all hover:brightness-110 shadow-lg"
-              style={{
-                background: BRAND_ORANGE,
-                boxShadow: `0 0 30px rgba(212,119,44,0.3)`,
-              }}
-            >
-              <Megaphone size={16} />
-              {t("cta_brand")}
-            </Link>
+            <MagneticButton>
+              <Link
+                href="/register?role=brand"
+                className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white transition-all hover:brightness-110 shadow-lg pulse-glow-btn"
+                style={{
+                  background: BRAND_ORANGE,
+                  boxShadow: `0 0 30px rgba(212,119,44,0.3)`,
+                }}
+              >
+                <Megaphone size={16} />
+                {t("cta_brand")}
+              </Link>
+            </MagneticButton>
             <Link
               href="/register?role=creator"
               className="animated-border inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white/80 transition-all hover:text-white hover:bg-white/5"
@@ -165,9 +176,9 @@ export default function HomePage() {
           {/* Stats */}
           <motion.div
             className="mt-16 flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.8 }}
             style={{ x: statsX, y: statsY }}
           >
             {[

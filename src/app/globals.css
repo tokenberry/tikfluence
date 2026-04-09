@@ -172,6 +172,64 @@
   animation: glow-breathe 4s ease-in-out infinite;
 }
 
+/* ── Aurora Orbs ─────────────────────────────────────────────────── */
+@keyframes aurora-drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(80px, -60px) scale(1.1); }
+  50%  { transform: translate(-40px, -100px) scale(0.95); }
+  75%  { transform: translate(-80px, -30px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes aurora-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(-100px, 50px) scale(1.15); }
+  50%  { transform: translate(60px, 80px) scale(0.9); }
+  75%  { transform: translate(90px, -40px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes aurora-drift-3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(70px, 60px) scale(1.2); }
+  66%  { transform: translate(-60px, -50px) scale(0.85); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.aurora-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.aurora-orb-1 {
+  width: 500px;
+  height: 500px;
+  top: -10%;
+  left: 30%;
+  background: radial-gradient(circle, rgba(212, 119, 44, 0.20), transparent 70%);
+  animation: aurora-drift-1 12s ease-in-out infinite;
+}
+
+.aurora-orb-2 {
+  width: 400px;
+  height: 400px;
+  top: 5%;
+  right: 20%;
+  background: radial-gradient(circle, rgba(240, 160, 80, 0.14), transparent 70%);
+  animation: aurora-drift-2 15s ease-in-out infinite;
+}
+
+.aurora-orb-3 {
+  width: 300px;
+  height: 300px;
+  top: 15%;
+  left: 55%;
+  background: radial-gradient(circle, rgba(255, 214, 153, 0.10), transparent 70%);
+  animation: aurora-drift-3 10s ease-in-out infinite;
+}
+
 /* Animated gradient border for ghost CTA */
 @property --border-angle {
   syntax: "<angle>";
@@ -303,11 +361,17 @@
   50% { box-shadow: 0 0 40px rgba(212, 119, 44, 0.4); }
 }
 
+.pulse-glow-btn {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
 /* ── Reduced Motion ──────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .gradient-text,
   .hero-glow,
-  .animated-border::before {
+  .animated-border::before,
+  .aurora-orb,
+  .pulse-glow-btn {
     animation: none !important;
   }
 }

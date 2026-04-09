@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { BadgeCheck, Copy, Check, Loader2, AlertCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 
 interface VerificationBannerProps {
@@ -39,6 +40,7 @@ export default function VerificationBanner({
   codeExpiresAt,
 }: VerificationBannerProps) {
   const searchParams = useSearchParams()
+  const tv = useTranslations("verification")
   const hasActiveCode =
     existingCode && codeExpiresAt && new Date(codeExpiresAt) > new Date()
 
@@ -243,16 +245,16 @@ export default function VerificationBanner({
                   </button>
                 </span>
               </li>
-              <li>Open TikTok and paste this code anywhere in your bio</li>
-              <li>Come back here and click &quot;Verify Now&quot;</li>
+              <li>{tv("bio_code_step_paste")}</li>
+              <li>{tv("bio_code_step_verify")}</li>
             </ol>
 
             <p className="text-xs text-gray-500">
-              Code expires{" "}
-              {expiresAt
-                ? new Date(expiresAt).toLocaleString()
-                : "in 24 hours"}
-              . You can remove the code from your bio after verification.
+              {tv("bio_code_expires", {
+                time: expiresAt
+                  ? new Date(expiresAt).toLocaleString()
+                  : tv("bio_code_expires_default"),
+              })}
             </p>
 
             <button

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 type OrderType = "SHORT_VIDEO" | "LIVE" | "COMBO";
 type DeliveryType = "SHORT_VIDEO" | "LIVE";
@@ -15,6 +16,7 @@ export default function DeliveryForm({
   orderType?: OrderType;
 }) {
   const router = useRouter();
+  const tc = useTranslations("common");
   const [loading, setLoading] = useState(false);
   const [tiktokLinks, setTiktokLinks] = useState<string[]>([""]);
   const [screenshots, setScreenshots] = useState<{ file: File; preview: string }[]>([]);
@@ -326,7 +328,7 @@ export default function DeliveryForm({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  aria-label="Add another screenshot"
+                  aria-label={tc("aria_add_screenshot")}
                   className="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-2xl text-gray-400 hover:border-orange-400 hover:text-orange-500"
                 >
                   +

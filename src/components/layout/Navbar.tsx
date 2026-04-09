@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
@@ -52,10 +53,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 text-xl font-bold text-white">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4772c]">
-              <span className="text-sm font-bold text-white">F</span>
-            </div>
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white">
+            <Image src="/fox-logo.svg" alt="Foxolog" width={32} height={35} className="h-8 w-auto" />
             {t("app_name")}
           </Link>
 

@@ -1,28 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <!-- Body circle -->
-  <circle cx="100" cy="110" r="75" fill="#d4772c"/>
-  <!-- Tail (cream) -->
-  <ellipse cx="155" cy="145" rx="40" ry="25" fill="#f5e6b8" transform="rotate(-30 155 145)"/>
-  <!-- Tail tip (white jagged) -->
-  <path d="M175 120 L185 130 L178 128 L188 138 L180 135 L185 145 L170 135 Z" fill="white"/>
-  <!-- Head -->
-  <path d="M60 85 Q100 40 140 85 Q130 110 100 115 Q70 110 60 85 Z" fill="#d4772c"/>
-  <!-- Left ear -->
-  <path d="M65 85 L55 40 L85 70 Z" fill="#d4772c"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220">
+  <!-- Body: large circle -->
+  <circle cx="100" cy="130" r="78" fill="#d4772c"/>
+
+  <!-- Tail: cream area wrapping right side -->
+  <path d="M150 82 C185 98 196 148 178 188 C164 210 138 212 122 198
+           Q148 184 162 158 Q174 132 162 108 Q157 94 150 82Z" fill="#f5e6b8"/>
+
+  <!-- Tail tip: white jagged fur -->
+  <path d="M150 82 L156 94 L148 90 L157 103 L149 98 L156 112 L147 106
+           Q151 92 150 82Z" fill="#ffffff"/>
+
+  <!-- Head: rounded fox face -->
+  <path d="M56 110 Q56 74 78 58 Q100 44 122 58 Q144 74 144 110
+           Q140 132 122 140 Q100 148 78 140 Q60 132 56 110Z" fill="#d4772c"/>
+
+  <!-- Left ear outer -->
+  <path d="M63 96 L50 36 L86 80Z" fill="#d4772c"/>
   <!-- Left ear inner -->
-  <path d="M68 78 L60 48 L82 70 Z" fill="#f5e6b8"/>
-  <!-- Right ear -->
-  <path d="M135 85 L145 40 L115 70 Z" fill="#d4772c"/>
+  <path d="M66 90 L55 42 L83 78Z" fill="#f5e6b8"/>
+
+  <!-- Right ear outer -->
+  <path d="M137 96 L150 36 L114 80Z" fill="#d4772c"/>
   <!-- Right ear inner -->
-  <path d="M132 78 L140 48 L118 70 Z" fill="#f5e6b8"/>
-  <!-- Face darker area -->
-  <path d="M75 80 Q100 60 125 80 Q120 100 100 105 Q80 100 75 80 Z" fill="#c06820"/>
+  <path d="M134 90 L145 42 L117 78Z" fill="#f5e6b8"/>
+
+  <!-- Face: darker shading -->
+  <path d="M64 108 Q64 78 82 64 Q100 54 118 64 Q136 78 136 108
+           Q130 126 118 134 Q100 140 82 134 Q70 126 64 108Z" fill="#c06a20"/>
+
+  <!-- Face: cream chevron marking -->
+  <path d="M76 92 L100 126 L124 92 Q116 80 100 74 Q84 80 76 92Z" fill="#f5e6b8"/>
+
   <!-- Nose -->
-  <ellipse cx="100" cy="95" rx="6" ry="4" fill="#2d3436"/>
-  <!-- Left eye -->
-  <circle cx="85" cy="82" r="3" fill="#2d3436"/>
-  <!-- Right eye -->
-  <circle cx="115" cy="82" r="3" fill="#2d3436"/>
-  <!-- Belly/chest (cream) -->
-  <ellipse cx="100" cy="150" rx="30" ry="25" fill="#f5e6b8"/>
+  <path d="M95 117 L100 123 L105 117Z" fill="#2d3436"/>
+
+  <!-- Left eye: closed crescent -->
+  <path d="M80 97 Q86 91 92 97" stroke="#2d3436" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Right eye: closed crescent -->
+  <path d="M108 97 Q114 91 120 97" stroke="#2d3436" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 </svg>

@@ -1,24 +1,6 @@
 export default function FoxLogo({ className = "h-8 w-auto" }: { className?: string }) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 200 220"
-      className={className}
-      aria-hidden="true"
-    >
-      <circle cx="100" cy="130" r="78" fill="#d4772c" />
-      <path d="M150 82 C185 98 196 148 178 188 C164 210 138 212 122 198 Q148 184 162 158 Q174 132 162 108 Q157 94 150 82Z" fill="#f5e6b8" />
-      <path d="M150 82 L156 94 L148 90 L157 103 L149 98 L156 112 L147 106 Q151 92 150 82Z" fill="#ffffff" />
-      <path d="M56 110 Q56 74 78 58 Q100 44 122 58 Q144 74 144 110 Q140 132 122 140 Q100 148 78 140 Q60 132 56 110Z" fill="#d4772c" />
-      <path d="M63 96 L50 36 L86 80Z" fill="#d4772c" />
-      <path d="M66 90 L55 42 L83 78Z" fill="#f5e6b8" />
-      <path d="M137 96 L150 36 L114 80Z" fill="#d4772c" />
-      <path d="M134 90 L145 42 L117 78Z" fill="#f5e6b8" />
-      <path d="M64 108 Q64 78 82 64 Q100 54 118 64 Q136 78 136 108 Q130 126 118 134 Q100 140 82 134 Q70 126 64 108Z" fill="#c06a20" />
-      <path d="M76 92 L100 126 L124 92 Q116 80 100 74 Q84 80 76 92Z" fill="#f5e6b8" />
-      <path d="M95 117 L100 123 L105 117Z" fill="#2d3436" />
-      <path d="M80 97 Q86 91 92 97" stroke="#2d3436" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M108 97 Q114 91 120 97" stroke="#2d3436" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/fox-logo.png" alt="Foxolog" className={className} />
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion"
+import { motion, useInView, useMotionValue, useTransform, useSpring, animate } from "framer-motion"
 import { useRef, useEffect, type ReactNode, type MouseEvent } from "react"
 
 /* ------------------------------------------------------------------ */
@@ -103,6 +103,37 @@ export function CountUp({
       {suffix}
     </span>
   )
+}
+
+/* ------------------------------------------------------------------ */
+/*  useMouseParallax – subtle depth effect on hero elements           */
+/* ------------------------------------------------------------------ */
+export function useMouseParallax(strength: number = 15) {
+  const rawX = useMotionValue(0)
+  const rawY = useMotionValue(0)
+  const springConfig = { stiffness: 50, damping: 20 }
+  const x = useSpring(rawX, springConfig)
+  const y = useSpring(rawY, springConfig)
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    if (mq.matches) return
+
+    // Skip on touch-only devices
+    if (window.matchMedia("(hover: none)").matches) return
+
+    function handleMouseMove(e: globalThis.MouseEvent) {
+      const centerX = window.innerWidth / 2
+      const centerY = window.innerHeight / 2
+      rawX.set(((e.clientX - centerX) / centerX) * strength)
+      rawY.set(((e.clientY - centerY) / centerY) * strength)
+    }
+
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => window.removeEventListener("mousemove", handleMouseMove)
+  }, [strength, rawX, rawY])
+
+  return { x, y }
 }
 
 /* ------------------------------------------------------------------ */

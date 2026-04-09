@@ -145,11 +145,84 @@
   background-size: 24px 24px;
 }
 
+@keyframes gradient-shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
 .gradient-text {
-  background: linear-gradient(135deg, #d4772c 0%, #f0a050 50%, #d4772c 100%);
+  background: linear-gradient(
+    120deg,
+    #d4772c 0%, #f0a050 25%, #ffd699 50%, #f0a050 75%, #d4772c 100%
+  );
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: gradient-shimmer 4s ease-in-out infinite;
+}
+
+/* Hero glow breathing */
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, 0) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+}
+
+.hero-glow {
+  animation: glow-breathe 4s ease-in-out infinite;
+}
+
+/* Animated gradient border for ghost CTA */
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes border-rotate {
+  0% { --border-angle: 0deg; }
+  100% { --border-angle: 360deg; }
+}
+
+.animated-border {
+  position: relative;
+  background: #0a0a0a;
+  border: none !important;
+  z-index: 0;
+  isolation: isolate;
+}
+
+.animated-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--border-angle, 0deg),
+    transparent 30%,
+    rgba(212, 119, 44, 0.6) 50%,
+    transparent 70%
+  );
+  z-index: -2;
+  animation: border-rotate 3s linear infinite;
+}
+
+.animated-border::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: #0a0a0a;
+  z-index: -1;
+}
+
+.animated-border:hover::before {
+  background: conic-gradient(
+    from var(--border-angle, 0deg),
+    transparent 20%,
+    rgba(212, 119, 44, 0.9) 50%,
+    transparent 80%
+  );
 }
 
 .glow-card {
@@ -228,4 +301,13 @@
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px rgba(212, 119, 44, 0.2); }
   50% { box-shadow: 0 0 40px rgba(212, 119, 44, 0.4); }
+}
+
+/* ── Reduced Motion ──────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text,
+  .hero-glow,
+  .animated-border::before {
+    animation: none !important;
+  }
 }

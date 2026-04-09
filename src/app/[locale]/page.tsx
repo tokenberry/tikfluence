@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
+import FoxLogo from "@/components/FoxLogo"
 import {
   Brain,
   ShieldCheck,
@@ -48,7 +49,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/fox-logo.svg" alt="Foxolog" width={32} height={35} className="h-8 w-auto" />
+              <FoxLogo />
               <span className="text-lg font-bold tracking-tight">{t("brand_name")}</span>
             </Link>
 

@@ -7,6 +7,7 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import NotificationBell from "./NotificationBell"
 import LanguageSwitcher from "./LanguageSwitcher"
+import FoxLogo from "@/components/FoxLogo"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +54,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white">
-            <img src="/fox-logo.svg" alt="Foxolog" width={32} height={35} className="h-8 w-auto" />
+            <FoxLogo />
             {t("app_name")}
           </Link>
 

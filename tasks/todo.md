@@ -5,8 +5,16 @@ Source of truth: `PROGRESS.md`. This file tracks only the *actionable* pending i
 ## Open
 
 ### Infrastructure (env-var gated, no code work required)
-- [ ] **Stripe**: Configure `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` in Vercel env and smoke-test the brand checkout → webhook → order OPEN flow. Code path is shipped (`src/app/api/payments/checkout/route.ts` + `src/app/api/payments/webhook/route.ts`); dev-mode fallback short-circuits when env is unset.
-- [ ] **TikTok Research API**: Configure `TIKTOK_API_KEY` for bio-code verification fallback + periodic metrics refresh (requires separate TikTok Research API approval).
+- [ ] **Stripe**: Configure `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` in Vercel env and smoke-test the brand checkout → webhook → order OPEN flow. Code path is shipped; dev-mode fallback short-circuits when env is unset. *(Waiting on Stripe account setup)*
+- [ ] **TikTok Login Kit**: Set `AUTH_TIKTOK_ID` + `AUTH_TIKTOK_SECRET` in Vercel + add redirect URI in TikTok Developer Portal. *(App under TikTok review)*
+
+### Configured (done)
+- [x] **Vercel Blob** — `BLOB_READ_WRITE_TOKEN` configured
+- [x] **Cron Secret** — `CRON_SECRET` configured
+- [x] **OpenAI** — `OPENAI_API_KEY` configured
+
+### Not Pursuing
+- ~~**TikTok Research API**~~ — Too complex to get approved. Bio-code verification fallback + periodic metrics refresh will not be pursued.
 
 ### Future Refactors
 _All currently tracked refactors are shipped. Add new items here as they are identified._

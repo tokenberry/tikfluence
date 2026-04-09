@@ -16,7 +16,8 @@ import {
   Menu,
   X,
 } from "lucide-react"
-import { FadeIn, StaggerChildren, GlowCard, CountUp, staggerItem } from "@/components/landing/animations"
+import { FadeIn, StaggerChildren, GlowCard, CountUp, staggerItem, useMouseParallax } from "@/components/landing/animations"
+import { useTransform } from "framer-motion"
 import { APP_VERSION } from "@/lib/constants"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
@@ -29,6 +30,15 @@ const SOCIAL_PROOF_ICONS = [ShieldCheck, Brain, BadgeCheck, Sparkles]
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const t = useTranslations("landing")
+  const { x: mouseX, y: mouseY } = useMouseParallax(15)
+  const titleX = useTransform(mouseX, (v) => v * 0.3)
+  const titleY = useTransform(mouseY, (v) => v * 0.3)
+  const buttonsX = useTransform(mouseX, (v) => v * 0.5)
+  const buttonsY = useTransform(mouseY, (v) => v * 0.5)
+  const statsX = useTransform(mouseX, (v) => v * 0.7)
+  const statsY = useTransform(mouseY, (v) => v * 0.7)
+  const glowX = useTransform(mouseX, (v) => v * -0.4)
+  const glowY = useTransform(mouseY, (v) => v * -0.4)
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white landing-grid">
@@ -99,10 +109,12 @@ export default function HomePage() {
       {/* ── Hero ───────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-20 lg:pt-44 lg:pb-32 overflow-hidden">
         {/* Ambient glow */}
-        <div
-          className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px]"
+        <motion.div
+          className="hero-glow pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px]"
           style={{
-            background: `radial-gradient(ellipse at 50% 20%, rgba(212,119,44,0.15), transparent 70%)`,
+            background: `radial-gradient(ellipse at 50% 20%, rgba(212,119,44,0.18), transparent 70%)`,
+            x: glowX,
+            y: glowY,
           }}
         />
 
@@ -111,6 +123,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] }}
+            style={{ x: titleX, y: titleY }}
           >
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl leading-[1.1]">
               {t("hero_title_line_1")}
@@ -127,6 +140,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
+            style={{ x: buttonsX, y: buttonsY }}
           >
             <Link
               href="/register?role=brand"
@@ -141,7 +155,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/register?role=creator"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-7 py-3.5 text-sm font-semibold text-white/80 transition-all hover:border-white/20 hover:text-white hover:bg-white/5"
+              className="animated-border inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white/80 transition-all hover:text-white hover:bg-white/5"
             >
               <Video size={16} />
               {t("cta_creator")}
@@ -154,6 +168,7 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
+            style={{ x: statsX, y: statsY }}
           >
             {[
               { to: 500, suffix: "+", label: t("stat_1_label") },

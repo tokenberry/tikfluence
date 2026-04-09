@@ -154,18 +154,22 @@ Things that differ from the original `docs/ARCHITECTURE.md` plan:
 |---|---|
 | `DATABASE_URL` | Configured (Neon) |
 | `NEXTAUTH_SECRET` | Configured |
-| `NEXTAUTH_URL` | Configured (`https://www.foxolog.com`) |
-| `STRIPE_SECRET_KEY` | Not set |
-| `STRIPE_WEBHOOK_SECRET` | Not set |
+| `NEXTAUTH_URL` | Configured (`https://www.foxolog.com`) — framework-level, not directly referenced in code |
+| `STRIPE_SECRET_KEY` | Not set — waiting on Stripe account setup |
+| `STRIPE_WEBHOOK_SECRET` | Not set — waiting on Stripe account setup |
 | `GOOGLE_CLIENT_ID` | Configured (Google Cloud Console) |
 | `GOOGLE_CLIENT_SECRET` | Configured (Google Cloud Console) |
 | `RESEND_API_KEY` | Configured (Resend — domain verified) |
-| `AUTH_TIKTOK_ID` | Needs configuration (TikTok Login Kit — Client Key) |
-| `AUTH_TIKTOK_SECRET` | Needs configuration (TikTok Login Kit — Client Secret) |
-| `TIKTOK_API_KEY` | Not set (Research API — separate approval needed) |
-| `OPENAI_API_KEY` | Needs configuration (OpenAI GPT-4o-mini for creator analysis) |
-| `BLOB_READ_WRITE_TOKEN` | Needs configuration (Vercel Blob — auto-set when Blob store is linked in Vercel dashboard) |
-| `CRON_SECRET` | Needs configuration (random secret for Vercel Cron job authorization) |
+| `AUTH_TIKTOK_ID` | Needs configuration (TikTok Login Kit — Client Key) — app under TikTok review |
+| `AUTH_TIKTOK_SECRET` | Needs configuration (TikTok Login Kit — Client Secret) — app under TikTok review |
+| `OPENAI_API_KEY` | Configured (OpenAI GPT-4o-mini for creator analysis) |
+| `BLOB_READ_WRITE_TOKEN` | Configured (Vercel Blob — auto-injected when Blob store is linked) |
+| `CRON_SECRET` | Configured (Vercel Cron job authorization) |
+| `PAYONEER_PARTNER_ID` | Not set — Payoneer Mass Payout partner ID (optional — dev mode works without it) |
+| `PAYONEER_API_KEY` | Not set — Payoneer API key (optional — dev mode works without it) |
+| `PAYONEER_API_URL` | Not set — Payoneer API URL (defaults to sandbox) |
+| `SENTRY_DSN` | Not set — env-gated Sentry error tracking (optional — zero overhead when unset) |
+| `LOG_LEVEL` | Not set — structured logger floor (defaults to `info`; set to `debug` for verbose output) |
 
 ---
 

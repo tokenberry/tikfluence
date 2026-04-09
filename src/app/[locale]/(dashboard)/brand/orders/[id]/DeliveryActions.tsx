@@ -14,6 +14,7 @@ export default function DeliveryActions({
 }) {
   const router = useRouter();
   const t = useTranslations("orders");
+  const tc = useTranslations("common");
   const [loading, setLoading] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const [reason, setReason] = useState("");
@@ -71,7 +72,7 @@ export default function DeliveryActions({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder={t("delivery_rejection_placeholder")}
-          aria-label="Rejection reason"
+          aria-label={tc("aria_rejection_reason")}
           rows={2}
           className="w-48 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
         />

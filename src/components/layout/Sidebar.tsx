@@ -153,6 +153,7 @@ export function MobileSidebar({
   onClose: () => void
 }) {
   const t = useTranslations("sidebar")
+  const tc = useTranslations("common")
 
   return (
     <>
@@ -173,7 +174,7 @@ export function MobileSidebar({
           <span className="text-sm font-bold text-white">{t("menu")}</span>
           <button
             onClick={onClose}
-            aria-label="Close menu"
+            aria-label={tc("aria_close_menu")}
             className="rounded p-1 text-white/40 hover:text-white/70"
           >
             <X className="h-5 w-5" />

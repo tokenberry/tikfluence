@@ -23,6 +23,7 @@ export type CreatorCardLabels = {
   score: string
   badgeVideo: string
   badgeLive: string
+  verified?: string
 }
 
 type CreatorCardProps = {
@@ -62,7 +63,7 @@ export default function CreatorCard({
           <p className="flex items-center gap-1 text-sm text-gray-500">
             @{creator.tiktokUsername}
             {showVerifiedBadge && (
-              <VerifiedBadge verified={creator.tiktokVerified ?? false} />
+              <VerifiedBadge verified={creator.tiktokVerified ?? false} label={labels.verified} />
             )}
           </p>
         </div>

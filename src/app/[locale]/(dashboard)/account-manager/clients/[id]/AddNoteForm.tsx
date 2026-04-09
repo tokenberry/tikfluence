@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface AddNoteFormProps {
   brandId?: string;
@@ -9,6 +10,7 @@ interface AddNoteFormProps {
 }
 
 export default function AddNoteForm({ brandId, agencyId }: AddNoteFormProps) {
+  const tc = useTranslations("common");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,8 +54,8 @@ export default function AddNoteForm({ brandId, agencyId }: AddNoteFormProps) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Write an internal note..."
-        aria-label="Internal note content"
+        placeholder={tc("aria_note_content")}
+        aria-label={tc("aria_note_content")}
         rows={3}
         className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#d4772c] focus:outline-none focus:ring-1 focus:ring-[#d4772c]"
       />

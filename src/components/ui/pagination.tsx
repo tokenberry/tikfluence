@@ -5,6 +5,7 @@ import {
   MoreHorizontalIcon,
 } from "lucide-react"
 
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 
@@ -68,33 +69,35 @@ function PaginationLink({
 
 function PaginationPrevious({
   className,
+  label,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & { label?: string }) {
   return (
     <PaginationLink
-      aria-label="Go to previous page"
+      aria-label={label ?? "Go to previous page"}
       size="default"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
       {...props}
     >
       <ChevronLeftIcon />
-      <span className="hidden sm:block">Previous</span>
+      <span className="hidden sm:block">{label ?? "Previous"}</span>
     </PaginationLink>
   )
 }
 
 function PaginationNext({
   className,
+  label,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & { label?: string }) {
   return (
     <PaginationLink
-      aria-label="Go to next page"
+      aria-label={label ?? "Go to next page"}
       size="default"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}
     >
-      <span className="hidden sm:block">Next</span>
+      <span className="hidden sm:block">{label ?? "Next"}</span>
       <ChevronRightIcon />
     </PaginationLink>
   )
@@ -102,8 +105,9 @@ function PaginationNext({
 
 function PaginationEllipsis({
   className,
+  label,
   ...props
-}: React.ComponentProps<"span">) {
+}: React.ComponentProps<"span"> & { label?: string }) {
   return (
     <span
       aria-hidden
@@ -112,7 +116,7 @@ function PaginationEllipsis({
       {...props}
     >
       <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">More pages</span>
+      <span className="sr-only">{label ?? "More pages"}</span>
     </span>
   )
 }
@@ -140,6 +144,7 @@ function DataPagination({
   total,
   limit,
 }: DataPaginationProps) {
+  const t = useTranslations("common")
   if (totalPages <= 1) return null
 
   const pages: (number | "ellipsis")[] = []
@@ -166,13 +171,11 @@ function DataPagination({
     <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
       {total ? (
         <p className="text-sm text-gray-500">
-          Showing <span className="font-medium">{start}</span>-
-          <span className="font-medium">{end}</span> of{" "}
-          <span className="font-medium">{total}</span>
+          {t("showing_range", { start, end, total })}
         </p>
       ) : (
         <p className="text-sm text-gray-500">
-          Page {page} of {totalPages}
+          {t("page_of", { page, totalPages })}
         </p>
       )}
 
@@ -180,6 +183,7 @@ function DataPagination({
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
+              label={t("previous")}
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
             />
@@ -187,7 +191,7 @@ function DataPagination({
           {pages.map((p, i) =>
             p === "ellipsis" ? (
               <PaginationItem key={`ellipsis-${i}`}>
-                <PaginationEllipsis />
+                <PaginationEllipsis label={t("more_pages")} />
               </PaginationItem>
             ) : (
               <PaginationItem key={p}>
@@ -202,6 +206,7 @@ function DataPagination({
           )}
           <PaginationItem>
             <PaginationNext
+              label={t("next")}
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
             />

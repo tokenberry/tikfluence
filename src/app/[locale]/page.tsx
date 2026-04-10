@@ -380,12 +380,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
-              <div
-                className="flex h-6 w-6 items-center justify-center rounded"
-                style={{ background: BRAND_ORANGE }}
-              >
-                <span className="text-xs font-bold text-white">{t("brand_letter")}</span>
-              </div>
+              <FoxLogo className="h-6 w-auto" />
               <span className="text-sm font-semibold">{t("footer_brand_name")}</span>
             </div>
 

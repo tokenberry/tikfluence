@@ -380,3 +380,17 @@ export function canRespondToInvitation(ctx: InvitationContext): boolean {
   }
   return false
 }
+
+/**
+ * Returns true if the given user may withdraw a PENDING invitation (flip
+ * it to `WITHDRAWN`). The brand-side that issued the invite owns it: the
+ * brand owner, managing agency, and any assigned account manager may
+ * withdraw. ADMIN may always withdraw for support intervention.
+ *
+ * Note: this is NOT gated on "is the current user the original inviter"
+ * because the full brand-side team should be able to correct mistakes
+ * made by any teammate on the account.
+ */
+export function canWithdrawInvitation(ctx: OrderMatchContext): boolean {
+  return canInviteCreator(ctx)
+}

@@ -886,7 +886,17 @@
     "invite_success": "Invitation envoyée.",
     "invite_failed": "Impossible d'envoyer l'invitation.",
     "message_placeholder": "Note personnelle facultative au créateur…",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "batch_invite": "Invitation rapide :",
+    "batch_invite_top_n": "Inviter le top {n}",
+    "batch_inviting": "Envoi…",
+    "batch_success": "{count} créateur(s) invité(s) ; {skipped} ignoré(s).",
+    "batch_failed": "Impossible d'envoyer les invitations groupées.",
+    "batch_nothing_to_invite": "Aucun créateur éligible restant à inviter.",
+    "withdraw": "Retirer",
+    "withdrawing": "Retrait…",
+    "withdraw_success": "Invitation retirée.",
+    "withdraw_failed": "Impossible de retirer l'invitation."
   },
   "invitations": {
     "title": "Invitations",

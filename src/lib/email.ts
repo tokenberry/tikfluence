@@ -165,6 +165,104 @@ export function sendOrderRejectedEmail(
   void send(creatorEmail, `Revision requested: ${orderTitle}`, html)
 }
 
+// --- F4 completion: invitation emails (v4.0.1) --------------------------
+
+/**
+ * Sent to a creator when a brand (or their agency / AM) creates an
+ * `OrderInvitation` addressed to them — either via the single-invite
+ * endpoint or the batch endpoint. Links to the creator invitations inbox.
+ */
+export function sendInvitationSentEmail(
+  creatorEmail: string,
+  creatorName: string,
+  orderTitle: string,
+  inviterName: string,
+  message: string | null
+) {
+  const html = emailWrapper(
+    "You've been invited to a campaign",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${creatorName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      <strong>${inviterName}</strong> invited you to join the campaign
+      "<strong>${orderTitle}</strong>". The Foxolog AI surfaced your
+      profile as a strong match based on audience, category, and content
+      style fit.
+    </p>
+    ${
+      message
+        ? `<p style="color: #374151; line-height: 1.6; background: #fef3c7; padding: 12px; border-radius: 6px;"><strong>Message from the brand:</strong> ${message}</p>`
+        : ""
+    }
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="${APP_URL}/creator/invitations" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        View Invitation
+      </a>
+    </div>
+    `
+  )
+  void send(creatorEmail, `Invitation: ${orderTitle}`, html)
+}
+
+/**
+ * Sent to the inviter (brand owner / agency / AM) when an invited creator
+ * accepts the invitation. Links to the brand order detail page.
+ */
+export function sendInvitationAcceptedEmail(
+  inviterEmail: string,
+  inviterName: string,
+  creatorName: string,
+  orderTitle: string
+) {
+  const html = emailWrapper(
+    "Creator accepted your invitation",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${inviterName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      <strong>${creatorName}</strong> accepted your invitation to
+      "<strong>${orderTitle}</strong>". The assignment has been created
+      and they'll start working on the order shortly.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="${APP_URL}/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        View Order
+      </a>
+    </div>
+    `
+  )
+  void send(inviterEmail, `Accepted: ${orderTitle}`, html)
+}
+
+/**
+ * Sent to the inviter when an invited creator declines the invitation.
+ * Links to the brand order detail page so the brand can try a different
+ * match from the AI shortlist.
+ */
+export function sendInvitationDeclinedEmail(
+  inviterEmail: string,
+  inviterName: string,
+  creatorName: string,
+  orderTitle: string
+) {
+  const html = emailWrapper(
+    "Invitation declined",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${inviterName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      <strong>${creatorName}</strong> declined your invitation to
+      "<strong>${orderTitle}</strong>". You can invite another creator
+      from the AI match list on the order page.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="${APP_URL}/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        View Order
+      </a>
+    </div>
+    `
+  )
+  void send(inviterEmail, `Declined: ${orderTitle}`, html)
+}
+
 export function sendDisputeOpenedEmail(
   emails: string[],
   orderTitle: string

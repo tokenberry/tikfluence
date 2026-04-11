@@ -886,7 +886,17 @@
     "invite_success": "Invitation sent.",
     "invite_failed": "Could not send invitation.",
     "message_placeholder": "Optional personal note to the creator…",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "batch_invite": "Quick invite:",
+    "batch_invite_top_n": "Invite top {n}",
+    "batch_inviting": "Inviting…",
+    "batch_success": "Invited {count} creator(s); {skipped} skipped.",
+    "batch_failed": "Could not send batch invitations.",
+    "batch_nothing_to_invite": "No eligible creators left to invite.",
+    "withdraw": "Withdraw",
+    "withdrawing": "Withdrawing…",
+    "withdraw_success": "Invitation withdrawn.",
+    "withdraw_failed": "Could not withdraw invitation."
   },
   "invitations": {
     "title": "Invitations",

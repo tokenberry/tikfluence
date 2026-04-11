@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { canRespondToInvitation } from "@/lib/guards"
 import { createNotification } from "@/lib/notifications"
+import {
+  sendInvitationAcceptedEmail,
+  sendInvitationDeclinedEmail,
+} from "@/lib/email"
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 import { z } from "zod"
 
@@ -74,6 +78,7 @@ export async function POST(
             user: { select: { id: true, name: true } },
           },
         },
+        invitedByUser: { select: { id: true, name: true, email: true } },
       },
     })
     if (!invitation) {
@@ -114,7 +119,7 @@ export async function POST(
         data: { status: "DECLINED", respondedAt: new Date() },
       })
 
-      // Notify inviter.
+      // Notify inviter (in-app + email).
       const creatorName =
         invitation.creator.user.name ?? `@${invitation.creator.tiktokUsername}`
       createNotification(
@@ -124,6 +129,14 @@ export async function POST(
         `${creatorName} declined the invitation to "${order.title}".`,
         `/brand/orders/${order.id}`
       )
+      if (invitation.invitedByUser?.email) {
+        sendInvitationDeclinedEmail(
+          invitation.invitedByUser.email,
+          invitation.invitedByUser.name ?? "there",
+          creatorName,
+          order.title
+        )
+      }
 
       return NextResponse.json({ status: "DECLINED" })
     }
@@ -233,7 +246,7 @@ export async function POST(
     const creatorName =
       invitation.creator.user.name ?? `@${invitation.creator.tiktokUsername}`
 
-    // Notify inviter + brand owner (deduped).
+    // Notify inviter + brand owner (deduped, in-app).
     const recipientIds = new Set<string>([
       invitation.invitedByUserId,
       order.brand.userId,
@@ -246,6 +259,16 @@ export async function POST(
         `${creatorName} accepted your invitation`,
         `${creatorName} accepted the invitation to "${order.title}".`,
         `/brand/orders/${order.id}`
+      )
+    }
+
+    // Email the inviter (if they have an email on record).
+    if (invitation.invitedByUser?.email) {
+      sendInvitationAcceptedEmail(
+        invitation.invitedByUser.email,
+        invitation.invitedByUser.name ?? "there",
+        creatorName,
+        order.title
       )
     }
 

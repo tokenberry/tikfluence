@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { canInviteCreator } from "@/lib/guards"
 import { createNotification } from "@/lib/notifications"
+import { sendInvitationSentEmail } from "@/lib/email"
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 import { z } from "zod"
 
@@ -108,7 +109,9 @@ export async function POST(
       select: {
         id: true,
         tiktokUsername: true,
-        user: { select: { id: true, name: true, isActive: true } },
+        user: {
+          select: { id: true, name: true, email: true, isActive: true },
+        },
       },
     })
     if (!creator || !creator.user.isActive) {
@@ -146,7 +149,7 @@ export async function POST(
       },
     })
 
-    // Fire-and-forget notification to the invited creator.
+    // Fire-and-forget notification to the invited creator (in-app + email).
     const inviterName = session.user.name ?? "A brand"
     createNotification(
       creator.user.id,
@@ -155,6 +158,15 @@ export async function POST(
       `${inviterName} invited you to join the campaign "${order.title}".`,
       `/creator/invitations`
     )
+    if (creator.user.email) {
+      sendInvitationSentEmail(
+        creator.user.email,
+        creator.user.name ?? `@${creator.tiktokUsername}`,
+        order.title,
+        inviterName,
+        message ?? null
+      )
+    }
 
     return NextResponse.json(invitation, { status: 201 })
   } catch (error) {

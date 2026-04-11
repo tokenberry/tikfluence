@@ -886,7 +886,17 @@
     "invite_success": "تم إرسال الدعوة.",
     "invite_failed": "تعذر إرسال الدعوة.",
     "message_placeholder": "ملاحظة شخصية اختيارية للمنشئ…",
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "batch_invite": "دعوة سريعة:",
+    "batch_invite_top_n": "دعوة أفضل {n}",
+    "batch_inviting": "جارٍ الإرسال…",
+    "batch_success": "تمت دعوة {count} من المنشئين؛ تم تخطي {skipped}.",
+    "batch_failed": "تعذر إرسال الدعوات المجمعة.",
+    "batch_nothing_to_invite": "لا يوجد منشئون مؤهلون متبقون للدعوة.",
+    "withdraw": "سحب",
+    "withdrawing": "جارٍ السحب…",
+    "withdraw_success": "تم سحب الدعوة.",
+    "withdraw_failed": "تعذر سحب الدعوة."
   },
   "invitations": {
     "title": "الدعوات",

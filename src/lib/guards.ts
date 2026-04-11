@@ -84,3 +84,54 @@ export function canReviewDeliveryAsRole(
 ): boolean {
   return isAdmin(role) || isBrand(role)
 }
+
+export interface OrderThreadContext {
+  /** The user attempting to read/write the order's chat thread. */
+  userId: string
+  role: UserRole | null | undefined
+  /** userId of the brand that owns the order. */
+  brandUserId: string
+  /** Optional agency userId managing the order's brand. */
+  agencyUserId?: string | null
+  /** userIds of any account managers assigned to the brand/agency. */
+  accountManagerUserIds?: readonly string[]
+  /**
+   * When set, restricts access to participants of this specific
+   * OrderAssignment (one (order, creator) pair). A creator or network
+   * passes their OWN assignment's userId here; brand-side roles pass
+   * null to imply "any thread on this order".
+   */
+  assignmentUserIds?: readonly string[] | null
+}
+
+/**
+ * Returns true if the given user may read or post messages in a given
+ * order thread.
+ *
+ * Access rules:
+ *  - ADMIN can always participate (support intervention).
+ *  - The brand owner (userId === brandUserId) can participate in every
+ *    thread on their own order.
+ *  - The managing agency user (if any) can participate in every thread.
+ *  - An account manager assigned to the brand/agency can participate.
+ *  - A creator or network user may participate ONLY in threads for their
+ *    own assignment (i.e. their userId must appear in assignmentUserIds).
+ */
+export function canAccessOrderThread(ctx: OrderThreadContext): boolean {
+  if (isAdmin(ctx.role)) return true
+  if (ctx.userId === ctx.brandUserId) return true
+  if (ctx.agencyUserId && ctx.userId === ctx.agencyUserId) return true
+  if (
+    ctx.accountManagerUserIds &&
+    ctx.accountManagerUserIds.includes(ctx.userId)
+  ) {
+    return true
+  }
+  if (
+    ctx.assignmentUserIds &&
+    ctx.assignmentUserIds.includes(ctx.userId)
+  ) {
+    return true
+  }
+  return false
+}

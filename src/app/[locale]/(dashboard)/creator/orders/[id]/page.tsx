@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryForm from "./DeliveryForm";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
+import OrderChatPanel, {
+  type OrderChatAssignmentOption,
+} from "@/components/OrderChatPanel";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
@@ -60,6 +63,15 @@ export default async function CreatorOrderDetailPage({
 
   const isOverdue = order.expiresAt && new Date(order.expiresAt) < new Date() &&
     !["COMPLETED", "CANCELLED"].includes(order.status);
+
+  const chatAssignments: OrderChatAssignmentOption[] = order.assignments.map(
+    (a) => ({
+      id: a.id,
+      label: order.brand.companyName,
+    })
+  );
+  const showChat =
+    isAssigned && !["CANCELLED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -261,6 +273,15 @@ export default async function CreatorOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Order Chat */}
+      {showChat && (
+        <OrderChatPanel
+          orderId={order.id}
+          currentUserId={session.user.id}
+          assignments={chatAssignments}
+        />
       )}
 
       {/* AI Delivery Analysis */}

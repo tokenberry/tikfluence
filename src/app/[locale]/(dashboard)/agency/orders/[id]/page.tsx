@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
+import OrderChatPanel, {
+  type OrderChatAssignmentOption,
+} from "@/components/OrderChatPanel";
 import AgencyOrderActions from "../../brands/[id]/AgencyOrderActions";
 import DeliveryActions from "@/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
@@ -65,6 +68,20 @@ export default async function AgencyOrderDetailPage({
 
   const isOverdue = order.expiresAt && new Date(order.expiresAt) < new Date() &&
     !["COMPLETED", "CANCELLED"].includes(order.status);
+
+  const chatAssignments: OrderChatAssignmentOption[] = order.assignments.map(
+    (a) => ({
+      id: a.id,
+      label:
+        a.creator?.user.name ??
+        (a.creator?.tiktokUsername
+          ? `@${a.creator.tiktokUsername}`
+          : t("unknown_creator")),
+    })
+  );
+  const showChat =
+    chatAssignments.length > 0 &&
+    !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -304,6 +321,16 @@ export default async function AgencyOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Order Chat */}
+      {showChat && (
+        <OrderChatPanel
+          orderId={order.id}
+          currentUserId={session.user.id}
+          assignments={chatAssignments}
+          showAssignmentPicker={chatAssignments.length > 1}
+        />
       )}
 
       {/* AI Delivery Analysis */}

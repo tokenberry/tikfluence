@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import {
+  canAccessOrderThread,
   canReviewDeliveryAsRole,
   canViewOrder,
   isAccountManager,
@@ -173,6 +174,159 @@ describe("canViewOrder", () => {
         brandUserId: "brand-1",
         assignedUserIds: [],
         userId: "stranger",
+        role: "CREATOR",
+      })
+    ).toBe(false)
+  })
+})
+
+describe("canAccessOrderThread", () => {
+  const base = {
+    brandUserId: "brand-1",
+    assignmentUserIds: ["creator-1"] as const,
+  }
+
+  it("ADMIN can always participate", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "stranger",
+        role: "ADMIN",
+      })
+    ).toBe(true)
+  })
+
+  it("brand owner can participate in any thread on their own order", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "brand-1",
+        role: "BRAND",
+        assignmentUserIds: ["creator-1", "creator-2"],
+      })
+    ).toBe(true)
+  })
+
+  it("other brands cannot participate", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "brand-2",
+        role: "BRAND",
+      })
+    ).toBe(false)
+  })
+
+  it("managing agency user can participate", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "agency-1",
+        role: "AGENCY",
+        agencyUserId: "agency-1",
+      })
+    ).toBe(true)
+  })
+
+  it("unrelated agency cannot participate", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "agency-9",
+        role: "AGENCY",
+        agencyUserId: "agency-1",
+      })
+    ).toBe(false)
+  })
+
+  it("assigned account manager can participate", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "am-1",
+        role: "ACCOUNT_MANAGER",
+        accountManagerUserIds: ["am-1"],
+      })
+    ).toBe(true)
+  })
+
+  it("unassigned account manager cannot participate", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "am-9",
+        role: "ACCOUNT_MANAGER",
+        accountManagerUserIds: ["am-1"],
+      })
+    ).toBe(false)
+  })
+
+  it("assigned creator can participate in their own thread", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "creator-1",
+        role: "CREATOR",
+      })
+    ).toBe(true)
+  })
+
+  it("creator cannot read another creator's thread on the same order", () => {
+    expect(
+      canAccessOrderThread({
+        brandUserId: "brand-1",
+        assignmentUserIds: ["creator-2"],
+        userId: "creator-1",
+        role: "CREATOR",
+      })
+    ).toBe(false)
+  })
+
+  it("unassigned creator cannot participate at all", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "creator-3",
+        role: "CREATOR",
+      })
+    ).toBe(false)
+  })
+
+  it("network can participate in their own assignment's thread", () => {
+    expect(
+      canAccessOrderThread({
+        brandUserId: "brand-1",
+        assignmentUserIds: ["network-user-1"],
+        userId: "network-user-1",
+        role: "NETWORK",
+      })
+    ).toBe(true)
+  })
+
+  it("random stranger is denied", () => {
+    expect(
+      canAccessOrderThread({
+        ...base,
+        userId: "stranger",
+        role: null,
+      })
+    ).toBe(false)
+  })
+
+  it("handles empty assignmentUserIds list gracefully", () => {
+    expect(
+      canAccessOrderThread({
+        brandUserId: "brand-1",
+        assignmentUserIds: [],
+        userId: "brand-1",
+        role: "BRAND",
+      })
+    ).toBe(true)
+    expect(
+      canAccessOrderThread({
+        brandUserId: "brand-1",
+        assignmentUserIds: [],
+        userId: "creator-1",
         role: "CREATOR",
       })
     ).toBe(false)

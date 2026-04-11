@@ -179,6 +179,25 @@
     "hours_ago": "{count}sa önce",
     "days_ago": "{count}g önce"
   },
+  "chat": {
+    "title": "Sipariş Sohbeti",
+    "subtitle": "Marka tarafı ile atanan içerik üreticisi arasında güvenli mesajlaşma.",
+    "loading": "Mesajlar yükleniyor...",
+    "empty_state": "Henüz mesaj yok. Konuşmayı başlatın.",
+    "composer_placeholder": "Bir mesaj yazın...",
+    "send": "Gönder",
+    "sending": "Gönderiliyor...",
+    "attach": "Ekle",
+    "uploading": "Yükleniyor...",
+    "upload_failed": "Yükleme başarısız. Lütfen tekrar deneyin.",
+    "send_failed": "Mesaj gönderilemedi.",
+    "message_too_long": "Mesaj çok uzun (en fazla 2000 karakter).",
+    "too_many_attachments": "Mesaj başına en fazla {max} resim ekleyebilirsiniz.",
+    "remove_attachment": "Eki kaldır",
+    "attachment_alt": "Ek {number}",
+    "pick_thread": "Bir konuşma seçin",
+    "no_assignments_yet": "Bir içerik üreticisi atandığında sohbet burada görünecek."
+  },
   "common": {
     "loading": "Yükleniyor...",
     "processing": "İşleniyor...",
@@ -578,7 +597,8 @@
     "admin_force_complete": "Zorla Tamamla",
     "admin_force_confirm": "Bu, siparişi TAMAMLANDI olarak işaretleyecek. Emin misiniz?",
     "admin_completed": "Sipariş tamamlandı olarak işaretlendi.",
-    "transactions_heading": "İşlemler"
+    "transactions_heading": "İşlemler",
+    "unknown_creator": "Bilinmeyen içerik üreticisi"
   },
   "tickets": {
     "new_ticket_title": "Yeni Destek Talebi",

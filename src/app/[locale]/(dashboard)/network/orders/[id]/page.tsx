@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
+import OrderChatPanel, {
+  type OrderChatAssignmentOption,
+} from "@/components/OrderChatPanel";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
@@ -34,6 +37,7 @@ export default async function NetworkOrderDetailPage({
       assignments: {
         include: {
           creator: { include: { user: true } },
+          network: { include: { user: { select: { id: true } } } },
         },
       },
       deliveries: {
@@ -59,6 +63,25 @@ export default async function NetworkOrderDetailPage({
 
   const isOverdue = order.expiresAt && new Date(order.expiresAt) < new Date() &&
     !["COMPLETED", "CANCELLED"].includes(order.status);
+
+  // Only show chat for assignments this network is actually part of —
+  // either directly assigned, or owning the creator on the assignment.
+  const networkAssignments = order.assignments.filter(
+    (a) =>
+      a.networkId === network.id ||
+      (a.creator && a.creator.networkId === network.id)
+  );
+  const chatAssignments: OrderChatAssignmentOption[] = networkAssignments.map(
+    (a) => ({
+      id: a.id,
+      label:
+        a.creator?.user.name ??
+        (a.creator?.tiktokUsername ? `@${a.creator.tiktokUsername}` : a.id),
+    })
+  );
+  const showChat =
+    chatAssignments.length > 0 &&
+    !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -293,6 +316,16 @@ export default async function NetworkOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Order Chat */}
+      {showChat && (
+        <OrderChatPanel
+          orderId={order.id}
+          currentUserId={session.user.id}
+          assignments={chatAssignments}
+          showAssignmentPicker={chatAssignments.length > 1}
+        />
       )}
 
       {/* AI Delivery Analysis */}

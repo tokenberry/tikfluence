@@ -179,6 +179,25 @@
     "hours_ago": "il y a {count}h",
     "days_ago": "il y a {count}j"
   },
+  "chat": {
+    "title": "Discussion de commande",
+    "subtitle": "Messagerie sécurisée entre la marque et le créateur assigné.",
+    "loading": "Chargement des messages...",
+    "empty_state": "Aucun message. Lancez la conversation.",
+    "composer_placeholder": "Écrire un message...",
+    "send": "Envoyer",
+    "sending": "Envoi...",
+    "attach": "Joindre",
+    "uploading": "Envoi en cours...",
+    "upload_failed": "Échec du téléversement. Réessayez.",
+    "send_failed": "Échec de l'envoi du message.",
+    "message_too_long": "Message trop long (2000 caractères maximum).",
+    "too_many_attachments": "Vous pouvez joindre jusqu'à {max} images par message.",
+    "remove_attachment": "Retirer la pièce jointe",
+    "attachment_alt": "Pièce jointe {number}",
+    "pick_thread": "Choisir une discussion",
+    "no_assignments_yet": "La discussion apparaîtra une fois qu'un créateur sera assigné."
+  },
   "common": {
     "loading": "Chargement...",
     "processing": "Traitement...",
@@ -578,7 +597,8 @@
     "admin_force_complete": "Forcer la complétion",
     "admin_force_confirm": "Cela marquera la commande comme TERMINÉE. Êtes-vous sûr ?",
     "admin_completed": "Commande marquée comme terminée.",
-    "transactions_heading": "Transactions"
+    "transactions_heading": "Transactions",
+    "unknown_creator": "Créateur inconnu"
   },
   "tickets": {
     "new_ticket_title": "Nouveau ticket de support",

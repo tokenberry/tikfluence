@@ -114,7 +114,11 @@ export async function POST(
     }
 
     // Atomic status flip: re-read inside a transaction so a simultaneous
-    // accept doesn't race with this withdraw.
+    // accept doesn't race with this withdraw. Also drop the creator's
+    // AI match row for this order (v4.1.0 shortlist re-rank) so the
+    // shortlist updates immediately without the brand having to click
+    // Regenerate. `deleteMany` is a no-op if no row exists (e.g. the
+    // invite was sent via direct browse rather than the AI shortlist).
     const result = await prisma
       .$transaction(async (tx) => {
         const fresh = await tx.orderInvitation.findUnique({
@@ -127,6 +131,12 @@ export async function POST(
         await tx.orderInvitation.update({
           where: { id: invitationId },
           data: { status: "WITHDRAWN", respondedAt: new Date() },
+        })
+        await tx.aiCreatorMatch.deleteMany({
+          where: {
+            orderId: order.id,
+            creatorId: invitation.creator.id,
+          },
         })
         return { ok: true }
       })

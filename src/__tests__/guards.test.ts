@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest"
 import {
   canAccessOrderThread,
+  canReviewContentDraft,
   canReviewDeliveryAsRole,
+  canUploadContentDraft,
+  canViewContentDrafts,
   canViewOrder,
   isAccountManager,
   isAdmin,
@@ -327,6 +330,218 @@ describe("canAccessOrderThread", () => {
         brandUserId: "brand-1",
         assignmentUserIds: [],
         userId: "creator-1",
+        role: "CREATOR",
+      })
+    ).toBe(false)
+  })
+})
+
+describe("canUploadContentDraft", () => {
+  const base = {
+    brandUserId: "brand-1",
+    assignmentCreatorUserId: "creator-1",
+    assignmentNetworkUserId: "network-1" as string | null,
+    agencyUserId: "agency-1" as string | null,
+    accountManagerUserIds: ["am-1"] as readonly string[],
+  }
+
+  it("the assignment's creator can upload", () => {
+    expect(
+      canUploadContentDraft({
+        ...base,
+        userId: "creator-1",
+        role: "CREATOR",
+      })
+    ).toBe(true)
+  })
+
+  it("a peer creator on another assignment cannot upload", () => {
+    expect(
+      canUploadContentDraft({
+        ...base,
+        userId: "creator-2",
+        role: "CREATOR",
+      })
+    ).toBe(false)
+  })
+
+  it("the managing network can upload on the creator's behalf", () => {
+    expect(
+      canUploadContentDraft({
+        ...base,
+        userId: "network-1",
+        role: "NETWORK",
+      })
+    ).toBe(true)
+  })
+
+  it("a foreign network cannot upload", () => {
+    expect(
+      canUploadContentDraft({
+        ...base,
+        userId: "network-9",
+        role: "NETWORK",
+      })
+    ).toBe(false)
+  })
+
+  it("network without an assignmentNetworkUserId cannot upload", () => {
+    expect(
+      canUploadContentDraft({
+        ...base,
+        assignmentNetworkUserId: null,
+        userId: "network-1",
+        role: "NETWORK",
+      })
+    ).toBe(false)
+  })
+
+  it("brand, agency, AM, admin cannot upload drafts", () => {
+    for (const role of [
+      "BRAND",
+      "AGENCY",
+      "ACCOUNT_MANAGER",
+      "ADMIN",
+    ] as const) {
+      expect(
+        canUploadContentDraft({
+          ...base,
+          userId: "brand-1",
+          role,
+        })
+      ).toBe(false)
+    }
+  })
+})
+
+describe("canReviewContentDraft", () => {
+  const base = {
+    brandUserId: "brand-1",
+    assignmentCreatorUserId: "creator-1",
+    assignmentNetworkUserId: "network-1" as string | null,
+    agencyUserId: "agency-1" as string | null,
+    accountManagerUserIds: ["am-1", "am-2"] as readonly string[],
+  }
+
+  it("ADMIN can review any draft", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "random-admin",
+        role: "ADMIN",
+      })
+    ).toBe(true)
+  })
+
+  it("brand owner can review drafts on their own orders", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "brand-1",
+        role: "BRAND",
+      })
+    ).toBe(true)
+  })
+
+  it("another brand cannot review", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "brand-2",
+        role: "BRAND",
+      })
+    ).toBe(false)
+  })
+
+  it("managing agency can review", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "agency-1",
+        role: "AGENCY",
+      })
+    ).toBe(true)
+  })
+
+  it("unrelated agency cannot review", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "agency-9",
+        role: "AGENCY",
+      })
+    ).toBe(false)
+  })
+
+  it("assigned account manager can review", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "am-2",
+        role: "ACCOUNT_MANAGER",
+      })
+    ).toBe(true)
+  })
+
+  it("unassigned account manager cannot review", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "am-9",
+        role: "ACCOUNT_MANAGER",
+      })
+    ).toBe(false)
+  })
+
+  it("creator and network cannot review — they only upload", () => {
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "creator-1",
+        role: "CREATOR",
+      })
+    ).toBe(false)
+    expect(
+      canReviewContentDraft({
+        ...base,
+        userId: "network-1",
+        role: "NETWORK",
+      })
+    ).toBe(false)
+  })
+})
+
+describe("canViewContentDrafts", () => {
+  const base = {
+    brandUserId: "brand-1",
+    assignmentCreatorUserId: "creator-1",
+    assignmentNetworkUserId: "network-1" as string | null,
+    agencyUserId: "agency-1" as string | null,
+    accountManagerUserIds: ["am-1"] as readonly string[],
+  }
+
+  it("is the union of upload and review access", () => {
+    // Creator (upload side)
+    expect(
+      canViewContentDrafts({
+        ...base,
+        userId: "creator-1",
+        role: "CREATOR",
+      })
+    ).toBe(true)
+    // Brand (review side)
+    expect(
+      canViewContentDrafts({
+        ...base,
+        userId: "brand-1",
+        role: "BRAND",
+      })
+    ).toBe(true)
+    // Random stranger
+    expect(
+      canViewContentDrafts({
+        ...base,
+        userId: "stranger",
         role: "CREATOR",
       })
     ).toBe(false)

@@ -85,6 +85,8 @@ export function canReviewDeliveryAsRole(
   return isAdmin(role) || isBrand(role)
 }
 
+// --- Order chat thread guards (F1) ---------------------------------------
+
 export interface OrderThreadContext {
   /** The user attempting to read/write the order's chat thread. */
   userId: string
@@ -134,4 +136,88 @@ export function canAccessOrderThread(ctx: OrderThreadContext): boolean {
     return true
   }
   return false
+}
+
+// --- Pre-publish content draft guards (F2) --------------------------------
+
+export interface ContentDraftContext {
+  /** The user attempting the action. */
+  userId: string
+  role: UserRole | null | undefined
+  /** userId of the brand that owns the order. */
+  brandUserId: string
+  /** userId of the creator who owns the assignment the draft belongs to. */
+  assignmentCreatorUserId: string
+  /** userId of the network the assignment rolls up to, if any. */
+  assignmentNetworkUserId?: string | null
+  /** Optional: userId of the agency that manages this order's brand. */
+  agencyUserId?: string | null
+  /** Optional: userIds of account managers assigned to the brand/agency. */
+  accountManagerUserIds?: readonly string[]
+}
+
+/**
+ * Returns true if the given user is allowed to upload a new content draft
+ * against the specified assignment.
+ *
+ * Only the creator who owns the assignment (or the network that the
+ * assignment rolls up to, acting on the creator's behalf) may upload drafts
+ * — the brand side reviews, it does not produce drafts.
+ */
+export function canUploadContentDraft(ctx: ContentDraftContext): boolean {
+  if (isCreator(ctx.role) && ctx.userId === ctx.assignmentCreatorUserId) {
+    return true
+  }
+  if (
+    isNetwork(ctx.role) &&
+    ctx.assignmentNetworkUserId &&
+    ctx.userId === ctx.assignmentNetworkUserId
+  ) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Returns true if the given user is allowed to review (approve or reject)
+ * a content draft on the specified assignment.
+ *
+ * The review side mirrors `canViewOrder` minus the creator/network half:
+ *  - ADMIN can review any draft.
+ *  - The brand owner can review drafts on their own orders.
+ *  - The managing agency (if any) can review drafts for orders it manages.
+ *  - An account manager assigned to the brand/agency can review drafts.
+ *
+ * Creators and networks cannot review — they only upload.
+ */
+export function canReviewContentDraft(ctx: ContentDraftContext): boolean {
+  if (isAdmin(ctx.role)) return true
+  if (isBrand(ctx.role) && ctx.userId === ctx.brandUserId) return true
+  if (
+    isAgency(ctx.role) &&
+    ctx.agencyUserId &&
+    ctx.userId === ctx.agencyUserId
+  ) {
+    return true
+  }
+  if (
+    isAccountManager(ctx.role) &&
+    ctx.accountManagerUserIds &&
+    ctx.accountManagerUserIds.includes(ctx.userId)
+  ) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Returns true if the given user is allowed to view (list / read) content
+ * drafts on the specified assignment.
+ *
+ * View access is the union of upload and review access:
+ *  - Anyone who can upload a draft for this assignment can view its drafts.
+ *  - Anyone who can review a draft for this assignment can view them.
+ */
+export function canViewContentDrafts(ctx: ContentDraftContext): boolean {
+  return canUploadContentDraft(ctx) || canReviewContentDraft(ctx)
 }

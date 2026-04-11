@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
+import { CreatorShippingAddressForm } from "@/components/CreatorShippingAddressForm"
 
 export default function CreatorSettingsPage() {
   const t = useTranslations("creator")
@@ -150,6 +151,9 @@ export default function CreatorSettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Default shipping address (F3) */}
+      <CreatorShippingAddressForm />
     </div>
   )
 }

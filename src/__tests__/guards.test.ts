@@ -1,11 +1,14 @@
 import { describe, it, expect } from "vitest"
 import {
   canAccessOrderThread,
+  canManageShipping,
+  canReceiveShipment,
   canReviewContentDraft,
   canReviewDeliveryAsRole,
   canUploadContentDraft,
   canViewContentDrafts,
   canViewOrder,
+  canViewShipping,
   isAccountManager,
   isAdmin,
   isAgency,
@@ -544,6 +547,166 @@ describe("canViewContentDrafts", () => {
         userId: "stranger",
         role: "CREATOR",
       })
+    ).toBe(false)
+  })
+})
+
+// --- Physical product shipping guards (F3) -------------------------------
+
+describe("canManageShipping", () => {
+  const base = {
+    brandUserId: "brand-1",
+    assignmentCreatorUserId: "creator-1",
+    assignmentNetworkUserId: "network-1",
+    agencyUserId: "agency-1",
+    accountManagerUserIds: ["am-1", "am-2"],
+  } as const
+
+  it("admin can manage any shipment", () => {
+    expect(
+      canManageShipping({ ...base, userId: "admin-xyz", role: "ADMIN" })
+    ).toBe(true)
+  })
+
+  it("brand owner can manage their own shipment", () => {
+    expect(
+      canManageShipping({ ...base, userId: "brand-1", role: "BRAND" })
+    ).toBe(true)
+  })
+
+  it("different brand cannot manage shipment on another brand's order", () => {
+    expect(
+      canManageShipping({ ...base, userId: "brand-2", role: "BRAND" })
+    ).toBe(false)
+  })
+
+  it("managing agency can manage shipment", () => {
+    expect(
+      canManageShipping({ ...base, userId: "agency-1", role: "AGENCY" })
+    ).toBe(true)
+  })
+
+  it("unrelated agency cannot manage shipment", () => {
+    expect(
+      canManageShipping({ ...base, userId: "agency-2", role: "AGENCY" })
+    ).toBe(false)
+  })
+
+  it("assigned account manager can manage shipment", () => {
+    expect(
+      canManageShipping({
+        ...base,
+        userId: "am-2",
+        role: "ACCOUNT_MANAGER",
+      })
+    ).toBe(true)
+  })
+
+  it("unassigned account manager cannot manage shipment", () => {
+    expect(
+      canManageShipping({
+        ...base,
+        userId: "am-999",
+        role: "ACCOUNT_MANAGER",
+      })
+    ).toBe(false)
+  })
+
+  it("creator cannot manage shipping (receive only)", () => {
+    expect(
+      canManageShipping({ ...base, userId: "creator-1", role: "CREATOR" })
+    ).toBe(false)
+  })
+
+  it("network cannot manage shipping (receive only)", () => {
+    expect(
+      canManageShipping({ ...base, userId: "network-1", role: "NETWORK" })
+    ).toBe(false)
+  })
+})
+
+describe("canReceiveShipment", () => {
+  const base = {
+    brandUserId: "brand-1",
+    assignmentCreatorUserId: "creator-1",
+    assignmentNetworkUserId: "network-1",
+    agencyUserId: "agency-1",
+    accountManagerUserIds: ["am-1"],
+  } as const
+
+  it("the assigned creator can receive their own shipment", () => {
+    expect(
+      canReceiveShipment({ ...base, userId: "creator-1", role: "CREATOR" })
+    ).toBe(true)
+  })
+
+  it("another creator cannot receive this shipment", () => {
+    expect(
+      canReceiveShipment({ ...base, userId: "creator-2", role: "CREATOR" })
+    ).toBe(false)
+  })
+
+  it("the owning network can receive on the creator's behalf", () => {
+    expect(
+      canReceiveShipment({ ...base, userId: "network-1", role: "NETWORK" })
+    ).toBe(true)
+  })
+
+  it("a different network cannot receive this shipment", () => {
+    expect(
+      canReceiveShipment({ ...base, userId: "network-2", role: "NETWORK" })
+    ).toBe(false)
+  })
+
+  it("network with no network assigned on this assignment is denied", () => {
+    expect(
+      canReceiveShipment({
+        ...base,
+        assignmentNetworkUserId: null,
+        userId: "network-1",
+        role: "NETWORK",
+      })
+    ).toBe(false)
+  })
+
+  it("brand cannot receive (manage only)", () => {
+    expect(
+      canReceiveShipment({ ...base, userId: "brand-1", role: "BRAND" })
+    ).toBe(false)
+  })
+
+  it("admin cannot receive (manage only — support intervention lives on the manage side)", () => {
+    expect(
+      canReceiveShipment({ ...base, userId: "admin-1", role: "ADMIN" })
+    ).toBe(false)
+  })
+})
+
+describe("canViewShipping", () => {
+  const base = {
+    brandUserId: "brand-1",
+    assignmentCreatorUserId: "creator-1",
+    assignmentNetworkUserId: null,
+    agencyUserId: null,
+    accountManagerUserIds: [],
+  } as const
+
+  it("is the union of manage + receive access", () => {
+    // Brand (manage side)
+    expect(
+      canViewShipping({ ...base, userId: "brand-1", role: "BRAND" })
+    ).toBe(true)
+    // Creator (receive side)
+    expect(
+      canViewShipping({ ...base, userId: "creator-1", role: "CREATOR" })
+    ).toBe(true)
+    // Admin (manage side)
+    expect(
+      canViewShipping({ ...base, userId: "admin-1", role: "ADMIN" })
+    ).toBe(true)
+    // Random stranger
+    expect(
+      canViewShipping({ ...base, userId: "stranger", role: "CREATOR" })
     ).toBe(false)
   })
 })

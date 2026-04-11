@@ -116,6 +116,13 @@ export async function POST(
           creatorId,
           networkId,
           status: "ASSIGNED",
+          // F3: orders that require physical product shipment start the
+          // shipping state machine at PENDING_ADDRESS so the creator knows
+          // they need to confirm their shipping address before the brand
+          // can ship.
+          shippingStatus: order.requiresShipping
+            ? "PENDING_ADDRESS"
+            : "NOT_REQUIRED",
         },
         include: {
           creator: {

@@ -42,6 +42,9 @@ export default function NewOrderPage() {
     liveGuidelines: "",
     maxCreators: "1",
     deadline: "",
+    requiresShipping: false,
+    productDescription: "",
+    productValue: "",
   });
 
   const ORDER_TYPES: { value: OrderType; label: string; description: string; icon: string }[] = [
@@ -122,6 +125,14 @@ export default function NewOrderPage() {
           liveGuidelines: showLiveFields ? form.liveGuidelines || undefined : undefined,
           maxCreators: parseInt(form.maxCreators) || 1,
           deadline: form.deadline,
+          requiresShipping: form.requiresShipping,
+          productDescription: form.requiresShipping
+            ? form.productDescription || undefined
+            : undefined,
+          productValue:
+            form.requiresShipping && form.productValue
+              ? parseFloat(form.productValue)
+              : undefined,
         }),
       });
       if (res.ok) {
@@ -411,6 +422,68 @@ export default function NewOrderPage() {
             className={inputClasses}
           />
           <p className="mt-1 text-xs text-gray-400">{t("new_order_field_deadline_hint")}</p>
+        </div>
+
+        {/* Physical product shipping (F3) */}
+        <div className="border-t pt-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.requiresShipping}
+              onChange={(e) =>
+                setForm({ ...form, requiresShipping: e.target.checked })
+              }
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#d4772c] focus:ring-[#d4772c]"
+            />
+            <div>
+              <div className="text-sm font-medium text-gray-800">
+                {t("new_order_shipping_toggle")}
+              </div>
+              <div className="text-xs text-gray-500">
+                {t("new_order_shipping_hint")}
+              </div>
+            </div>
+          </label>
+
+          {form.requiresShipping && (
+            <div className="mt-3 space-y-3 rounded-md border border-orange-200 bg-orange-50 p-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  {t("new_order_product_description")}
+                </label>
+                <textarea
+                  required={form.requiresShipping}
+                  value={form.productDescription}
+                  onChange={(e) =>
+                    setForm({ ...form, productDescription: e.target.value })
+                  }
+                  rows={2}
+                  maxLength={500}
+                  className={inputClasses}
+                  placeholder={t("new_order_product_description_placeholder")}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  {t("new_order_product_value")}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.productValue}
+                  onChange={(e) =>
+                    setForm({ ...form, productValue: e.target.value })
+                  }
+                  className={inputClasses}
+                  placeholder="0.00"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {t("new_order_product_value_hint")}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <button

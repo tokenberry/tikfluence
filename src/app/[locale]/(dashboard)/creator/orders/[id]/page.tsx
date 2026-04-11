@@ -10,6 +10,7 @@ import OrderChatPanel, {
 import ContentDraftsPanel, {
   type ContentDraftsAssignmentOption,
 } from "@/components/ContentDraftsPanel";
+import { ShippingPanel } from "@/components/ShippingPanel";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
@@ -83,6 +84,12 @@ export default async function CreatorOrderDetailPage({
     }));
   const showDrafts =
     isAssigned && !["COMPLETED", "CANCELLED"].includes(order.status);
+
+  // F3: only one assignment on the creator page (their own).
+  const shippingAssignmentId =
+    order.requiresShipping && order.assignments[0]
+      ? order.assignments[0].id
+      : null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -284,6 +291,17 @@ export default async function CreatorOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Physical product shipping (F3) */}
+      {isAssigned && shippingAssignmentId && (
+        <ShippingPanel
+          orderId={order.id}
+          assignmentId={shippingAssignmentId}
+          mode="receiver"
+          productDescription={order.productDescription}
+          productValue={order.productValue}
+        />
       )}
 
       {/* Content Drafts (pre-publish review) */}

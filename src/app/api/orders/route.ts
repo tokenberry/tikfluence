@@ -127,6 +127,10 @@ const createOrderSchema = z.object({
   liveGuidelines: z.string().max(5000).optional(),
   maxCreators: z.number().int().min(1).default(1),
   deadline: z.string().min(1),
+  // F3: Physical product shipping
+  requiresShipping: z.boolean().optional().default(false),
+  productDescription: z.string().max(500).optional(),
+  productValue: z.number().min(0).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -150,7 +154,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, brief, categoryId, brandId: bodyBrandId, type, impressionTarget, budget, liveFlatFee, liveMinDuration, liveGuidelines, maxCreators, deadline } = parsed.data
+    const {
+      title,
+      description,
+      brief,
+      categoryId,
+      brandId: bodyBrandId,
+      type,
+      impressionTarget,
+      budget,
+      liveFlatFee,
+      liveMinDuration,
+      liveGuidelines,
+      maxCreators,
+      deadline,
+      requiresShipping,
+      productDescription,
+      productValue,
+    } = parsed.data
+
+    if (requiresShipping && !productDescription?.trim()) {
+      return NextResponse.json(
+        {
+          error:
+            "Product description is required when the order requires shipping",
+        },
+        { status: 400 }
+      )
+    }
 
     // Resolve brand and agency based on role
     let resolvedBrandId: string
@@ -251,6 +282,12 @@ export async function POST(request: NextRequest) {
         maxCreators,
         expiresAt: new Date(deadline),
         status: "DRAFT",
+        requiresShipping: requiresShipping ?? false,
+        productDescription: requiresShipping
+          ? (productDescription?.trim() ?? null)
+          : null,
+        productValue:
+          requiresShipping && productValue != null ? productValue : null,
       },
       include: {
         brand: {

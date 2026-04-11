@@ -11,6 +11,7 @@ import OrderChatPanel, {
 import ContentDraftsPanel, {
   type ContentDraftsAssignmentOption,
 } from "@/components/ContentDraftsPanel";
+import { ShippingPanel } from "@/components/ShippingPanel";
 import { StatusBadge, OrderTypeBadge, PaymentStatusBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
@@ -374,6 +375,20 @@ export default async function AdminOrderDetailPage({
           </div>
         </div>
       )}
+
+      {/* Physical product shipping (F3) — one panel per assignment */}
+      {order.requiresShipping &&
+        !["DRAFT", "OPEN", "CANCELLED"].includes(order.status) &&
+        order.assignments.map((a) => (
+          <ShippingPanel
+            key={`ship-${a.id}`}
+            orderId={order.id}
+            assignmentId={a.id}
+            mode="manager"
+            productDescription={order.productDescription}
+            productValue={order.productValue}
+          />
+        ))}
 
       {/* Content Drafts (pre-publish review) */}
       {showDrafts && (

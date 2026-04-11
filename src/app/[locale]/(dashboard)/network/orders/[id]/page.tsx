@@ -9,6 +9,7 @@ import OrderChatPanel, {
 import ContentDraftsPanel, {
   type ContentDraftsAssignmentOption,
 } from "@/components/ContentDraftsPanel";
+import { ShippingPanel } from "@/components/ShippingPanel";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
@@ -331,6 +332,20 @@ export default async function NetworkOrderDetailPage({
           </div>
         </div>
       )}
+
+      {/* Physical product shipping (F3) — one panel per network-owned assignment */}
+      {order.requiresShipping &&
+        !["DRAFT", "OPEN", "CANCELLED"].includes(order.status) &&
+        networkAssignments.map((a) => (
+          <ShippingPanel
+            key={`ship-${a.id}`}
+            orderId={order.id}
+            assignmentId={a.id}
+            mode="receiver"
+            productDescription={order.productDescription}
+            productValue={order.productValue}
+          />
+        ))}
 
       {/* Content Drafts (pre-publish review) */}
       {showDrafts && (

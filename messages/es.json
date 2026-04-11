@@ -431,6 +431,7 @@
     "new_order_product_description": "Descripción del producto *",
     "new_order_product_description_placeholder": "ej. Kit de lápiz labial de muestra, zapatillas talla 7, humectante de 500ml...",
     "new_order_product_value": "Valor declarado (USD)",
+    "new_order_product_value_hint": "Opcional. Se usa solo como referencia para aduanas y seguros.",
     "new_order_submit": "Crear pedido",
     "new_order_submit_loading": "Creando...",
     "new_order_error": "Error al crear el pedido.",

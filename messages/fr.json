@@ -431,6 +431,7 @@
     "new_order_product_description": "Description du produit *",
     "new_order_product_description_placeholder": "ex. Kit de rouge à lèvres échantillon, baskets taille 7, hydratant 500ml...",
     "new_order_product_value": "Valeur déclarée (USD)",
+    "new_order_product_value_hint": "Facultatif. Utilisé uniquement comme référence pour les douanes et l'assurance.",
     "new_order_submit": "Créer la commande",
     "new_order_submit_loading": "Création...",
     "new_order_error": "Échec de la création de la commande.",

@@ -67,6 +67,18 @@ enum DraftStatus {
   REJECTED
 }
 
+/// Per-assignment shipping state for orders that require a physical
+/// product to be shipped to the creator before they can record content.
+/// Orders without `requiresShipping` keep their assignments at NOT_REQUIRED.
+enum ShippingStatus {
+  NOT_REQUIRED      // Order doesn't require shipping at all.
+  PENDING_ADDRESS   // Creator hasn't confirmed their shipping address yet.
+  PENDING_SHIPMENT  // Address locked in, waiting for brand to ship.
+  SHIPPED           // Brand marked shipped with carrier + tracking.
+  DELIVERED         // Creator confirmed physical receipt.
+  ISSUE_REPORTED    // Creator reported lost/damaged/wrong item.
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -168,12 +180,37 @@ model Creator {
   aiAnalyses       AiCreatorAnalysis[]
   agencyCreators   AgencyCreator[]
   internalNotes    InternalNote[]
+  shippingAddress  CreatorShippingAddress?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
   @@index([score])
   @@index([tier])
   @@index([networkId])
+}
+
+/// Creator's persistent default shipping address (1:1 with Creator).
+/// Used as the pre-fill source when a creator confirms their address on
+/// an assignment that requires physical product shipment. The assignment
+/// snapshot (OrderAssignment.shipAddress*) is the record of truth per
+/// shipment; this model is just the latest default the creator maintains
+/// on their settings page.
+model CreatorShippingAddress {
+  id         String   @id @default(cuid())
+  creatorId  String   @unique
+  creator    Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  fullName   String
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  postalCode String
+  country    String   // ISO-2
+  phone      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model CreatorNetwork {
@@ -262,6 +299,19 @@ model Order {
   status      OrderStatus @default(DRAFT)
   maxCreators Int         @default(1)
 
+  // ── Physical product shipping (F3) ──
+  /// When true, the brand must ship a physical product to each assigned
+  /// creator before they can produce content. Each OrderAssignment tracks
+  /// its own shipping state independently so multi-creator orders can
+  /// ship in parallel without blocking each other.
+  requiresShipping   Boolean @default(false)
+  /// Short description of what the brand will ship (e.g. "Lipstick shade
+  /// #4 in the Spring 2026 palette"). Only required when requiresShipping
+  /// is true; rendered to creators when they're deciding whether to accept.
+  productDescription String?
+  /// Declared value in USD (for customs + insurance disclosure).
+  productValue       Float?
+
   stripePaymentId          String?
   stripeCheckoutSessionId  String?
   paymentStatus            PaymentStatus @default(PENDING)
@@ -303,12 +353,39 @@ model OrderAssignment {
   acceptedAt  DateTime    @default(now())
   completedAt DateTime?
 
+  // ── Physical product shipping (F3) ──
+  /// Per-assignment shipping state machine. Orders where
+  /// `order.requiresShipping === false` leave this at NOT_REQUIRED.
+  shippingStatus     ShippingStatus @default(NOT_REQUIRED)
+  // Address snapshot — the creator's persistent profile address is
+  // copied onto the assignment the moment it's confirmed so that
+  // later edits to the creator profile don't rewrite history on past
+  // shipments. All fields are optional at the schema level; the
+  // assign-shipping route requires them in combination.
+  shipAddressName    String?
+  shipAddressLine1   String?
+  shipAddressLine2   String?
+  shipAddressCity    String?
+  shipAddressState   String?
+  shipAddressPostal  String?
+  shipAddressCountry String?  // ISO-2 country code
+  shipAddressPhone   String?
+  // Tracking + timestamps
+  shippingCarrier    String?
+  shippingTracking   String?
+  shippingTrackingUrl String?
+  shippedAt          DateTime?
+  deliveredAt        DateTime?
+  shippingNotes      String?
+  shippingIssue      String?
+
   messages      OrderMessage[]
   contentDrafts ContentDraft[]
 
   @@index([orderId])
   @@index([creatorId])
   @@index([networkId])
+  @@index([shippingStatus])
 }
 
 model Delivery {

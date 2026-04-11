@@ -221,3 +221,85 @@ export function canReviewContentDraft(ctx: ContentDraftContext): boolean {
 export function canViewContentDrafts(ctx: ContentDraftContext): boolean {
   return canUploadContentDraft(ctx) || canReviewContentDraft(ctx)
 }
+
+// --- Physical product shipping guards (F3) --------------------------------
+
+export interface ShippingContext {
+  /** The user attempting the action. */
+  userId: string
+  role: UserRole | null | undefined
+  /** userId of the brand that owns the order. */
+  brandUserId: string
+  /** userId of the creator who owns the assignment being shipped to. */
+  assignmentCreatorUserId: string
+  /** userId of the network the assignment rolls up to, if any. */
+  assignmentNetworkUserId?: string | null
+  /** Optional: userId of the agency that manages this order's brand. */
+  agencyUserId?: string | null
+  /** Optional: userIds of account managers assigned to the brand/agency. */
+  accountManagerUserIds?: readonly string[]
+}
+
+/**
+ * Returns true if the given user is allowed to manage the brand side of a
+ * shipment (mark as shipped, update tracking, edit carrier notes).
+ *
+ * Rules mirror `canReviewContentDraft`:
+ *  - ADMIN can always manage shipping (support intervention).
+ *  - The brand owner can manage shipments on their own orders.
+ *  - The managing agency (if any) can manage shipments for brands it manages.
+ *  - An account manager assigned to the brand/agency can manage shipments.
+ *
+ * Creators and networks cannot manage — they only receive and confirm.
+ */
+export function canManageShipping(ctx: ShippingContext): boolean {
+  if (isAdmin(ctx.role)) return true
+  if (isBrand(ctx.role) && ctx.userId === ctx.brandUserId) return true
+  if (
+    isAgency(ctx.role) &&
+    ctx.agencyUserId &&
+    ctx.userId === ctx.agencyUserId
+  ) {
+    return true
+  }
+  if (
+    isAccountManager(ctx.role) &&
+    ctx.accountManagerUserIds &&
+    ctx.accountManagerUserIds.includes(ctx.userId)
+  ) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Returns true if the given user is allowed to act on the receiving side of
+ * a shipment: provide/confirm the shipping address, confirm delivery once
+ * the package arrives, or report an issue (lost / damaged / wrong item).
+ *
+ * Only the creator who owns the assignment (or the network that the
+ * assignment rolls up to, acting on the creator's behalf) may take these
+ * actions — the brand side cannot confirm receipt on the creator's behalf.
+ */
+export function canReceiveShipment(ctx: ShippingContext): boolean {
+  if (isCreator(ctx.role) && ctx.userId === ctx.assignmentCreatorUserId) {
+    return true
+  }
+  if (
+    isNetwork(ctx.role) &&
+    ctx.assignmentNetworkUserId &&
+    ctx.userId === ctx.assignmentNetworkUserId
+  ) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Returns true if the given user is allowed to view shipping state on the
+ * specified assignment. The union of manage + receive access, mirroring how
+ * `canViewContentDrafts` composes its two halves.
+ */
+export function canViewShipping(ctx: ShippingContext): boolean {
+  return canManageShipping(ctx) || canReceiveShipment(ctx)
+}

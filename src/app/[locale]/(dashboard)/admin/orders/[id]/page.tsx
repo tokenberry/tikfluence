@@ -12,6 +12,7 @@ import ContentDraftsPanel, {
   type ContentDraftsAssignmentOption,
 } from "@/components/ContentDraftsPanel";
 import { ShippingPanel } from "@/components/ShippingPanel";
+import CreatorMatchList from "@/components/CreatorMatchList";
 import { StatusBadge, OrderTypeBadge, PaymentStatusBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
@@ -389,6 +390,11 @@ export default async function AdminOrderDetailPage({
             productValue={order.productValue}
           />
         ))}
+
+      {/* AI-driven creator matching (F4) */}
+      {!["COMPLETED", "CANCELLED"].includes(order.status) && (
+        <CreatorMatchList orderId={order.id} />
+      )}
 
       {/* Content Drafts (pre-publish review) */}
       {showDrafts && (

@@ -67,16 +67,31 @@ enum DraftStatus {
   REJECTED
 }
 
+/// Lifecycle for an AI-suggested creator invitation on an order.
+/// Created PENDING by the brand when they click "Invite" on an
+/// `AiCreatorMatch` row. The creator resolves it to ACCEPTED (which
+/// also creates an `OrderAssignment`) or DECLINED. The inviter can
+/// withdraw a still-pending invitation (WITHDRAWN); EXPIRED is set
+/// by a cron/job when the order passes `expiresAt` with the
+/// invitation still pending.
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+  EXPIRED
+}
+
 /// Per-assignment shipping state for orders that require a physical
 /// product to be shipped to the creator before they can record content.
 /// Orders without `requiresShipping` keep their assignments at NOT_REQUIRED.
 enum ShippingStatus {
-  NOT_REQUIRED      // Order doesn't require shipping at all.
-  PENDING_ADDRESS   // Creator hasn't confirmed their shipping address yet.
-  PENDING_SHIPMENT  // Address locked in, waiting for brand to ship.
-  SHIPPED           // Brand marked shipped with carrier + tracking.
-  DELIVERED         // Creator confirmed physical receipt.
-  ISSUE_REPORTED    // Creator reported lost/damaged/wrong item.
+  NOT_REQUIRED // Order doesn't require shipping at all.
+  PENDING_ADDRESS // Creator hasn't confirmed their shipping address yet.
+  PENDING_SHIPMENT // Address locked in, waiting for brand to ship.
+  SHIPPED // Brand marked shipped with carrier + tracking.
+  DELIVERED // Creator confirmed physical receipt.
+  ISSUE_REPORTED // Creator reported lost/damaged/wrong item.
 }
 
 model User {
@@ -92,19 +107,20 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts        Account[]
-  creator         Creator?
-  network         CreatorNetwork?
-  brand           Brand?
-  agency          Agency?
-  accountManager  AccountManager?
-  tickets         SupportTicket[] @relation("TicketCreator")
-  assignedTickets SupportTicket[] @relation("TicketAssignee")
-  notifications   Notification[]
-  auditLogs       AuditLog[]      @relation("AuditActor")
-  sentOrderMessages OrderMessage[] @relation("OrderMessageSender")
-  uploadedDrafts  ContentDraft[]  @relation("ContentDraftCreator")
-  reviewedDrafts  ContentDraft[]  @relation("ContentDraftReviewer")
+  accounts          Account[]
+  creator           Creator?
+  network           CreatorNetwork?
+  brand             Brand?
+  agency            Agency?
+  accountManager    AccountManager?
+  tickets           SupportTicket[]   @relation("TicketCreator")
+  assignedTickets   SupportTicket[]   @relation("TicketAssignee")
+  notifications     Notification[]
+  auditLogs         AuditLog[]        @relation("AuditActor")
+  sentOrderMessages OrderMessage[]    @relation("OrderMessageSender")
+  uploadedDrafts    ContentDraft[]    @relation("ContentDraftCreator")
+  reviewedDrafts    ContentDraft[]    @relation("ContentDraftReviewer")
+  sentInvitations   OrderInvitation[] @relation("OrderInvitationInviter")
 
   @@index([role])
   @@index([email])
@@ -142,8 +158,8 @@ model Creator {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  tiktokUsername String  @unique
-  tiktokId       String? @unique
+  tiktokUsername      String    @unique
+  tiktokId            String?   @unique
   tiktokVerified      Boolean   @default(false)
   verificationCode    String?
   verificationCodeExp DateTime?
@@ -178,11 +194,13 @@ model Creator {
   metricsUpdatedAt DateTime?
   orderAssignments OrderAssignment[]
   aiAnalyses       AiCreatorAnalysis[]
+  aiCreatorMatches AiCreatorMatch[]
+  invitations      OrderInvitation[]
   agencyCreators   AgencyCreator[]
   internalNotes    InternalNote[]
   shippingAddress  CreatorShippingAddress?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
 
   @@index([score])
   @@index([tier])
@@ -196,9 +214,9 @@ model Creator {
 /// shipment; this model is just the latest default the creator maintains
 /// on their settings page.
 model CreatorShippingAddress {
-  id         String   @id @default(cuid())
-  creatorId  String   @unique
-  creator    Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  creatorId String  @unique
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
   fullName   String
   line1      String
@@ -206,7 +224,7 @@ model CreatorShippingAddress {
   city       String
   state      String?
   postalCode String
-  country    String   // ISO-2
+  country    String // ISO-2
   phone      String?
 
   createdAt DateTime @default(now())
@@ -249,8 +267,8 @@ model Brand {
   agencyBrands        AgencyBrand[]
   accountManagerBrand AccountManagerBrand[]
   internalNotes       InternalNote[]
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 }
 
 model Category {
@@ -312,25 +330,32 @@ model Order {
   /// Declared value in USD (for customs + insurance disclosure).
   productValue       Float?
 
-  stripePaymentId          String?
-  stripeCheckoutSessionId  String?
-  paymentStatus            PaymentStatus @default(PENDING)
-  creditApplied            Float         @default(0)
-  amountCharged            Float?
+  stripePaymentId         String?
+  stripeCheckoutSessionId String?
+  paymentStatus           PaymentStatus @default(PENDING)
+  creditApplied           Float         @default(0)
+  amountCharged           Float?
 
-  agencyId     String?
-  agency       Agency?           @relation(fields: [agencyId], references: [id])
+  agencyId String?
+  agency   Agency? @relation(fields: [agencyId], references: [id])
 
-  assignments      OrderAssignment[]
-  deliveries       Delivery[]
-  transactions     Transaction[]
-  internalNotes    InternalNote[]
+  assignments        OrderAssignment[]
+  deliveries         Delivery[]
+  transactions       Transaction[]
+  internalNotes      InternalNote[]
   aiDeliveryAnalyses AiDeliveryAnalysis[]
-  messages         OrderMessage[]
-  contentDrafts    ContentDraft[]
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  expiresAt    DateTime?
+  aiCreatorMatches   AiCreatorMatch[]
+  invitations        OrderInvitation[]
+  messages           OrderMessage[]
+  contentDrafts      ContentDraft[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  expiresAt          DateTime?
+  /// Timestamp of the most recent successful AI match generation run.
+  /// Populated by `POST /api/orders/[id]/matches` after each successful
+  /// `matchCreatorsToOrder()` call. Null until the brand (or an agent
+  /// on their behalf) generates matches for the first time.
+  matchesGeneratedAt DateTime?
 
   @@index([status])
   @@index([status, createdAt])
@@ -356,28 +381,28 @@ model OrderAssignment {
   // ── Physical product shipping (F3) ──
   /// Per-assignment shipping state machine. Orders where
   /// `order.requiresShipping === false` leave this at NOT_REQUIRED.
-  shippingStatus     ShippingStatus @default(NOT_REQUIRED)
+  shippingStatus      ShippingStatus @default(NOT_REQUIRED)
   // Address snapshot — the creator's persistent profile address is
   // copied onto the assignment the moment it's confirmed so that
   // later edits to the creator profile don't rewrite history on past
   // shipments. All fields are optional at the schema level; the
   // assign-shipping route requires them in combination.
-  shipAddressName    String?
-  shipAddressLine1   String?
-  shipAddressLine2   String?
-  shipAddressCity    String?
-  shipAddressState   String?
-  shipAddressPostal  String?
-  shipAddressCountry String?  // ISO-2 country code
-  shipAddressPhone   String?
+  shipAddressName     String?
+  shipAddressLine1    String?
+  shipAddressLine2    String?
+  shipAddressCity     String?
+  shipAddressState    String?
+  shipAddressPostal   String?
+  shipAddressCountry  String? // ISO-2 country code
+  shipAddressPhone    String?
   // Tracking + timestamps
-  shippingCarrier    String?
-  shippingTracking   String?
+  shippingCarrier     String?
+  shippingTracking    String?
   shippingTrackingUrl String?
-  shippedAt          DateTime?
-  deliveredAt        DateTime?
-  shippingNotes      String?
-  shippingIssue      String?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+  shippingNotes       String?
+  shippingIssue       String?
 
   messages      OrderMessage[]
   contentDrafts ContentDraft[]
@@ -416,7 +441,7 @@ model Delivery {
 
   notes String?
 
-  submittedAt     DateTime  @default(now())
+  submittedAt     DateTime             @default(now())
   reviewedAt      DateTime?
   approved        Boolean?
   rejectionReason String?
@@ -433,9 +458,9 @@ model Delivery {
 /// approved draft). Scoped per-assignment so multi-creator orders get
 /// their own draft history per creator.
 model ContentDraft {
-  id           String @id @default(cuid())
+  id           String          @id @default(cuid())
   orderId      String
-  order        Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order        Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   assignmentId String
   assignment   OrderAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
@@ -443,20 +468,20 @@ model ContentDraft {
   creatorUserId String
   creatorUser   User   @relation("ContentDraftCreator", fields: [creatorUserId], references: [id], onDelete: Cascade)
 
-  draftType  DraftType @default(VIDEO)
+  draftType DraftType @default(VIDEO)
   /// Blob URLs. At most 5 files per draft.
-  fileUrls   String[]  @default([])
+  fileUrls  String[]  @default([])
   /// Optional short note from the creator (what they want feedback on).
-  notes      String?
+  notes     String?
 
-  status     DraftStatus @default(PENDING_REVIEW)
+  status         DraftStatus @default(PENDING_REVIEW)
   /// User.id of the brand/agency/AM/admin who reviewed the draft.
   reviewerUserId String?
-  reviewerUser   User?    @relation("ContentDraftReviewer", fields: [reviewerUserId], references: [id])
+  reviewerUser   User?       @relation("ContentDraftReviewer", fields: [reviewerUserId], references: [id])
   reviewNotes    String?
   reviewedAt     DateTime?
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([orderId, createdAt])
   @@index([assignmentId, createdAt])
@@ -477,7 +502,7 @@ model Transaction {
   stripePaymentId  String?
   stripeTransferId String?
   payoneerPayoutId String?
-  payoutMethod     String  @default("PAYONEER") // PAYONEER or STRIPE
+  payoutMethod     String        @default("PAYONEER") // PAYONEER or STRIPE
   status           PaymentStatus @default(PENDING)
 
   createdAt DateTime @default(now())
@@ -520,16 +545,16 @@ model TicketMessage {
 }
 
 model OrderMessage {
-  id           String  @id @default(cuid())
+  id           String           @id @default(cuid())
   orderId      String
-  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order        Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
   assignmentId String?
   assignment   OrderAssignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   senderId     String
-  sender       User    @relation("OrderMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  sender       User             @relation("OrderMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
   body         String
-  attachments  String[] @default([])
-  createdAt    DateTime @default(now())
+  attachments  String[]         @default([])
+  createdAt    DateTime         @default(now())
 
   @@index([orderId, createdAt])
   @@index([assignmentId])
@@ -571,27 +596,96 @@ model AiCreatorAnalysis {
 }
 
 model AiDeliveryAnalysis {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   orderId    String
-  order      Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   deliveryId String
   delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
 
-  performanceSummary    String
-  performanceScore      Int         // 0-100
-  metricsBreakdown      String      // JSON string of metric-by-metric analysis
-  briefAlignment        String      // how well the delivery matched the brief
-  audienceEngagement    String      // analysis of engagement patterns
-  strengths             String[]
-  improvements          String[]
-  whatsNext             String[]    // actionable next-step suggestions
-  recommendedNextOrder  String?     // suggested next campaign type/approach
+  performanceSummary   String
+  performanceScore     Int // 0-100
+  metricsBreakdown     String // JSON string of metric-by-metric analysis
+  briefAlignment       String // how well the delivery matched the brief
+  audienceEngagement   String // analysis of engagement patterns
+  strengths            String[]
+  improvements         String[]
+  whatsNext            String[] // actionable next-step suggestions
+  recommendedNextOrder String? // suggested next campaign type/approach
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([deliveryId])
+}
+
+/// AI-generated (order, creator) match record. A single call to
+/// `matchCreatorsToOrder()` produces up to N rows (N = top-match cap)
+/// for a given order. Each row is keyed per-creator; when the brand
+/// re-runs matching, existing rows for that order/creator are upserted
+/// so the history reflects the latest scoring. The brand sees these
+/// sorted by `matchScore DESC` on the order detail page.
+model AiCreatorMatch {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  /// 0–100 integer-ish score. Higher = better fit for the order's
+  /// goals, audience, category, and budget.
+  matchScore  Float
+  /// Short (<=500 char) plain-English rationale the AI produced.
+  matchReason String
+  /// Optional structured breakdown (audience fit, content style,
+  /// category fit, price fit, engagement — see
+  /// `MatchReasoningSchema` in `src/lib/ai.ts`). Stored as JSON so the
+  /// front-end can render a detailed view later without a migration.
+  reasoning   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, creatorId])
+  @@index([orderId, matchScore])
+  @@index([creatorId])
+}
+
+/// Brand-initiated invitation for a specific creator to join an order.
+/// Created from the AI match list (or manually) when the brand wants
+/// to pull a creator in without waiting for them to discover the order
+/// in the OPEN list. The creator's inbox (`/creator/invitations`) shows
+/// every PENDING row addressed to them; accepting one creates an
+/// OrderAssignment (reusing the same state machine as the public
+/// accept route) and flips the invitation to ACCEPTED.
+model OrderInvitation {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  /// User.id of whoever clicked "Invite" (brand owner, agency, AM,
+  /// or admin on their behalf). Snapshotted here so the inbox can
+  /// show "invited by X" even if the underlying brand is later
+  /// rebranded.
+  invitedByUserId String
+  invitedByUser   User   @relation("OrderInvitationInviter", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+
+  status      InvitationStatus @default(PENDING)
+  /// Optional personal note from the inviter to the creator.
+  message     String?
+  /// Populated when the creator accepts/declines, or when the inviter
+  /// withdraws the invitation, or when a cron marks it EXPIRED.
+  respondedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, creatorId])
+  @@index([creatorId, status])
+  @@index([orderId, status])
+  @@index([invitedByUserId])
 }
 
 model PlatformSettings {
@@ -608,8 +702,8 @@ model BrandCredit {
   brandId String
   brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
-  amount  Float   // positive = credit added, negative = credit used
-  reason  String  // e.g. "Order cancelled", "Credit applied to order"
+  amount  Float // positive = credit added, negative = credit used
+  reason  String // e.g. "Order cancelled", "Credit applied to order"
   orderId String? // related order if applicable
 
   createdAt DateTime @default(now())
@@ -620,31 +714,31 @@ model BrandCredit {
 // ──── Agency & Account Manager ────
 
 model Agency {
-  id          String @id @default(cuid())
-  userId      String @unique
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   companyName String
   website     String?
   description String?
   logo        String?
 
-  managedBrands   AgencyBrand[]
-  managedCreators AgencyCreator[]
-  orders          Order[]
+  managedBrands        AgencyBrand[]
+  managedCreators      AgencyCreator[]
+  orders               Order[]
   accountManagerAgency AccountManagerAgency[]
-  internalNotes   InternalNote[]
+  internalNotes        InternalNote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model AgencyBrand {
-  id       String @id @default(cuid())
+  id       String   @id @default(cuid())
   agencyId String
-  agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  agency   Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   brandId  String
-  brand    Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brand    Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   status   String   @default("PENDING") // PENDING, APPROVED, REJECTED
   addedAt  DateTime @default(now())
   notes    String?
@@ -655,11 +749,11 @@ model AgencyBrand {
 }
 
 model AgencyCreator {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   agencyId  String
-  agency    Agency  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   creatorId String
-  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   addedAt   DateTime @default(now())
   notes     String?
 
@@ -669,9 +763,9 @@ model AgencyCreator {
 }
 
 model AccountManager {
-  id         String @id @default(cuid())
-  userId     String @unique
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String  @id @default(cuid())
+  userId     String  @unique
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   department String?
 
   assignedBrands   AccountManagerBrand[]
@@ -754,7 +848,7 @@ model AuditLog {
 
   // What was changed
   action     String // e.g. "user.suspend", "user.activate", "settings.update",
-                   // "dispute.resolve", "agency_brand.approve", "users.bulk_suspend"
+  // "dispute.resolve", "agency_brand.approve", "users.bulk_suspend"
   targetType String // "USER" | "ORDER" | "SETTINGS" | "AGENCY_BRAND" | "BULK"
   targetId   String? // null for "SETTINGS" (singleton) and bulk ops
 

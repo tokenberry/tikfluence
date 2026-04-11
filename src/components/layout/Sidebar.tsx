@@ -20,6 +20,7 @@ import {
   StickyNote,
   LayoutDashboard,
   ScrollText,
+  Mail,
   X,
   type LucideIcon,
 } from "lucide-react"
@@ -40,12 +41,14 @@ const iconMap: Record<string, LucideIcon> = {
   clients: Building2,
   notes: StickyNote,
   audit_log: ScrollText,
+  invitations: Mail,
 }
 
 export const roleNavLinks: Record<string, { labelKey: string; icon: string; href: string }[]> = {
   CREATOR: [
     { labelKey: "creator_dashboard", icon: "dashboard", href: "/creator" },
     { labelKey: "creator_orders", icon: "orders", href: "/creator/orders" },
+    { labelKey: "creator_invitations", icon: "invitations", href: "/creator/invitations" },
     { labelKey: "creator_earnings", icon: "earnings", href: "/creator/earnings" },
     { labelKey: "creator_tickets", icon: "tickets", href: "/creator/tickets" },
     { labelKey: "creator_profile", icon: "profile", href: "/creator/profile" },

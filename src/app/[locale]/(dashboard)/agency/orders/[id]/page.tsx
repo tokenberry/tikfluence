@@ -10,6 +10,7 @@ import ContentDraftsPanel, {
   type ContentDraftsAssignmentOption,
 } from "@/components/ContentDraftsPanel";
 import { ShippingPanel } from "@/components/ShippingPanel";
+import CreatorMatchList from "@/components/CreatorMatchList";
 import AgencyOrderActions from "../../brands/[id]/AgencyOrderActions";
 import DeliveryActions from "@/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
@@ -353,6 +354,11 @@ export default async function AgencyOrderDetailPage({
             productValue={order.productValue}
           />
         ))}
+
+      {/* AI-driven creator matching (F4) */}
+      {!["COMPLETED", "CANCELLED"].includes(order.status) && (
+        <CreatorMatchList orderId={order.id} />
+      )}
 
       {/* Content Drafts (pre-publish review) */}
       {showDrafts && (

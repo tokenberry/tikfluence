@@ -6,6 +6,9 @@ import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import OrderChatPanel, {
   type OrderChatAssignmentOption,
 } from "@/components/OrderChatPanel";
+import ContentDraftsPanel, {
+  type ContentDraftsAssignmentOption,
+} from "@/components/ContentDraftsPanel";
 import AgencyOrderActions from "../../brands/[id]/AgencyOrderActions";
 import DeliveryActions from "@/app/[locale]/(dashboard)/brand/orders/[id]/DeliveryActions";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
@@ -81,6 +84,19 @@ export default async function AgencyOrderDetailPage({
   );
   const showChat =
     chatAssignments.length > 0 &&
+    !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
+
+  const draftAssignments: ContentDraftsAssignmentOption[] =
+    order.assignments.map((a) => ({
+      id: a.id,
+      label:
+        a.creator?.user.name ??
+        (a.creator?.tiktokUsername
+          ? `@${a.creator.tiktokUsername}`
+          : t("unknown_creator")),
+    }));
+  const showDrafts =
+    draftAssignments.length > 0 &&
     !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
 
   return (
@@ -321,6 +337,16 @@ export default async function AgencyOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Content Drafts (pre-publish review) */}
+      {showDrafts && (
+        <ContentDraftsPanel
+          orderId={order.id}
+          mode="reviewer"
+          assignments={draftAssignments}
+          showAssignmentPicker={draftAssignments.length > 1}
+        />
       )}
 
       {/* Order Chat */}

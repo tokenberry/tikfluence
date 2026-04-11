@@ -8,6 +8,9 @@ import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import OrderChatPanel, {
   type OrderChatAssignmentOption,
 } from "@/components/OrderChatPanel";
+import ContentDraftsPanel, {
+  type ContentDraftsAssignmentOption,
+} from "@/components/ContentDraftsPanel";
 import { StatusBadge, OrderTypeBadge, PaymentStatusBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
@@ -75,6 +78,20 @@ export default async function AdminOrderDetailPage({
   );
   const showChat =
     chatAssignments.length > 0 &&
+    !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
+
+  const draftAssignments: ContentDraftsAssignmentOption[] =
+    order.assignments.map((a) => ({
+      id: a.id,
+      label:
+        a.creator?.user.name ??
+        a.network?.user.name ??
+        a.creator?.user.email ??
+        a.network?.user.email ??
+        a.id,
+    }));
+  const showDrafts =
+    draftAssignments.length > 0 &&
     !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
 
   return (
@@ -356,6 +373,16 @@ export default async function AdminOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Content Drafts (pre-publish review) */}
+      {showDrafts && (
+        <ContentDraftsPanel
+          orderId={order.id}
+          mode="reviewer"
+          assignments={draftAssignments}
+          showAssignmentPicker={draftAssignments.length > 1}
+        />
       )}
 
       {/* Order Chat */}

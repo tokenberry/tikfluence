@@ -6,6 +6,9 @@ import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import OrderChatPanel, {
   type OrderChatAssignmentOption,
 } from "@/components/OrderChatPanel";
+import ContentDraftsPanel, {
+  type ContentDraftsAssignmentOption,
+} from "@/components/ContentDraftsPanel";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
@@ -82,6 +85,17 @@ export default async function NetworkOrderDetailPage({
   const showChat =
     chatAssignments.length > 0 &&
     !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
+
+  const draftAssignments: ContentDraftsAssignmentOption[] =
+    networkAssignments.map((a) => ({
+      id: a.id,
+      label:
+        a.creator?.user.name ??
+        (a.creator?.tiktokUsername ? `@${a.creator.tiktokUsername}` : a.id),
+    }));
+  const showDrafts =
+    draftAssignments.length > 0 &&
+    !["COMPLETED", "CANCELLED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -316,6 +330,16 @@ export default async function NetworkOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Content Drafts (pre-publish review) */}
+      {showDrafts && (
+        <ContentDraftsPanel
+          orderId={order.id}
+          mode="creator"
+          assignments={draftAssignments}
+          showAssignmentPicker={draftAssignments.length > 1}
+        />
       )}
 
       {/* Order Chat */}

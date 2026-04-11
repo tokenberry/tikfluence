@@ -79,6 +79,7 @@ model User {
   assignedTickets SupportTicket[] @relation("TicketAssignee")
   notifications   Notification[]
   auditLogs       AuditLog[]      @relation("AuditActor")
+  sentOrderMessages OrderMessage[] @relation("OrderMessageSender")
 
   @@index([role])
   @@index([email])
@@ -262,6 +263,7 @@ model Order {
   transactions     Transaction[]
   internalNotes    InternalNote[]
   aiDeliveryAnalyses AiDeliveryAnalysis[]
+  messages         OrderMessage[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   expiresAt    DateTime?
@@ -286,6 +288,8 @@ model OrderAssignment {
   status      OrderStatus @default(ASSIGNED)
   acceptedAt  DateTime    @default(now())
   completedAt DateTime?
+
+  messages OrderMessage[]
 
   @@index([orderId])
   @@index([creatorId])
@@ -383,6 +387,23 @@ model TicketMessage {
   createdAt DateTime      @default(now())
 
   @@index([ticketId])
+}
+
+model OrderMessage {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  assignmentId String?
+  assignment   OrderAssignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  senderId     String
+  sender       User    @relation("OrderMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  body         String
+  attachments  String[] @default([])
+  createdAt    DateTime @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([assignmentId])
+  @@index([senderId])
 }
 
 model Notification {

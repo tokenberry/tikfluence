@@ -5,6 +5,9 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import DeliveryActions from "./DeliveryActions";
 import OrderActions from "./OrderActions";
 import DeliveryAiInsights from "@/components/DeliveryAiInsights";
+import OrderChatPanel, {
+  type OrderChatAssignmentOption,
+} from "@/components/OrderChatPanel";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
@@ -55,6 +58,20 @@ export default async function BrandOrderDetailPage({
 
   const isOverdue = order.expiresAt && new Date(order.expiresAt) < new Date() &&
     !["COMPLETED", "CANCELLED"].includes(order.status);
+
+  const chatAssignments: OrderChatAssignmentOption[] = order.assignments.map(
+    (a) => ({
+      id: a.id,
+      label:
+        a.creator?.user.name ??
+        (a.creator?.tiktokUsername
+          ? `@${a.creator.tiktokUsername}`
+          : t("unknown_creator")),
+    })
+  );
+  const showChat =
+    chatAssignments.length > 0 &&
+    !["DRAFT", "OPEN", "CANCELLED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -328,6 +345,16 @@ export default async function BrandOrderDetailPage({
           </div>
         )}
       </div>
+
+      {/* Order Chat */}
+      {showChat && (
+        <OrderChatPanel
+          orderId={order.id}
+          currentUserId={session.user.id}
+          assignments={chatAssignments}
+          showAssignmentPicker={chatAssignments.length > 1}
+        />
+      )}
 
       {/* AI Delivery Analysis */}
       {order.status === "COMPLETED" && (

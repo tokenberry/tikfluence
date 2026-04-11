@@ -179,6 +179,25 @@
     "hours_ago": "{count}h ago",
     "days_ago": "{count}d ago"
   },
+  "chat": {
+    "title": "Order Chat",
+    "subtitle": "Secure messaging between the brand side and the assigned creator.",
+    "loading": "Loading messages...",
+    "empty_state": "No messages yet. Say hi to kick things off.",
+    "composer_placeholder": "Write a message...",
+    "send": "Send",
+    "sending": "Sending...",
+    "attach": "Attach",
+    "uploading": "Uploading...",
+    "upload_failed": "Upload failed. Please try again.",
+    "send_failed": "Failed to send message.",
+    "message_too_long": "Message is too long (max 2000 characters).",
+    "too_many_attachments": "You can attach up to {max} images per message.",
+    "remove_attachment": "Remove attachment",
+    "attachment_alt": "Attachment {number}",
+    "pick_thread": "Pick a thread",
+    "no_assignments_yet": "The chat will appear once a creator is assigned to this order."
+  },
   "common": {
     "loading": "Loading...",
     "processing": "Processing...",
@@ -578,7 +597,8 @@
     "admin_force_complete": "Force Complete",
     "admin_force_confirm": "This will mark the order as COMPLETED. Are you sure?",
     "admin_completed": "Order marked as completed.",
-    "transactions_heading": "Transactions"
+    "transactions_heading": "Transactions",
+    "unknown_creator": "Unknown creator"
   },
   "tickets": {
     "new_ticket_title": "New Support Ticket",

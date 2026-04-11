@@ -179,6 +179,25 @@
     "hours_ago": "منذ {count} ساعة",
     "days_ago": "منذ {count} يوم"
   },
+  "chat": {
+    "title": "محادثة الطلب",
+    "subtitle": "مراسلات آمنة بين جهة العلامة التجارية والمبدع المعيَّن.",
+    "loading": "جارٍ تحميل الرسائل...",
+    "empty_state": "لا توجد رسائل بعد. ابدأ المحادثة!",
+    "composer_placeholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "sending": "جارٍ الإرسال...",
+    "attach": "إرفاق",
+    "uploading": "جارٍ الرفع...",
+    "upload_failed": "فشل الرفع. حاول مرة أخرى.",
+    "send_failed": "تعذّر إرسال الرسالة.",
+    "message_too_long": "الرسالة طويلة جدًا (الحد الأقصى 2000 حرف).",
+    "too_many_attachments": "يمكنك إرفاق حتى {max} صور لكل رسالة.",
+    "remove_attachment": "إزالة المرفق",
+    "attachment_alt": "مرفق {number}",
+    "pick_thread": "اختر محادثة",
+    "no_assignments_yet": "ستظهر المحادثة بعد تعيين مبدع لهذا الطلب."
+  },
   "common": {
     "loading": "جاري التحميل...",
     "processing": "جاري المعالجة...",
@@ -578,7 +597,8 @@
     "admin_force_complete": "إكمال إجباري",
     "admin_force_confirm": "سيتم تعليم الطلب كمكتمل. هل أنت متأكد؟",
     "admin_completed": "تم تعليم الطلب كمكتمل.",
-    "transactions_heading": "المعاملات"
+    "transactions_heading": "المعاملات",
+    "unknown_creator": "مبدع غير معروف"
   },
   "tickets": {
     "new_ticket_title": "تذكرة دعم جديدة",

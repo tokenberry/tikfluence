@@ -179,6 +179,25 @@
     "hours_ago": "hace {count}h",
     "days_ago": "hace {count}d"
   },
+  "chat": {
+    "title": "Chat del pedido",
+    "subtitle": "Mensajería segura entre la marca y el creador asignado.",
+    "loading": "Cargando mensajes...",
+    "empty_state": "Aún no hay mensajes. ¡Saluda para empezar!",
+    "composer_placeholder": "Escribe un mensaje...",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "attach": "Adjuntar",
+    "uploading": "Subiendo...",
+    "upload_failed": "Error al subir. Inténtalo de nuevo.",
+    "send_failed": "No se pudo enviar el mensaje.",
+    "message_too_long": "El mensaje es demasiado largo (máx. 2000 caracteres).",
+    "too_many_attachments": "Puedes adjuntar hasta {max} imágenes por mensaje.",
+    "remove_attachment": "Quitar adjunto",
+    "attachment_alt": "Adjunto {number}",
+    "pick_thread": "Elige una conversación",
+    "no_assignments_yet": "El chat aparecerá cuando se asigne un creador al pedido."
+  },
   "common": {
     "loading": "Cargando...",
     "processing": "Procesando...",
@@ -578,7 +597,8 @@
     "admin_force_complete": "Forzar completado",
     "admin_force_confirm": "Esto marcará el pedido como COMPLETADO. ¿Estás seguro?",
     "admin_completed": "Pedido marcado como completado.",
-    "transactions_heading": "Transacciones"
+    "transactions_heading": "Transacciones",
+    "unknown_creator": "Creador desconocido"
   },
   "tickets": {
     "new_ticket_title": "Nuevo ticket de soporte",

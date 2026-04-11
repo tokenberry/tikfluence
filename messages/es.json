@@ -886,7 +886,17 @@
     "invite_success": "Invitación enviada.",
     "invite_failed": "No se pudo enviar la invitación.",
     "message_placeholder": "Nota personal opcional para el creador…",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "batch_invite": "Invitación rápida:",
+    "batch_invite_top_n": "Invitar al top {n}",
+    "batch_inviting": "Enviando…",
+    "batch_success": "{count} creador(es) invitado(s); {skipped} omitido(s).",
+    "batch_failed": "No se pudieron enviar las invitaciones por lotes.",
+    "batch_nothing_to_invite": "No quedan creadores elegibles para invitar.",
+    "withdraw": "Retirar",
+    "withdrawing": "Retirando…",
+    "withdraw_success": "Invitación retirada.",
+    "withdraw_failed": "No se pudo retirar la invitación."
   },
   "invitations": {
     "title": "Invitaciones",

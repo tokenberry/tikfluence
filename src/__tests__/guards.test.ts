@@ -5,6 +5,7 @@ import {
   canManageShipping,
   canReceiveShipment,
   canRespondToInvitation,
+  canWithdrawInvitation,
   canReviewContentDraft,
   canReviewDeliveryAsRole,
   canUploadContentDraft,
@@ -827,5 +828,85 @@ describe("canRespondToInvitation (F4)", () => {
         invitedCreatorUserId: "creator-1",
       })
     ).toBe(true)
+  })
+})
+
+describe("canWithdrawInvitation (F4 completion / v4.0.1)", () => {
+  const base = {
+    brandUserId: "brand-1",
+    agencyUserId: "agency-1" as string | null,
+    accountManagerUserIds: ["am-1", "am-2"] as readonly string[],
+  }
+
+  it("permits ADMIN", () => {
+    expect(
+      canWithdrawInvitation({ ...base, userId: "admin-1", role: "ADMIN" })
+    ).toBe(true)
+  })
+
+  it("permits the brand owner", () => {
+    expect(
+      canWithdrawInvitation({ ...base, userId: "brand-1", role: "BRAND" })
+    ).toBe(true)
+  })
+
+  it("rejects a different brand", () => {
+    expect(
+      canWithdrawInvitation({ ...base, userId: "brand-2", role: "BRAND" })
+    ).toBe(false)
+  })
+
+  it("permits the managing agency", () => {
+    expect(
+      canWithdrawInvitation({ ...base, userId: "agency-1", role: "AGENCY" })
+    ).toBe(true)
+  })
+
+  it("rejects an unrelated agency", () => {
+    expect(
+      canWithdrawInvitation({ ...base, userId: "agency-2", role: "AGENCY" })
+    ).toBe(false)
+  })
+
+  it("permits an assigned account manager", () => {
+    expect(
+      canWithdrawInvitation({
+        ...base,
+        userId: "am-1",
+        role: "ACCOUNT_MANAGER",
+      })
+    ).toBe(true)
+    expect(
+      canWithdrawInvitation({
+        ...base,
+        userId: "am-2",
+        role: "ACCOUNT_MANAGER",
+      })
+    ).toBe(true)
+  })
+
+  it("rejects an unassigned account manager", () => {
+    expect(
+      canWithdrawInvitation({
+        ...base,
+        userId: "am-9",
+        role: "ACCOUNT_MANAGER",
+      })
+    ).toBe(false)
+  })
+
+  it("rejects creators and networks", () => {
+    expect(
+      canWithdrawInvitation({ ...base, userId: "creator-1", role: "CREATOR" })
+    ).toBe(false)
+    expect(
+      canWithdrawInvitation({ ...base, userId: "network-1", role: "NETWORK" })
+    ).toBe(false)
+  })
+
+  it("rejects anonymous callers", () => {
+    expect(
+      canWithdrawInvitation({ ...base, userId: "anon", role: null })
+    ).toBe(false)
   })
 })

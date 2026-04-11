@@ -886,7 +886,17 @@
     "invite_success": "Davet gönderildi.",
     "invite_failed": "Davet gönderilemedi.",
     "message_placeholder": "İçerik üreticisine opsiyonel kişisel not…",
-    "cancel": "İptal"
+    "cancel": "İptal",
+    "batch_invite": "Hızlı davet:",
+    "batch_invite_top_n": "En iyi {n} kişiyi davet et",
+    "batch_inviting": "Davet ediliyor…",
+    "batch_success": "{count} içerik üreticisi davet edildi; {skipped} atlandı.",
+    "batch_failed": "Toplu davetler gönderilemedi.",
+    "batch_nothing_to_invite": "Davet edilecek uygun içerik üreticisi kalmadı.",
+    "withdraw": "Geri çek",
+    "withdrawing": "Geri çekiliyor…",
+    "withdraw_success": "Davet geri çekildi.",
+    "withdraw_failed": "Davet geri çekilemedi."
   },
   "invitations": {
     "title": "Davetler",

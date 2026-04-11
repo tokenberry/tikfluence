@@ -7,6 +7,9 @@ import DeliveryAiInsights from "@/components/DeliveryAiInsights";
 import OrderChatPanel, {
   type OrderChatAssignmentOption,
 } from "@/components/OrderChatPanel";
+import ContentDraftsPanel, {
+  type ContentDraftsAssignmentOption,
+} from "@/components/ContentDraftsPanel";
 import { StatusBadge, OrderTypeBadge } from "@/components/ui/Badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getTranslations } from "next-intl/server";
@@ -72,6 +75,14 @@ export default async function CreatorOrderDetailPage({
   );
   const showChat =
     isAssigned && !["CANCELLED"].includes(order.status);
+
+  const draftAssignments: ContentDraftsAssignmentOption[] =
+    order.assignments.map((a) => ({
+      id: a.id,
+      label: order.brand.companyName,
+    }));
+  const showDrafts =
+    isAssigned && !["COMPLETED", "CANCELLED"].includes(order.status);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6">
@@ -273,6 +284,15 @@ export default async function CreatorOrderDetailPage({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Content Drafts (pre-publish review) */}
+      {showDrafts && (
+        <ContentDraftsPanel
+          orderId={order.id}
+          mode="creator"
+          assignments={draftAssignments}
+        />
       )}
 
       {/* Order Chat */}

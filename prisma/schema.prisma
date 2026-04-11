@@ -56,6 +56,17 @@ enum TicketStatus {
   CLOSED
 }
 
+enum DraftType {
+  VIDEO
+  IMAGES
+}
+
+enum DraftStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -80,6 +91,8 @@ model User {
   notifications   Notification[]
   auditLogs       AuditLog[]      @relation("AuditActor")
   sentOrderMessages OrderMessage[] @relation("OrderMessageSender")
+  uploadedDrafts  ContentDraft[]  @relation("ContentDraftCreator")
+  reviewedDrafts  ContentDraft[]  @relation("ContentDraftReviewer")
 
   @@index([role])
   @@index([email])
@@ -264,6 +277,7 @@ model Order {
   internalNotes    InternalNote[]
   aiDeliveryAnalyses AiDeliveryAnalysis[]
   messages         OrderMessage[]
+  contentDrafts    ContentDraft[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   expiresAt    DateTime?
@@ -289,7 +303,8 @@ model OrderAssignment {
   acceptedAt  DateTime    @default(now())
   completedAt DateTime?
 
-  messages OrderMessage[]
+  messages      OrderMessage[]
+  contentDrafts ContentDraft[]
 
   @@index([orderId])
   @@index([creatorId])
@@ -332,6 +347,44 @@ model Delivery {
 
   @@index([orderId])
   @@index([orderId, approved])
+}
+
+/// Pre-publish content review: creators can upload video/images so the
+/// brand side can approve (or request changes) before the creator posts
+/// to TikTok. Drafts are advisory only — they do NOT block delivery
+/// submission (creators can still submit a delivery without any
+/// approved draft). Scoped per-assignment so multi-creator orders get
+/// their own draft history per creator.
+model ContentDraft {
+  id           String @id @default(cuid())
+  orderId      String
+  order        Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  assignmentId String
+  assignment   OrderAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  /// User.id of the creator or network user who uploaded the draft.
+  creatorUserId String
+  creatorUser   User   @relation("ContentDraftCreator", fields: [creatorUserId], references: [id], onDelete: Cascade)
+
+  draftType  DraftType @default(VIDEO)
+  /// Blob URLs. At most 5 files per draft.
+  fileUrls   String[]  @default([])
+  /// Optional short note from the creator (what they want feedback on).
+  notes      String?
+
+  status     DraftStatus @default(PENDING_REVIEW)
+  /// User.id of the brand/agency/AM/admin who reviewed the draft.
+  reviewerUserId String?
+  reviewerUser   User?    @relation("ContentDraftReviewer", fields: [reviewerUserId], references: [id])
+  reviewNotes    String?
+  reviewedAt     DateTime?
+
+  createdAt  DateTime @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([assignmentId, createdAt])
+  @@index([creatorUserId])
+  @@index([status])
 }
 
 model Transaction {

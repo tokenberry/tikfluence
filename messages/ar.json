@@ -431,6 +431,7 @@
     "new_order_product_description": "وصف المنتج *",
     "new_order_product_description_placeholder": "مثال: عينة مجموعة أحمر شفاه، حذاء رياضي مقاس 7، مرطب 500 مل...",
     "new_order_product_value": "القيمة المعلنة (دولار أمريكي)",
+    "new_order_product_value_hint": "اختياري. يُستخدم للجمارك والتأمين فقط كمرجع.",
     "new_order_submit": "إنشاء الطلب",
     "new_order_submit_loading": "جاري الإنشاء...",
     "new_order_error": "فشل في إنشاء الطلب.",

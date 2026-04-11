@@ -431,6 +431,7 @@
     "new_order_product_description": "Product description *",
     "new_order_product_description_placeholder": "e.g. Sample lipstick kit, size 7 running shoes, 500ml moisturizer...",
     "new_order_product_value": "Declared value (USD)",
+    "new_order_product_value_hint": "Optional. Used for customs and insurance reference only.",
     "new_order_submit": "Create Order",
     "new_order_submit_loading": "Creating...",
     "new_order_error": "Failed to create order.",

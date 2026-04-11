@@ -1,12 +1,15 @@
 import { describe, it, expect } from "vitest"
 import {
   canAccessOrderThread,
+  canInviteCreator,
   canManageShipping,
   canReceiveShipment,
+  canRespondToInvitation,
   canReviewContentDraft,
   canReviewDeliveryAsRole,
   canUploadContentDraft,
   canViewContentDrafts,
+  canViewMatches,
   canViewOrder,
   canViewShipping,
   isAccountManager,
@@ -708,5 +711,121 @@ describe("canViewShipping", () => {
     expect(
       canViewShipping({ ...base, userId: "stranger", role: "CREATOR" })
     ).toBe(false)
+  })
+})
+
+describe("canViewMatches (F4)", () => {
+  const base = {
+    brandUserId: "brand-1",
+    agencyUserId: "agency-1",
+    accountManagerUserIds: ["am-1", "am-2"],
+  }
+
+  it("permits admin regardless of ownership", () => {
+    expect(
+      canViewMatches({ ...base, userId: "admin-1", role: "ADMIN" })
+    ).toBe(true)
+  })
+
+  it("permits brand owner", () => {
+    expect(
+      canViewMatches({ ...base, userId: "brand-1", role: "BRAND" })
+    ).toBe(true)
+  })
+
+  it("rejects a different brand user", () => {
+    expect(
+      canViewMatches({ ...base, userId: "brand-2", role: "BRAND" })
+    ).toBe(false)
+  })
+
+  it("permits the managing agency", () => {
+    expect(
+      canViewMatches({ ...base, userId: "agency-1", role: "AGENCY" })
+    ).toBe(true)
+  })
+
+  it("rejects a different agency", () => {
+    expect(
+      canViewMatches({ ...base, userId: "agency-2", role: "AGENCY" })
+    ).toBe(false)
+  })
+
+  it("permits an assigned account manager", () => {
+    expect(
+      canViewMatches({ ...base, userId: "am-1", role: "ACCOUNT_MANAGER" })
+    ).toBe(true)
+    expect(
+      canViewMatches({ ...base, userId: "am-2", role: "ACCOUNT_MANAGER" })
+    ).toBe(true)
+  })
+
+  it("rejects an account manager not assigned to the brand/agency", () => {
+    expect(
+      canViewMatches({ ...base, userId: "am-9", role: "ACCOUNT_MANAGER" })
+    ).toBe(false)
+  })
+
+  it("rejects creator + network + unauthenticated", () => {
+    expect(
+      canViewMatches({ ...base, userId: "creator-1", role: "CREATOR" })
+    ).toBe(false)
+    expect(
+      canViewMatches({ ...base, userId: "network-1", role: "NETWORK" })
+    ).toBe(false)
+    expect(canViewMatches({ ...base, userId: "anon", role: null })).toBe(false)
+  })
+
+  it("canInviteCreator mirrors canViewMatches exactly", () => {
+    expect(
+      canInviteCreator({ ...base, userId: "brand-1", role: "BRAND" })
+    ).toBe(true)
+    expect(
+      canInviteCreator({ ...base, userId: "creator-1", role: "CREATOR" })
+    ).toBe(false)
+  })
+})
+
+describe("canRespondToInvitation (F4)", () => {
+  it("permits the invited creator", () => {
+    expect(
+      canRespondToInvitation({
+        userId: "creator-1",
+        role: "CREATOR",
+        invitedCreatorUserId: "creator-1",
+      })
+    ).toBe(true)
+  })
+
+  it("rejects a different creator", () => {
+    expect(
+      canRespondToInvitation({
+        userId: "creator-2",
+        role: "CREATOR",
+        invitedCreatorUserId: "creator-1",
+      })
+    ).toBe(false)
+  })
+
+  it("rejects networks, brands, agencies, AMs", () => {
+    for (const role of ["NETWORK", "BRAND", "AGENCY", "ACCOUNT_MANAGER"] as const) {
+      expect(
+        canRespondToInvitation({
+          userId: "creator-1",
+          role,
+          invitedCreatorUserId: "creator-1",
+        })
+      ).toBe(false)
+    }
+  })
+
+  it("permits admin for support intervention", () => {
+    expect(
+      canRespondToInvitation({
+        userId: "admin-1",
+        role: "ADMIN",
+        invitedCreatorUserId: "creator-1",
+      })
+    ).toBe(true)
   })
 })

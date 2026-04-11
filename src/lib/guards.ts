@@ -303,3 +303,80 @@ export function canReceiveShipment(ctx: ShippingContext): boolean {
 export function canViewShipping(ctx: ShippingContext): boolean {
   return canManageShipping(ctx) || canReceiveShipment(ctx)
 }
+
+// --- AI creator matching + invitations guards (F4) -----------------------
+
+export interface OrderMatchContext {
+  /** The user attempting the action. */
+  userId: string
+  role: UserRole | null | undefined
+  /** userId of the brand that owns the order. */
+  brandUserId: string
+  /** Optional: userId of the agency that manages this order's brand. */
+  agencyUserId?: string | null
+  /** Optional: userIds of account managers assigned to the brand/agency. */
+  accountManagerUserIds?: readonly string[]
+}
+
+/**
+ * Returns true if the given user may view the AI-generated creator match
+ * list for the order, and (by extension) may trigger a fresh AI match
+ * generation run.
+ *
+ * The match list exposes scored creator profiles scoped to the brand's
+ * campaign — only the brand-side (ADMIN / brand owner / managing agency /
+ * assigned account managers) may see it. Creators and networks can NOT
+ * see "who else is being matched on this order"; they only see the
+ * invitations addressed directly to them.
+ */
+export function canViewMatches(ctx: OrderMatchContext): boolean {
+  if (isAdmin(ctx.role)) return true
+  if (isBrand(ctx.role) && ctx.userId === ctx.brandUserId) return true
+  if (
+    isAgency(ctx.role) &&
+    ctx.agencyUserId &&
+    ctx.userId === ctx.agencyUserId
+  ) {
+    return true
+  }
+  if (
+    isAccountManager(ctx.role) &&
+    ctx.accountManagerUserIds &&
+    ctx.accountManagerUserIds.includes(ctx.userId)
+  ) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Returns true if the given user may invite a creator to the order
+ * (create an `OrderInvitation` row). Same role set as `canViewMatches`
+ * since inviting is a brand-side action.
+ */
+export function canInviteCreator(ctx: OrderMatchContext): boolean {
+  return canViewMatches(ctx)
+}
+
+export interface InvitationContext {
+  /** The user attempting the action. */
+  userId: string
+  role: UserRole | null | undefined
+  /** userId of the creator the invitation is addressed to. */
+  invitedCreatorUserId: string
+}
+
+/**
+ * Returns true if the given user is allowed to respond (accept / decline)
+ * to an invitation addressed to a specific creator. Only the invited
+ * creator's own user account may respond — networks, brands, and other
+ * creators cannot answer on someone else's behalf. ADMINs can also
+ * respond for support intervention.
+ */
+export function canRespondToInvitation(ctx: InvitationContext): boolean {
+  if (isAdmin(ctx.role)) return true
+  if (isCreator(ctx.role) && ctx.userId === ctx.invitedCreatorUserId) {
+    return true
+  }
+  return false
+}

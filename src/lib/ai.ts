@@ -335,3 +335,204 @@ export async function getDeliveryAnalysis(orderId: string) {
     orderBy: { createdAt: "desc" },
   })
 }
+
+// ──── Campaign-Driven Creator Matching (F4) ────
+
+/// Hard cap on how many creators we send into the prompt in a single
+/// request. Keeping the pool small keeps prompt size (and AI cost + latency)
+/// bounded and well inside the 60s request budget even on slow days.
+const MATCH_CANDIDATE_POOL = 50
+/// Hard cap on how many matches we return to the caller. The AI may
+/// return fewer (if the pool is small); it must not return more.
+const MATCH_RESULT_CAP = 10
+
+/// Structured per-factor reasoning the AI produces for every match
+/// row. Stored in `AiCreatorMatch.reasoning` as JSON so the front-end
+/// can later render an expandable breakdown without another migration.
+const matchReasoningSchema = z.object({
+  audienceFit: z.string().nullable(),
+  categoryFit: z.string().nullable(),
+  contentStyleFit: z.string().nullable(),
+  budgetFit: z.string().nullable(),
+  engagementQuality: z.string().nullable(),
+})
+
+const singleMatchSchema = z.object({
+  creatorId: z.string(),
+  matchScore: z.number().min(0).max(100),
+  matchReason: z.string().min(1).max(500),
+  reasoning: matchReasoningSchema.nullable(),
+})
+
+const matchResponseSchema = z.object({
+  matches: z.array(singleMatchSchema),
+})
+
+export type CreatorMatchReasoning = z.infer<typeof matchReasoningSchema>
+
+export interface MatchOrderInput {
+  orderId: string
+  title: string
+  description: string
+  brief: string | null
+  categoryName: string
+  orderType: string
+  budget: number
+  cpmRate: number
+  impressionTarget: number
+  liveFlatFee: number | null
+  liveMinDuration: number | null
+  requiresShipping: boolean
+}
+
+export interface MatchCandidate {
+  id: string
+  tiktokUsername: string
+  name: string | null
+  followerCount: number
+  avgViews: number
+  engagementRate: number
+  score: number
+  tier: number
+  pricePerThousand: number
+  bio: string | null
+  categories: string[]
+  supportsLive: boolean
+  supportsShortVideo: boolean
+}
+
+export interface MatchResultRow {
+  creatorId: string
+  matchScore: number
+  matchReason: string
+  reasoning: CreatorMatchReasoning | null
+}
+
+/**
+ * Rank a pool of candidate creators against an order using GPT-4o-mini
+ * and return up to `MATCH_RESULT_CAP` best matches with short rationales.
+ * The caller is responsible for loading candidates from Prisma and
+ * persisting the returned rows into `AiCreatorMatch`.
+ *
+ * This function is pure(ish): it calls the AI, parses + validates the
+ * response, and returns the ranked rows. No database writes here —
+ * the route handler owns persistence so it can also stamp
+ * `order.matchesGeneratedAt` in the same transaction.
+ */
+export async function matchCreatorsToOrder(
+  order: MatchOrderInput,
+  candidates: MatchCandidate[]
+): Promise<MatchResultRow[]> {
+  if (candidates.length === 0) return []
+
+  const pool = candidates.slice(0, MATCH_CANDIDATE_POOL)
+  const poolJson = pool.map((c) => ({
+    creatorId: c.id,
+    username: c.tiktokUsername,
+    name: c.name ?? null,
+    followers: c.followerCount,
+    avgViews: c.avgViews,
+    engagementRate: Number(c.engagementRate.toFixed(2)),
+    score: Number(c.score.toFixed(1)),
+    tier: c.tier,
+    cpm: Number(c.pricePerThousand.toFixed(2)),
+    bio: c.bio ?? null,
+    categories: c.categories,
+    supportsLive: c.supportsLive,
+    supportsShortVideo: c.supportsShortVideo,
+  }))
+
+  const prompt = `You are a TikTok influencer matching analyst for Foxolog, a professional influencer marketplace. A brand has created a campaign and you must identify the best-fit creators from the supplied candidate pool.
+
+Campaign:
+- Title: ${order.title}
+- Description: ${order.description}
+- Brief: ${order.brief ?? "No detailed brief provided"}
+- Category: ${order.categoryName}
+- Order Type: ${order.orderType}${
+    order.orderType === "SHORT_VIDEO" || order.orderType === "COMBO"
+      ? `\n- Impression Target: ${order.impressionTarget.toLocaleString()}\n- Budget: $${order.budget.toFixed(2)}\n- Target CPM: $${order.cpmRate.toFixed(2)}`
+      : ""
+  }${
+    order.orderType === "LIVE" || order.orderType === "COMBO"
+      ? `\n- LIVE Flat Fee: $${(order.liveFlatFee ?? 0).toFixed(2)}${
+          order.liveMinDuration
+            ? `\n- Min LIVE Duration: ${order.liveMinDuration} min`
+            : ""
+        }`
+      : ""
+  }
+- Requires Physical Product Shipping: ${order.requiresShipping ? "Yes" : "No"}
+
+Candidate Creators (pool size: ${pool.length}):
+${JSON.stringify(poolJson, null, 2)}
+
+Score each creator from 0 (terrible fit) to 100 (perfect fit) based on:
+1. Category/niche fit with the campaign topic
+2. Audience size and engagement quality vs the campaign's impression target
+3. Content format alignment (supportsLive / supportsShortVideo vs order type)
+4. Price fit (creator's CPM vs campaign CPM target — below or equal is ideal)
+5. Content style / bio alignment with the brand's message
+
+Return ONLY a JSON object with this exact structure:
+{
+  "matches": [
+    {
+      "creatorId": "<exact creatorId from the pool>",
+      "matchScore": <0-100>,
+      "matchReason": "1-2 sentence plain-English rationale (max 500 chars)",
+      "reasoning": {
+        "audienceFit": "short note or null",
+        "categoryFit": "short note or null",
+        "contentStyleFit": "short note or null",
+        "budgetFit": "short note or null",
+        "engagementQuality": "short note or null"
+      }
+    }
+  ]
+}
+
+Rules:
+- Return at most ${MATCH_RESULT_CAP} rows.
+- Return rows sorted by matchScore DESC.
+- Only include creators you consider a reasonable fit (matchScore >= 40).
+- Use the creatorId exactly as given — never invent ids.
+- Respond with the JSON object ONLY, no prose, no markdown fences.`
+
+  const text = await callAI(prompt, 2048)
+
+  let parsed: z.infer<typeof matchResponseSchema>
+  try {
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    const jsonText = jsonMatch ? jsonMatch[0] : text
+    const json = JSON.parse(jsonText)
+    parsed = matchResponseSchema.parse(json)
+  } catch (err) {
+    log.error(
+      {
+        event: "ai_match_parse_failed",
+        err,
+        preview: text.slice(0, 300),
+      },
+      "Failed to parse AI creator match response"
+    )
+    throw new Error(
+      err instanceof z.ZodError
+        ? `AI response validation failed: ${err.issues.map((i) => i.message).join(", ")}`
+        : "AI returned invalid JSON for creator matching"
+    )
+  }
+
+  const validIds = new Set(pool.map((c) => c.id))
+  const rows = parsed.matches
+    .filter((m) => validIds.has(m.creatorId))
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, MATCH_RESULT_CAP)
+
+  return rows.map((m) => ({
+    creatorId: m.creatorId,
+    matchScore: m.matchScore,
+    matchReason: m.matchReason,
+    reasoning: m.reasoning,
+  }))
+}

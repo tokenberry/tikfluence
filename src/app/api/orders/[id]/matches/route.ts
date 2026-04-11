@@ -240,21 +240,44 @@ export async function POST(
     // Load the candidate pool: creators in the order's category,
     // active users, not already assigned or invited. We cap at 60 so
     // the prompt stays bounded; the AI function slices to 50 internally.
-    const [existingAssignments, existingInvitations] = await Promise.all([
-      prisma.orderAssignment.findMany({
-        where: { orderId, creatorId: { not: null } },
-        select: { creatorId: true },
-      }),
-      prisma.orderInvitation.findMany({
-        where: { orderId, status: "PENDING" },
-        select: { creatorId: true },
-      }),
-    ])
+    //
+    // v4.1.0: cooldown filter — creators whose invitation was recently
+    // `WITHDRAWN` / `DECLINED` / `EXPIRED` (within the last
+    // `MATCH_COOLDOWN_DAYS`, default 14) are excluded so the AI doesn't
+    // immediately re-recommend a creator the brand just dropped or who
+    // just ghosted. The invitation can still be re-sent manually by the
+    // brand from the browse page — this only filters the AI shortlist.
+    const cooldownDays = Number(
+      process.env.MATCH_COOLDOWN_DAYS ?? 14
+    )
+    const cooldownCutoff = new Date(
+      Date.now() - cooldownDays * 24 * 60 * 60 * 1000
+    )
+    const [existingAssignments, existingInvitations, cooldownInvites] =
+      await Promise.all([
+        prisma.orderAssignment.findMany({
+          where: { orderId, creatorId: { not: null } },
+          select: { creatorId: true },
+        }),
+        prisma.orderInvitation.findMany({
+          where: { orderId, status: "PENDING" },
+          select: { creatorId: true },
+        }),
+        prisma.orderInvitation.findMany({
+          where: {
+            orderId,
+            status: { in: ["WITHDRAWN", "DECLINED", "EXPIRED"] },
+            respondedAt: { gte: cooldownCutoff },
+          },
+          select: { creatorId: true },
+        }),
+      ])
     const excludedCreatorIds = new Set<string>([
       ...existingAssignments
         .map((a) => a.creatorId)
         .filter((x): x is string => x !== null),
       ...existingInvitations.map((i) => i.creatorId),
+      ...cooldownInvites.map((i) => i.creatorId),
     ])
 
     // Category restriction + type compatibility. COMBO orders require

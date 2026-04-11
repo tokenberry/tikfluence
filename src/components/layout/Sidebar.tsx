@@ -21,6 +21,7 @@ import {
   LayoutDashboard,
   ScrollText,
   Mail,
+  Sparkles,
   X,
   type LucideIcon,
 } from "lucide-react"
@@ -42,6 +43,7 @@ const iconMap: Record<string, LucideIcon> = {
   notes: StickyNote,
   audit_log: ScrollText,
   invitations: Mail,
+  matches: Sparkles,
 }
 
 export const roleNavLinks: Record<string, { labelKey: string; icon: string; href: string }[]> = {
@@ -73,6 +75,7 @@ export const roleNavLinks: Record<string, { labelKey: string; icon: string; href
     { labelKey: "admin_agency_claims", icon: "agency_claims", href: "/admin/agency-brands" },
     { labelKey: "admin_tickets", icon: "tickets", href: "/admin/tickets" },
     { labelKey: "admin_analytics", icon: "analytics", href: "/admin/analytics" },
+    { labelKey: "admin_matches", icon: "matches", href: "/admin/matches" },
     { labelKey: "admin_audit_log", icon: "audit_log", href: "/admin/audit-log" },
   ],
   AGENCY: [

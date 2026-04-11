@@ -234,6 +234,38 @@ export function sendInvitationAcceptedEmail(
 }
 
 /**
+ * Sent to the inviter when a `PENDING` invitation expires because the
+ * creator didn't respond within the configured window (default 7 days).
+ * Triggered by `/api/cron/expire-invitations`.
+ */
+export function sendInvitationExpiredEmail(
+  inviterEmail: string,
+  inviterName: string,
+  creatorName: string,
+  orderTitle: string,
+  expiryDays: number
+) {
+  const html = emailWrapper(
+    "Invitation expired",
+    `
+    <p style="color: #374151; line-height: 1.6;">Hi ${inviterName},</p>
+    <p style="color: #374151; line-height: 1.6;">
+      Your invitation to <strong>${creatorName}</strong> for
+      "<strong>${orderTitle}</strong>" expired after ${expiryDays} days
+      without a response. You can invite another creator from the AI
+      match list on the order page.
+    </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="${APP_URL}/brand/orders" style="display: inline-block; padding: 10px 24px; background: ${BRAND_COLOR}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        View Order
+      </a>
+    </div>
+    `
+  )
+  void send(inviterEmail, `Expired: ${orderTitle}`, html)
+}
+
+/**
  * Sent to the inviter when an invited creator declines the invitation.
  * Links to the brand order detail page so the brand can try a different
  * match from the AI shortlist.

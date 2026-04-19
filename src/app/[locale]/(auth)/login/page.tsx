@@ -93,9 +93,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen h-screen bg-white">
+    <div className="fixed inset-0 flex bg-white overflow-hidden">
       {/* ── Left panel ── */}
-      <div className="flex flex-col w-full lg:w-1/2 px-8 py-10 sm:px-12 lg:px-16 overflow-y-auto">
+      <div className="flex flex-col w-full lg:w-1/2 px-8 py-10 sm:px-12 lg:px-16 overflow-y-auto h-full">
         {/* Logo */}
         <div className="mb-10 flex-shrink-0">
           <Link href="/" className="flex items-center gap-2.5 w-fit">

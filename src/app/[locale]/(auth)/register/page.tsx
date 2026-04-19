@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -12,37 +12,47 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import FoxLogo from "@/components/FoxLogo"
 
 type Role = "CREATOR" | "NETWORK" | "BRAND" | "AGENCY"
 
-const TESTIMONIALS = [
+const STEP_COUNT = 3
+
+const FEATURES = [
   {
-    quote:
-      "I landed my first brand deal within a week of joining Foxolog. The platform made everything incredibly smooth.",
-    name: "Zeynep K.",
-    role: "Lifestyle Creator · 280K followers",
-    initials: "ZK",
-    color: "bg-orange-500",
+    icon: (
+      <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+      </svg>
+    ),
+    title: "Discover the right creators",
+    desc: "Filter by niche, tier, and content type to find the perfect match for your campaign.",
   },
   {
-    quote:
-      "We found the perfect creators for our campaign in minutes. The filtering and analytics saved us so much time.",
-    name: "Sarah M.",
-    role: "Marketing Director · Fashion Brand",
-    initials: "SM",
-    color: "bg-blue-500",
+    icon: (
+      <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+      </svg>
+    ),
+    title: "Track every campaign",
+    desc: "Real-time TikTok metrics, AI-powered delivery analysis, and full audit trail.",
   },
   {
-    quote:
-      "Managing 12 brands and their creator campaigns from one dashboard changed everything for our agency.",
-    name: "Carlos R.",
-    role: "Director · CreativeHub Agency",
-    initials: "CR",
-    color: "bg-purple-500",
+    icon: (
+      <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+      </svg>
+    ),
+    title: "Secure escrow payments",
+    desc: "Funds are held in escrow and released to creators only after brand approval.",
   },
 ]
 
-const STEP_COUNT = 3
+const STATS = [
+  { value: "500+", label: "Creators" },
+  { value: "200+", label: "Brands" },
+  { value: "12K+", label: "Campaigns" },
+]
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -50,7 +60,6 @@ export default function RegisterPage() {
   const tLanding = useTranslations("landing")
 
   const [step, setStep] = useState(0)
-  const [testimonialIndex, setTestimonialIndex] = useState(0)
   const [direction, setDirection] = useState(1)
 
   const [role, setRole] = useState<Role>("CREATOR")
@@ -66,14 +75,6 @@ export default function RegisterPage() {
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-
-  // Rotate testimonials every 5s
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTestimonialIndex((i) => (i + 1) % TESTIMONIALS.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
 
   const roles: { value: Role; labelKey: string; descKey: string; icon: string }[] = [
     { value: "CREATOR", labelKey: "register_role_creator", descKey: "register_role_creator_desc", icon: "🎬" },
@@ -190,24 +191,14 @@ export default function RegisterPage() {
       <p className="mt-1 text-xs text-red-600">{fieldErrors[field]}</p>
     ) : null
 
-  const testimonial = TESTIMONIALS[testimonialIndex]
-
   return (
     <div className="flex h-screen min-h-screen">
       {/* ── Left panel ── */}
       <div className="flex flex-col w-full lg:w-1/2 px-8 py-10 sm:px-12 lg:px-16 overflow-y-auto">
         {/* Logo */}
         <div className="mb-10 flex-shrink-0">
-          <Link href="/" className="flex items-center gap-2 w-fit">
-            <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="50" cy="60" rx="30" ry="22" fill="#d4772c" />
-              <ellipse cx="50" cy="58" rx="22" ry="16" fill="#b85c1a" />
-              <circle cx="38" cy="50" r="7" fill="#fdf6e3" />
-              <circle cx="62" cy="50" r="7" fill="#fdf6e3" />
-              <circle cx="38" cy="50" r="3" fill="#0a0a0a" />
-              <circle cx="62" cy="50" r="3" fill="#0a0a0a" />
-              <path d="M 30 30 Q 25 18 38 20 Q 50 10 62 20 Q 75 18 70 30" stroke="#d4772c" strokeWidth="4" fill="#d4772c" strokeLinecap="round" />
-            </svg>
+          <Link href="/" className="flex items-center gap-2.5 w-fit">
+            <FoxLogo className="h-8 w-auto" />
             <span className="text-xl font-bold text-[#0a0a0a] tracking-tight">Foxolog</span>
           </Link>
         </div>
@@ -551,79 +542,48 @@ export default function RegisterPage() {
 
       {/* ── Right panel ── */}
       <div
-        className="hidden lg:flex flex-col justify-center items-center w-1/2 relative overflow-hidden bg-[#0a0a0a]"
+        className="hidden lg:flex flex-col justify-center w-1/2 relative overflow-hidden bg-[#0a0a0a] px-16"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
+            "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
         }}
       >
-        {/* Glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#d4772c] opacity-10 blur-3xl pointer-events-none" />
+        {/* Glow blobs */}
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-[#d4772c] opacity-[0.08] blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-56 h-56 rounded-full bg-orange-400 opacity-[0.06] blur-3xl pointer-events-none" />
 
-        {/* Stats */}
-        <div className="flex gap-10 mb-14 relative z-10">
-          {[
-            { value: "500+", label: "Creators" },
-            { value: "200+", label: "Brands" },
-            { value: "12K+", label: "Campaigns" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-3xl font-bold text-white">{stat.value}</div>
-              <div className="text-xs text-gray-400 mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
+        <div className="relative z-10 max-w-sm">
+          {/* Tagline */}
+          <p className="text-[#d4772c] text-xs font-semibold uppercase tracking-widest mb-4">
+            TikTok Influencer Platform
+          </p>
+          <h2 className="text-3xl font-bold text-white leading-snug mb-10">
+            Everything you need to run great campaigns.
+          </h2>
 
-        {/* Testimonial card */}
-        <div className="relative z-10 w-full max-w-sm px-6">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={testimonialIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6"
-            >
-              <p className="text-white text-sm leading-relaxed">
-                &ldquo;{testimonial.quote}&rdquo;
-              </p>
-              <div className="mt-5 flex items-center gap-3">
-                <div
-                  className={cn(
-                    "w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0",
-                    testimonial.color
-                  )}
-                >
-                  {testimonial.initials}
+          {/* Feature list */}
+          <div className="space-y-6 mb-12">
+            {FEATURES.map((f) => (
+              <div key={f.title} className="flex gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#d4772c]">
+                  {f.icon}
                 </div>
                 <div>
-                  <div className="text-white text-sm font-medium">{testimonial.name}</div>
-                  <div className="text-gray-400 text-xs">{testimonial.role}</div>
-                </div>
-                <div className="ml-auto">
-                  <span className="text-[#d4772c] font-bold text-sm tracking-tight">foxolog</span>
+                  <div className="text-white text-sm font-semibold">{f.title}</div>
+                  <div className="text-gray-400 text-xs mt-0.5 leading-relaxed">{f.desc}</div>
                 </div>
               </div>
-            </motion.div>
-          </AnimatePresence>
+            ))}
+          </div>
 
-          {/* Dot indicators */}
-          <div className="flex justify-center gap-1.5 mt-4">
-            {TESTIMONIALS.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setTestimonialIndex(i)}
-                className={cn(
-                  "rounded-full transition-all duration-300",
-                  i === testimonialIndex
-                    ? "w-4 h-1.5 bg-[#d4772c]"
-                    : "w-1.5 h-1.5 bg-white/20"
-                )}
-                aria-label={`Testimonial ${i + 1}`}
-              />
+          {/* Stats */}
+          <div className="border-t border-white/10 pt-8 grid grid-cols-3 gap-4">
+            {STATS.map((s) => (
+              <div key={s.label}>
+                <div className="text-2xl font-bold text-white">{s.value}</div>
+                <div className="text-gray-500 text-xs mt-0.5">{s.label}</div>
+              </div>
             ))}
           </div>
         </div>

@@ -91,7 +91,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-screen min-h-screen">
+    <div className="flex min-h-screen h-screen bg-white">
       {/* ── Left panel ── */}
       <div className="flex flex-col w-full lg:w-1/2 px-8 py-10 sm:px-12 lg:px-16 overflow-y-auto">
         {/* Logo */}

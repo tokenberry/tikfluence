@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function RegisterLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-white overflow-auto">
-      {children}
-    </div>
-  )
+  return <>{children}</>
 }

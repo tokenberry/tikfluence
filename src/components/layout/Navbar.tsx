@@ -45,8 +45,9 @@ export default function Navbar() {
   const dashboardHref = roleDashboardPath[role] || "/"
   const settingsHref = roleSettingsPath[role] || "#"
 
-  // Landing page has its own header
-  if (pathname === "/" && status !== "authenticated") return null
+  // Landing page and auth pages have their own header
+  const isAuthPage = pathname.includes("/login") || pathname.includes("/register")
+  if ((pathname === "/" && status !== "authenticated") || isAuthPage) return null
 
   return (
     <nav className="bg-[#0a0a0a] border-b border-white/5 sticky top-0 z-50">

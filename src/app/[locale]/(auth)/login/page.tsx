@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
@@ -49,7 +49,6 @@ const STATS = [
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const t = useTranslations("auth")
   const tLanding = useTranslations("landing")
 
@@ -60,10 +59,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (searchParams.get("registered") === "true") {
-      setSuccess("Account created! Please sign in.")
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("registered") === "true") {
+        setSuccess("Account created! Please sign in.")
+      }
     }
-  }, [searchParams])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -211,12 +213,10 @@ export default function LoginPage() {
       <div
         className="hidden lg:flex flex-col justify-center w-1/2 relative overflow-hidden bg-[#0a0a0a] px-16"
         style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
           backgroundSize: "28px 28px",
         }}
       >
-        {/* Glow blobs */}
         <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-[#d4772c] opacity-[0.08] blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-56 h-56 rounded-full bg-orange-400 opacity-[0.06] blur-3xl pointer-events-none" />
 

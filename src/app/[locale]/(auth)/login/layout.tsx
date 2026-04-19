@@ -7,5 +7,9 @@ export const metadata: Metadata = {
 }
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
-  return children
+  return (
+    <div className="fixed inset-0 z-50 bg-white overflow-auto">
+      {children}
+    </div>
+  )
 }
